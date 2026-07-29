@@ -1,13 +1,14 @@
 export const palette = {
-    primary500: '#FF6B00',
-    primary600: '#D95A00',
-    peach100: '#FFDAB9',
-    secondary500: '#10B981', 
-    secondary600: '#059669',
-    neutral900: '#333333',
-    neutral100: '#F5F5F5',
-    white: '#FFFFFF',
-    red500: '#EF4444',
+  primary500: '#FF6B00',
+  primary600: '#D95A00',
+  peach100: '#FFDAB9',
+  secondary500: '#10B981',
+  secondary600: '#059669',
+  neutral900: '#333333',
+  neutral100: '#F5F5F5',
+  white: '#FFFFFF',
+  red500: '#EF4444',
+  black: '#000000',
 } as const;
 
 export const colors = {
@@ -21,4 +22,5 @@ export const colors = {
   textPrimary: palette.neutral900,
   error: palette.red500,
   white: palette.white,
+  shadow: palette.black,
 } as const;
