@@ -20,5 +20,14 @@
   "bugs": {
     "url": "https://github.com/daniel190392/MyBasket/issues"
   },
-  "homepage": "https://github.com/daniel190392/MyBasket#readme"
+  "homepage": "https://github.com/daniel190392/MyBasket#readme",
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-native": "^0.86.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-native": "^0.72.8",
+    "typescript": "^7.0.2"
+  }
 }
