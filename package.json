@@ -1,0 +1,24 @@
+{
+  "name": "mybasket",
+  "version": "1.0.0",
+  "description": "",
+  "workspaces": [
+    "modules/*"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daniel190392/MyBasket.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/daniel190392/MyBasket/issues"
+  },
+  "homepage": "https://github.com/daniel190392/MyBasket#readme"
+}
