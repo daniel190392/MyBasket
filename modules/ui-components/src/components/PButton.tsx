@@ -9,19 +9,19 @@ import {
 
 import { colors, typography, spacing } from '../theme';
 
-export interface ButtonProps {
+export interface PButtonProps {
   title: string;
   onPress: (event: GestureResponderEvent) => void;
   variant?: 'primary' | 'secondary';
   isLoading?: boolean;
 }
 
-export default function Button({
+export default function PButton({
   title,
   onPress,
   variant = 'primary',
   isLoading = false,
-}: ButtonProps) {
+}: PButtonProps) {
   const isPrimary = variant === 'primary';
 
   return (

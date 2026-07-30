@@ -1,2 +1,2 @@
-export { default as Button } from './components/Button';
+export * from './components';
 export * from './theme';
