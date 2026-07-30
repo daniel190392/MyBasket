@@ -1,15 +1,19 @@
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { StackScreenProps } from '@react-navigation/stack';
+
+import { CATALOG_ITEMS } from './catalogConfig';
+
+export type CatalogScreenNames = (typeof CATALOG_ITEMS)[number]['screenName'];
 
 export type RootStackParamList = {
   Home: undefined;
-  ButtonScreen: undefined;
+} & {
+  [K in CatalogScreenNames]: undefined;
 };
 
-export type HomeScreenProps = NativeStackScreenProps<
+export type ScreenProps<T extends keyof RootStackParamList> = StackScreenProps<
   RootStackParamList,
-  'Home'
+  T
 >;
-export type ButtonScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'ButtonScreen'
->;
+
+export type HomeScreenProps = ScreenProps<'Home'>;
+export type ButtonScreenProps = ScreenProps<'ButtonScreen'>;

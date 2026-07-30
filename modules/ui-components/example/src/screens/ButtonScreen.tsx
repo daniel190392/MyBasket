@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, FlatList, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/types';
 
 import { SHOWCASE_DATA, ComponentSection } from '../data/showcaseItems';
 
@@ -13,7 +15,17 @@ import {
   shadows,
 } from '../../../src';
 
-export const HomeScreen = () => {
+type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+
+interface ComponentItem {
+  id: string;
+  title: string;
+  description: string;
+  targetScreen: keyof RootStackParamList;
+  status: 'Ready' | 'In Progress' | 'Planned';
+}
+
+export const ButtonScreen = () => {
   const renderItem = ({ item }: { item: ComponentSection }) => {
     return (
       <View style={styles.card}>
