@@ -4,9 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 
-import { SHOWCASE_DATA, ComponentSection } from '../data/showcaseItems';
-
-import { Button } from '../../../src';
+import { PButton } from '../../../src';
 import {
   colors,
   spacing,
@@ -14,6 +12,8 @@ import {
   borderRadius,
   shadows,
 } from '../../../src';
+
+import { SHOWCASE_DATA, ComponentSection } from '../data/showcaseItems';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -32,13 +32,13 @@ export const ButtonScreen = () => {
         <Text style={styles.itemTitle}>{item.title}</Text>
 
         {item.id === '1' && (
-          <Button
+          <PButton
             title="Guardar alimento"
             onPress={() => console.log('Primary')}
           />
         )}
         {item.id === '2' && (
-          <Button
+          <PButton
             title="Cancelar"
             variant="secondary"
             onPress={() => console.log('Secondary')}

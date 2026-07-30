@@ -1,62 +1,85 @@
-import React from 'react';
-import { View, FlatList, Text, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/types';
-
-import { SHOWCASE_DATA, ComponentSection } from '../data/showcaseItems';
-
-import { Button } from '../../../src';
+import React, { useState, useMemo } from 'react';
 import {
-  colors,
-  spacing,
-  typography,
-  borderRadius,
-  shadows,
-} from '../../../src';
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  TextInput,
+  SafeAreaView,
+} from 'react-native';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+import { PBadge, BadgeVariant, PCard } from '../../../src';
+import { textPresets, colors, spacing, typography } from '../../../src';
 
-interface ComponentItem {
-  id: string;
-  title: string;
-  description: string;
-  targetScreen: keyof RootStackParamList;
-  status: 'Ready' | 'In Progress' | 'Planned';
-}
+import { CATALOG_ITEMS } from '../navigation/catalogConfig';
+import { HomeScreenProps } from '../navigation/types';
 
-export const HomeScreen = () => {
-  const renderItem = ({ item }: { item: ComponentSection }) => {
+type CatalogItem = (typeof CATALOG_ITEMS)[number];
+
+export const HomeScreen = ({ navigation }: HomeScreenProps) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredItems = useMemo(() => {
+    return CATALOG_ITEMS.filter((item) =>
+      item.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+
+  const getBadgetVariant = (status: CatalogItem['status']): BadgeVariant => {
+    switch (status) {
+      case 'Ready':
+        return 'important';
+      case 'In Progress':
+        return 'warning';
+      case 'Planned':
+        return 'informative';
+    }
+  };
+
+  const renderItem = ({ item }: { item: CatalogItem }) => {
+    const badgeVariant = getBadgetVariant(item.status);
+    const isClickable = item.status !== 'Planned';
+
     return (
-      <View style={styles.card}>
-        <Text style={styles.itemTitle}>{item.title}</Text>
-
-        {item.id === '1' && (
-          <Button
-            title="Guardar alimento"
-            onPress={() => console.log('Primary')}
-          />
-        )}
-        {item.id === '2' && (
-          <Button
-            title="Cancelar"
-            variant="secondary"
-            onPress={() => console.log('Secondary')}
-          />
-        )}
-      </View>
+      <PCard
+        isClickable={isClickable}
+        onPress={() => navigation.navigate(item.screenName as any)}
+      >
+        <View style={styles.cardContent}>
+          <View style={styles.titleRow}>
+            <Text style={textPresets.title}>{item.title}</Text>
+            <PBadge title={item.status} variant={badgeVariant} />
+          </View>
+          <Text style={textPresets.caption}>{item.description}</Text>
+        </View>
+      </PCard>
     );
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>PantryHub Component System</Text>
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar componente..."
+          placeholderTextColor={colors.textSecondary}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          clearButtonMode="while-editing"
+        />
+      </View>
+
       <FlatList
-        data={SHOWCASE_DATA}
+        data={filteredItems}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContainer}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No se encontraron componentes</Text>
+          </View>
+        }
       />
     </SafeAreaView>
   );
@@ -65,29 +88,44 @@ export const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
   },
-  header: {
-    fontWeight: typography.weights.bold,
-    padding: spacing.lg,
+  searchContainer: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surface,
+  },
+  searchInput: {
+    height: 40,
+    backgroundColor: colors.background,
+    borderRadius: spacing.sm,
+    paddingHorizontal: spacing.md,
+    fontSize: typography.sizes.md,
     color: colors.textPrimary,
   },
   listContainer: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxl,
-  },
-  card: {
-    backgroundColor: colors.white,
     padding: spacing.lg,
-    borderRadius: borderRadius.md,
-    ...shadows.sm,
   },
-  itemTitle: {
-    fontSize: typography.sizes.sm,
-    color: colors.textPrimary,
-    marginBottom: spacing.md,
+  cardContent: {
+    flex: 1,
+    marginRight: spacing.md,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+    gap: spacing.sm,
   },
   separator: {
     height: spacing.md,
+  },
+  emptyContainer: {
+    padding: spacing.xxl,
+    alignItems: 'center',
+  },
+  emptyText: {
+    ...textPresets.caption,
   },
 });
