@@ -13,7 +13,7 @@ import {
   shadows,
 } from '../../../src';
 
-export const ComponentShowcase = () => {
+export const HomeScreen = () => {
   const renderItem = ({ item }: { item: ComponentSection }) => {
     return (
       <View style={styles.card}>

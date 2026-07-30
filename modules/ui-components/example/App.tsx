@@ -1,43 +1,61 @@
 import React from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar, View, Text, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
-import { ComponentShowcase } from './src/screens/ComponentShowcase';
+import { HomeScreen } from './src/screens/Home';
+import { RootStackParamList } from './src/navigation/types';
+import { colors, typography } from '../src';
+import { StackScreen } from 'react-native-screens';
+
+const Stack = createStackNavigator<RootStackParamList>();
+
+const CallHomeScreen = () => <HomeScreen />;
+
+const DummyButtonScreen = () => (
+  <View style={styles.center}>
+    <Text>Button Screen</Text>
+  </View>
+);
+
+//
 
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="dark-content" />
-      <ComponentShowcase />
+      <NavigationContainer>
+        <StatusBar barStyle="dark-content" />
+        <Stack.Navigator
+          initialRouteName="Home"
+          screenOptions={{
+            headerStyle: { backgroundColor: colors.surface },
+            headerTintColor: colors.textPrimary,
+            headerTitleStyle: { fontSize: typography.sizes.lg },
+          }}
+        >
+          <Stack.Screen
+            name="Home"
+            // component={DummyButtonScreen} // CallHomeScreen Other alternative
+            options={{ title: 'PantryHub UI' }}
+          >
+            {() => <HomeScreen />}
+          </Stack.Screen>
+          <Stack.Screen
+            name="ButtonScreen"
+            component={DummyButtonScreen}
+            options={{ title: 'Button Component' }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
     </SafeAreaProvider>
   );
 }
 
-/*
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-
-import { Button, colors, spacing } from '../src';
-
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-      <Button
-        title="Hacer clic"
-        onPress={() => console.log('¡Botón presionado correctamente!')}
-      />
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  container: {
+  center: {
     flex: 1,
-    backgroundColor: colors.white,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
 });
-*/
