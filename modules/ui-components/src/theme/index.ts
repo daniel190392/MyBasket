@@ -3,6 +3,7 @@ export { typography, spacing } from './typography';
 export { borderRadius } from './borders';
 export { shadows } from './shadows';
 export { textPresets } from './textPresets';
+export { withOpacity } from './utils';
 /*
 const styles = StyleSheet.create({
   container: {
