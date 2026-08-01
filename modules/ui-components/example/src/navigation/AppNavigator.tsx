@@ -3,11 +3,12 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import { RootStackParamList } from './types';
 import { CATALOG_ITEMS } from './catalogConfig';
-import { HomeScreen, ButtonScreen } from '../screens/index';
+import { HomeScreen, ButtonScreen, BadgeScreen } from '../screens/index';
 
 const SCREEN_COMPONENTS: Record<string, React.ComponentType<any>> = {
   ButtonScreen: ButtonScreen,
   // InputScreen: InputScreen,
+  BadgeScreen: BadgeScreen,
   // CardScreen: CardScreen,
 };
 
