@@ -14,6 +14,7 @@ export interface PButtonProps {
   onPress: (event: GestureResponderEvent) => void;
   variant?: 'primary' | 'secondary';
   isLoading?: boolean;
+  isDisabled?: boolean;
 }
 
 export default function PButton({
@@ -21,16 +22,19 @@ export default function PButton({
   onPress,
   variant = 'primary',
   isLoading = false,
+  isDisabled = false,
 }: PButtonProps) {
   const isPrimary = variant === 'primary';
+  const isInteractive = !isDisabled && !isLoading;
 
   return (
     <TouchableOpacity
       onPress={onPress}
-      disabled={isLoading}
+      disabled={!isInteractive}
       style={[
         styles.base,
         isPrimary ? styles.primaryContainer : styles.secondaryContainer,
+        !isInteractive && styles.disabledContainer,
       ]}
       activeOpacity={0.8}
     >
@@ -41,6 +45,7 @@ export default function PButton({
           style={[
             styles.text,
             isPrimary ? styles.primaryText : styles.secondaryText,
+            isDisabled && styles.disabledText,
           ]}
         >
           {title}
@@ -76,5 +81,13 @@ const styles = StyleSheet.create({
   },
   secondaryText: {
     color: colors.primary,
+  },
+  disabledContainer: {
+    backgroundColor: colors.disabled,
+    borderColor: colors.disabled,
+    opacity: 0.8,
+  },
+  disabledText: {
+    color: colors.textDisabled,
   },
 });
