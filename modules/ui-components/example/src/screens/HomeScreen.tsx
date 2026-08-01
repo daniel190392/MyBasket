@@ -25,14 +25,12 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
         return 'important';
       case 'In Progress':
         return 'warning';
-      case 'Planned':
-        return 'informative';
     }
   };
 
   const renderItem = ({ item }: { item: CatalogItem }) => {
     const badgeVariant = getBadgetVariant(item.status);
-    const isClickable = item.status !== 'Planned';
+    const isClickable = item.status !== 'In Progress';
 
     return (
       <PCard

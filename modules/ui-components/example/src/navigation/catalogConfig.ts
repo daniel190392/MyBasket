@@ -11,7 +11,7 @@ export const CATALOG_ITEMS = [
     screenName: 'InputScreen',
     title: 'Input & Form Controls',
     description: 'Campos de texto, validaciones visuales e íconos integrados.',
-    status: 'Ready',
+    status: 'In Progress',
   },
   {
     id: 'badge',
@@ -25,6 +25,6 @@ export const CATALOG_ITEMS = [
     screenName: 'CardScreen',
     title: 'Card & Containers',
     description: 'Contenedores con sombreado, elevación y bordes tokens.',
-    status: 'Planned',
+    status: 'Ready',
   },
 ] as const;
