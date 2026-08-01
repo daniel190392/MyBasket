@@ -3,8 +3,7 @@ export const CATALOG_ITEMS = [
     id: 'button',
     screenName: 'ButtonScreen',
     title: 'Button',
-    description:
-      'Botones primarios, secundarios, variantes de estado y tamaños.',
+    description: 'Botones primarios, secundarios, variantes de estado.',
     status: 'Ready',
   },
   {
@@ -12,7 +11,14 @@ export const CATALOG_ITEMS = [
     screenName: 'InputScreen',
     title: 'Input & Form Controls',
     description: 'Campos de texto, validaciones visuales e íconos integrados.',
-    status: 'In Progress',
+    status: 'Ready',
+  },
+  {
+    id: 'badge',
+    screenName: 'BadgeScreen',
+    title: 'Badge',
+    description: 'Etiquetas con variantes de estado.',
+    status: 'Ready',
   },
   {
     id: 'card',

@@ -1,12 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  FlatList,
-  TextInput,
-  SafeAreaView,
-} from 'react-native';
+import { StyleSheet, Text, View, FlatList, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PBadge, BadgeVariant, PCard } from '../../../src';
 import { textPresets, colors, spacing, typography } from '../../../src';
@@ -57,7 +51,7 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
@@ -81,14 +75,14 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
           </View>
         }
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.white,
   },
   searchContainer: {
     paddingHorizontal: spacing.lg,
