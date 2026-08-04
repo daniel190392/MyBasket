@@ -27,6 +27,7 @@ export interface PInputProps extends Omit<TextInputProps, 'style'> {
   rightIcon?: ReactNode;
   containerStyle?: ViewStyle;
   inputStyle?: TextStyle;
+  disabled?: boolean;
 }
 
 export const PInput = ({
@@ -39,13 +40,14 @@ export const PInput = ({
   inputStyle,
   onFocus,
   onBlur,
-  disabled,
-  placeholderTextColor = colors.textSecondary,
+  disabled = false,
+  placeholderTextColor = colors.textMuted,
   ...rest
 }: PInputProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
   const handleFocus = (e: any) => {
+    if (disabled) return;
     setIsFocused(true);
     onFocus?.(e);
   };
@@ -56,25 +58,22 @@ export const PInput = ({
   };
 
   const hasError = Boolean(error);
-
-  const getBorderColor = () => {
-    if (hasError) return colors.error;
-    if (isFocused) return colors.primary;
-    return colors.primary;
+  const getContainerStateStyle = () => {
+    if (disabled) return styles.disabledContainer;
+    if (hasError) return styles.errorContainer;
+    if (isFocused) return styles.focusedContainer;
+    return styles.defaultContainer;
   };
 
   return (
     <View style={[styles.wrapper, containerStyle]}>
-      {Boolean(label) && <Text style={styles.label}>{label}</Text>}
+      {Boolean(label) && (
+        <Text style={[styles.label, disabled && styles.disabledText]}>
+          {label}
+        </Text>
+      )}
 
-      <View
-        style={[
-          styles.inputContainer,
-          { borderColor: getBorderColor() },
-          isFocused && styles.focusedContainer,
-          disabled && styles.disabledContainer,
-        ]}
-      >
+      <View style={[styles.inputContainer, getContainerStateStyle()]}>
         {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
 
         <TextInput
@@ -82,8 +81,14 @@ export const PInput = ({
           editable={!disabled}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          placeholderTextColor={placeholderTextColor}
-          style={[styles.input, inputStyle]}
+          placeholderTextColor={
+            disabled ? colors.textDisabled : placeholderTextColor
+          }
+          style={[
+            styles.input,
+            disabled && styles.disabledInputText,
+            inputStyle,
+          ]}
         />
 
         {rightIcon && <View style={styles.iconRight}>{rightIcon}</View>}
@@ -94,6 +99,7 @@ export const PInput = ({
           style={[
             styles.helperText,
             { color: hasError ? colors.error : colors.textSecondary },
+            disabled && styles.disabledText,
           ]}
         >
           {error || helperText}
@@ -117,18 +123,29 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1.5,
     borderRadius: borderRadius.md,
-    backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
     height: 52,
   },
+  defaultContainer: {
+    backgroundColor: colors.surfaceInput,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+  },
   focusedContainer: {
+    backgroundColor: colors.surfaceInput,
     borderWidth: 2,
+    borderColor: colors.primaryPressed,
+  },
+  errorContainer: {
+    backgroundColor: colors.surfaceInput,
+    borderWidth: 1.5,
+    borderColor: colors.error,
   },
   disabledContainer: {
-    backgroundColor: colors.background,
-    borderColor: colors.background,
+    backgroundColor: colors.backgroundDisabled,
+    borderWidth: 1,
+    borderColor: colors.borderDisabled,
     opacity: 0.7,
   },
   input: {
@@ -137,6 +154,12 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     height: '100%',
     paddingVertical: 0,
+  },
+  disabledInputText: {
+    color: colors.textDisabled, // Texto tenue al estar inactivo
+  },
+  disabledText: {
+    color: colors.textDisabled,
   },
   iconLeft: {
     marginRight: spacing.sm,
