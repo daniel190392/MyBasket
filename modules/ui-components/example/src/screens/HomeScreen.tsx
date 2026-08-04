@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { StyleSheet, Text, View, FlatList, TextInput } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { PBadge, BadgeVariant, PCard } from '../../../src';
+import { PBadge, BadgeVariant, PCard, PInput } from '../../../src';
 import { textPresets, colors, spacing, typography } from '../../../src';
 
 import { CATALOG_ITEMS } from '../navigation/catalogConfig';
@@ -28,6 +27,12 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
     }
   };
 
+  const SearchIcon = () => (
+    <Text style={{ fontSize: typography.sizes.md, color: colors.surface }}>
+      🔍
+    </Text>
+  );
+
   const renderItem = ({ item }: { item: CatalogItem }) => {
     const badgeVariant = getBadgetVariant(item.status);
     const isClickable = item.status !== 'In Progress';
@@ -51,13 +56,14 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
-        <TextInput
+        <PInput
           style={styles.searchInput}
           placeholder="Buscar componente..."
           placeholderTextColor={colors.textSecondary}
           value={searchQuery}
           onChangeText={setSearchQuery}
           clearButtonMode="while-editing"
+          leftIcon={<SearchIcon />}
         />
       </View>
 
