@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-import { colors, typography, spacing } from '../theme';
+import { colors, typography, spacing, borderRadius } from '../theme';
 
 export interface PButtonProps {
   title: string;
@@ -34,7 +34,7 @@ export default function PButton({
       style={[
         styles.base,
         isPrimary ? styles.primaryContainer : styles.secondaryContainer,
-        !isInteractive && styles.disabledContainer,
+        isDisabled && styles.disabledContainer,
       ]}
       activeOpacity={0.8}
     >
@@ -59,18 +59,26 @@ const styles = StyleSheet.create({
   base: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
-    borderRadius: spacing.sm,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
+    width: '100%',
   },
   primaryContainer: {
     backgroundColor: colors.primary,
+    borderWidth: 0,
   },
   secondaryContainer: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
+    backgroundColor: colors.surfaceInput,
+    borderWidth: 1.5,
     borderColor: colors.primary,
+  },
+  disabledContainer: {
+    backgroundColor: colors.backgroundDisabled,
+    borderWidth: 1,
+    borderColor: colors.borderDisabled,
+    opacity: 0.7,
   },
   text: {
     fontSize: typography.sizes.md,
@@ -81,11 +89,6 @@ const styles = StyleSheet.create({
   },
   secondaryText: {
     color: colors.primary,
-  },
-  disabledContainer: {
-    backgroundColor: colors.disabled,
-    borderColor: colors.disabled,
-    opacity: 0.8,
   },
   disabledText: {
     color: colors.textDisabled,

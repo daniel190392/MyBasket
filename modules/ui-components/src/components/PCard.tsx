@@ -39,7 +39,7 @@ export function PCard({ children, onPress, isClickable = true }: PCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     padding: spacing.lg,
     flexDirection: 'row',
@@ -54,6 +54,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     shadowRadius: 0,
     shadowOffset: { width: 0, height: 0 },
-    backgroundColor: colors.surface,
+    backgroundColor: colors.backgroundDisabled,
   },
 });
