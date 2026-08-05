@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { StyleSheet, Text, View, FlatList, TextInput } from 'react-native';
+import { StyleSheet, Text, View, FlatList } from 'react-native';
 
 import { PBadge, BadgeVariant, PCard, PInput } from '../../../src';
 import { textPresets, colors, spacing, typography } from '../../../src';
@@ -22,8 +22,10 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
     switch (status) {
       case 'Ready':
         return 'important';
+      /*
       case 'In Progress':
         return 'warning';
+      */
     }
   };
 
@@ -35,7 +37,7 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
   const renderItem = ({ item }: { item: CatalogItem }) => {
     const badgeVariant = getBadgetVariant(item.status);
-    const isClickable = item.status !== 'In Progress';
+    const isClickable = true; //item.status !== 'In Progress';
 
     return (
       <PCard

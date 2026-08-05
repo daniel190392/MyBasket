@@ -9,6 +9,7 @@ import {
   BadgeScreen,
   CardScreen,
   InputScreen,
+  LinkScreen,
 } from '../screens/index';
 
 const SCREEN_COMPONENTS: Record<string, React.ComponentType<any>> = {
@@ -16,7 +17,7 @@ const SCREEN_COMPONENTS: Record<string, React.ComponentType<any>> = {
   InputScreen: InputScreen,
   BadgeScreen: BadgeScreen,
   CardScreen: CardScreen,
-  // LinkScreen: LinkScreen,
+  LinkScreen: LinkScreen,
 };
 
 const Stack = createStackNavigator<RootStackParamList>();

@@ -32,6 +32,6 @@ export const CATALOG_ITEMS = [
     screenName: 'LinkScreen',
     title: 'Links',
     description: 'Texto que te redirigue a otra vista o url.',
-    status: 'In Progress',
+    status: 'Ready',
   },
 ] as const;
