@@ -26,6 +26,7 @@ export const colors = {
   surface: palette.neutral100,
   surfaceInput: palette.white,
   backgroundDisabled: palette.neutral200,
+  skeleton: palette.neutral200,
   border: palette.neutral300,
   borderDisabled: palette.neutral300,
   textPrimary: palette.neutral900,

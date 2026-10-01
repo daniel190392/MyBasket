@@ -2,14 +2,14 @@ import React from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import {
-  MFadeIn,
-  MPressableScale,
   borderRadius,
   colors,
   shadows,
   spacing,
   typography,
-} from '../../../src';
+} from 'ui-components';
+
+import { MFadeIn, MPressableScale } from '../../../src';
 
 import { CATALOG_ITEMS } from '../navigation/catalogConfig';
 import { HomeScreenProps } from '../navigation/types';

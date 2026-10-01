@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { borderRadius, colors, spacing, typography } from '../../../src';
+import { borderRadius, colors, spacing, typography } from 'ui-components';
 
 export const showcaseStyles = StyleSheet.create({
   container: {

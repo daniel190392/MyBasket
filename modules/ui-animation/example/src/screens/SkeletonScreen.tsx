@@ -1,7 +1,9 @@
 import React from 'react';
 import { ScrollView, View } from 'react-native';
 
-import { MSkeleton, borderRadius } from '../../../src';
+import { borderRadius } from 'ui-components';
+
+import { MSkeleton } from '../../../src';
 
 import { ShowcaseSection } from './ShowcaseSection';
 import { showcaseStyles as styles } from './showcaseStyles';

@@ -1,7 +1,9 @@
 import React from 'react';
 import { Animated, ViewProps } from 'react-native';
 
-import { borderRadius, colors, motion } from '../theme';
+import { borderRadius, colors } from 'ui-components';
+
+import { motion } from '../theme';
 import { useLoopingValue } from './internal/useLoopingValue';
 
 export interface MSpinnerProps extends ViewProps {
@@ -36,7 +38,7 @@ export function MSpinner({
           height: size,
           borderRadius: borderRadius.full,
           borderWidth: motion.size.spinnerStroke,
-          borderColor: colors.primarySoft,
+          borderColor: colors.softHighlight,
           borderTopColor: color,
           transform: [{ rotate }],
         },

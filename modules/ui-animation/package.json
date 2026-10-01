@@ -18,6 +18,9 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "dependencies": {
+    "ui-components": "file:../ui-components"
+  },
   "peerDependencies": {
     "react": "*",
     "react-native": "*"

@@ -1,7 +1,9 @@
 import React from 'react';
 import { Animated, DimensionValue, ViewProps } from 'react-native';
 
-import { borderRadius, colors, motion } from '../theme';
+import { borderRadius, colors } from 'ui-components';
+
+import { motion } from '../theme';
 import { useLoopingValue } from './internal/useLoopingValue';
 
 export interface MSkeletonProps extends ViewProps {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing, typography } from '../../../src';
+import { colors, spacing, typography } from 'ui-components';
 
 interface ShowcaseSectionProps {
   title: string;
