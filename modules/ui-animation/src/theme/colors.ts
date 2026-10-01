@@ -1,0 +1,31 @@
+export const palette = {
+  primary50: '#FFF0E6',
+  primary100: '#FFE1CC',
+  primary200: '#FFC499',
+  primary300: '#FFA666',
+  primary400: '#FF8933',
+  primary500: '#FF6B00',
+  primary600: '#CC5600',
+  primary700: '#994000',
+  primary800: '#662B00',
+  primary900: '#331500',
+  neutral900: '#333333',
+  neutral600: '#666666',
+  neutral200: '#F1F3F4',
+  white: '#FFFFFF',
+  black: '#000000',
+} as const;
+
+export const colors = {
+  primary: palette.primary500,
+  primaryPressed: palette.primary600,
+  primarySoft: palette.primary100,
+  primaryMuted: palette.primary200,
+  background: palette.white,
+  surface: palette.primary50,
+  skeleton: palette.neutral200,
+  textPrimary: palette.neutral900,
+  textSecondary: palette.neutral600,
+  white: palette.white,
+  shadow: palette.black,
+} as const;
