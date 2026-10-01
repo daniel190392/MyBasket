@@ -73,6 +73,10 @@ export const InputScreen = ({ navigation }: any) => {
               label="Password"
               placeholder="Enter secure password"
               secureTextEntry={!showPassword}
+              autoComplete="password"
+              textContentType="password"
+              autoCapitalize="none"
+              autoCorrect={false}
               value={passwordValue}
               onChangeText={setPasswordValue}
               rightIcon={
@@ -89,6 +93,11 @@ export const InputScreen = ({ navigation }: any) => {
             <PInput
               label="Account Email"
               placeholder="user@pantryhub.io"
+              keyboardType="email-address"
+              autoComplete="email"
+              textContentType="emailAddress"
+              autoCapitalize="none"
+              autoCorrect={false}
               value={emailValue}
               error={emailError}
               helperText={
