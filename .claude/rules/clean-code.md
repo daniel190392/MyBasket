@@ -5,7 +5,6 @@ Write code as a senior engineer would: simple, readable, and easy to change.
 ## Language
 
 - All code is written in **English**: identifiers, comments, commit messages, documentation inside the code, and user-facing string keys.
-- Conversation with the user stays in Spanish (see `CLAUDE.md`).
 
 ## Principles
 
