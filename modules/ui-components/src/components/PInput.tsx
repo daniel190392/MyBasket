@@ -7,17 +7,24 @@ import {
   TextInputProps,
   ViewStyle,
   TextStyle,
+  NativeSyntheticEvent,
+  TextInputFocusEventData,
 } from 'react-native';
 
 import {
   colors,
   spacing,
   borderRadius,
+  borderWidth,
+  controlHeight,
+  opacity,
   textPresets,
   typography,
 } from '../theme';
 
 import type { ReactNode } from 'react';
+
+type FocusEvent = NativeSyntheticEvent<TextInputFocusEventData>;
 
 export interface PInputProps extends Omit<TextInputProps, 'style'> {
   label?: string;
@@ -46,13 +53,13 @@ export const PInput = ({
 }: PInputProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
-  const handleFocus = (e: any) => {
+  const handleFocus = (e: FocusEvent) => {
     if (disabled) return;
     setIsFocused(true);
     onFocus?.(e);
   };
 
-  const handleBlur = (e: any) => {
+  const handleBlur = (e: FocusEvent) => {
     setIsFocused(false);
     onBlur?.(e);
   };
@@ -125,28 +132,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,
-    height: 52,
+    height: controlHeight.lg,
   },
   defaultContainer: {
     backgroundColor: colors.surfaceInput,
-    borderWidth: 1.5,
+    borderWidth: borderWidth.medium,
     borderColor: colors.primary,
   },
   focusedContainer: {
     backgroundColor: colors.surfaceInput,
-    borderWidth: 2,
+    borderWidth: borderWidth.thick,
     borderColor: colors.primaryPressed,
   },
   errorContainer: {
     backgroundColor: colors.surfaceInput,
-    borderWidth: 1.5,
+    borderWidth: borderWidth.medium,
     borderColor: colors.error,
   },
   disabledContainer: {
     backgroundColor: colors.backgroundDisabled,
-    borderWidth: 1,
+    borderWidth: borderWidth.thin,
     borderColor: colors.borderDisabled,
-    opacity: 0.7,
+    opacity: opacity.disabled,
   },
   input: {
     ...textPresets.body,
@@ -156,7 +163,7 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   disabledInputText: {
-    color: colors.textDisabled, // Texto tenue al estar inactivo
+    color: colors.textDisabled,
   },
   disabledText: {
     color: colors.textDisabled,

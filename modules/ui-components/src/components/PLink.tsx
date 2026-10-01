@@ -3,67 +3,80 @@ import {
   View,
   Text,
   StyleSheet,
-  GestureResponderEvent,
   TouchableOpacity,
+  TouchableOpacityProps,
+  GestureResponderEvent,
 } from 'react-native';
 
-import { colors, spacing, textPresets, typography } from '../theme';
+import { colors, spacing, textPresets, opacity } from '../theme';
 
-export interface PLinkProps {
+type LinkAlign = 'left' | 'center' | 'right';
+
+const ALIGN_ITEMS = {
+  left: 'flex-start',
+  center: 'center',
+  right: 'flex-end',
+} as const;
+
+const HIT_SLOP = {
+  top: spacing.sm,
+  bottom: spacing.sm,
+  left: spacing.lg,
+  right: spacing.lg,
+} as const;
+
+export interface PLinkProps extends Omit<TouchableOpacityProps, 'children'> {
   text?: string;
   link: string;
   variant?: 'primary' | 'secondary';
-  align?: 'left' | 'center' | 'right';
+  align?: LinkAlign;
   onPress: (event: GestureResponderEvent) => void;
 }
 
-export const PLink = ({
-  text = '',
+export function PLink({
+  text,
   link,
   variant = 'primary',
   align = 'left',
   onPress,
-}: PLinkProps) => {
+  ...rest
+}: PLinkProps) {
   const isPrimary = variant === 'primary';
-  const alignStyle = alignMap[align];
+
   return (
     <TouchableOpacity
-      activeOpacity={0.7}
+      activeOpacity={opacity.pressed}
+      hitSlop={HIT_SLOP}
+      {...rest}
       onPress={onPress}
-      hitSlop={{
-        top: spacing.sm,
-        bottom: spacing.sm,
-        left: spacing.lg,
-        right: spacing.lg,
-      }}
     >
-      <View style={[styles.container, { alignItems: alignStyle }]}>
+      <View style={[styles.container, { alignItems: ALIGN_ITEMS[align] }]}>
         <Text style={[styles.baseText, { textAlign: align }]}>
-          {text && <Text style={{ color: colors.textPrimary }}>{text} </Text>}
-          <Text
-            style={{ color: isPrimary ? colors.primary : colors.textSecondary }}
-          >
+          {Boolean(text) && <Text style={styles.text}>{text} </Text>}
+          <Text style={isPrimary ? styles.primaryLink : styles.secondaryLink}>
             {link}
           </Text>
         </Text>
       </View>
     </TouchableOpacity>
   );
-};
-
-const alignMap = {
-  left: 'flex-start',
-  center: 'center',
-  right: 'flex-end',
-} as const;
+}
 
 const styles = StyleSheet.create({
   container: {
     paddingVertical: spacing.xs,
-    alignItems: 'center',
     justifyContent: 'center',
   },
   baseText: {
     ...textPresets.caption,
+  },
+  text: {
+    color: colors.textPrimary,
+  },
+  primaryLink: {
+    color: colors.primary,
+  },
+  secondaryLink: {
+    color: colors.textSecondary,
   },
 });

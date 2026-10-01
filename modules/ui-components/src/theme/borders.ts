@@ -7,3 +7,9 @@ export const borderRadius = {
   xl: 24,
   full: 9999,
 } as const;
+
+export const borderWidth = {
+  thin: 1,
+  medium: 1.5,
+  thick: 2,
+} as const;

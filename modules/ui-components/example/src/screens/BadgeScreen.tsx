@@ -1,33 +1,21 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { ScrollView } from 'react-native';
 
 import { PBadge } from '../../../src';
-import { colors, spacing } from '../../../src';
 
-export const BadgeScreen = () => {
-  return (
-    <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <PBadge title="Important" />
-        <PBadge title="Warning" variant="warning" />
-        <PBadge title="Informative" variant="informative" />
-      </ScrollView>
-    </View>
-  );
-};
+import { ShowcaseSection } from './ShowcaseSection';
+import { showcaseStyles as styles } from './showcaseStyles';
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
-  scrollContent: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.xxl,
-    gap: spacing.lg,
-  },
-});
+export const BadgeScreen = () => (
+  <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ShowcaseSection title="Important">
+      <PBadge title="Important" />
+    </ShowcaseSection>
+    <ShowcaseSection title="Warning">
+      <PBadge title="Warning" variant="warning" />
+    </ShowcaseSection>
+    <ShowcaseSection title="Informative">
+      <PBadge title="Informative" variant="informative" />
+    </ShowcaseSection>
+  </ScrollView>
+);

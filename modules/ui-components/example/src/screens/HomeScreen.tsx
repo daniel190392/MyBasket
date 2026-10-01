@@ -1,67 +1,61 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View, FlatList } from 'react-native';
 
-import { PBadge, BadgeVariant, PCard, PInput } from '../../../src';
-import { textPresets, colors, spacing, typography } from '../../../src';
+import {
+  PBadge,
+  BadgeVariant,
+  PCard,
+  PInput,
+  borderWidth,
+  textPresets,
+  colors,
+  spacing,
+} from '../../../src';
 
 import { CATALOG_ITEMS } from '../navigation/catalogConfig';
 import { HomeScreenProps } from '../navigation/types';
 
+import { SearchIcon } from './SearchIcon';
+
 type CatalogItem = (typeof CATALOG_ITEMS)[number];
+
+const STATUS_VARIANTS: Record<CatalogItem['status'], BadgeVariant> = {
+  Ready: 'important',
+};
+
+const ItemSeparator = () => <View style={styles.separator} />;
+
+const EmptyList = () => (
+  <View style={styles.emptyContainer}>
+    <Text style={styles.emptyText}>No components found</Text>
+  </View>
+);
 
 export const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredItems = useMemo(() => {
-    return CATALOG_ITEMS.filter((item) =>
-      item.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery]);
-
-  const getBadgetVariant = (status: CatalogItem['status']): BadgeVariant => {
-    switch (status) {
-      case 'Ready':
-        return 'important';
-      /*
-      case 'In Progress':
-        return 'warning';
-      */
-    }
-  };
-
-  const SearchIcon = () => (
-    <Text style={{ fontSize: typography.sizes.md, color: colors.surface }}>
-      🔍
-    </Text>
+  const filteredItems = CATALOG_ITEMS.filter((item) =>
+    item.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const renderItem = ({ item }: { item: CatalogItem }) => {
-    const badgeVariant = getBadgetVariant(item.status);
-    const isClickable = true; //item.status !== 'In Progress';
-
-    return (
-      <PCard
-        isClickable={isClickable}
-        onPress={() => navigation.navigate(item.screenName as any)}
-      >
-        <View style={styles.cardContent}>
-          <View style={styles.titleRow}>
-            <Text style={textPresets.title}>{item.title}</Text>
-            <PBadge title={item.status} variant={badgeVariant} />
-          </View>
-          <Text style={textPresets.caption}>{item.description}</Text>
+  const renderItem = ({ item }: { item: CatalogItem }) => (
+    <PCard onPress={() => navigation.navigate(item.screenName)}>
+      <View style={styles.cardContent}>
+        <View style={styles.titleRow}>
+          <Text style={textPresets.title}>{item.title}</Text>
+          <PBadge title={item.status} variant={STATUS_VARIANTS[item.status]} />
         </View>
-      </PCard>
-    );
-  };
+        <Text style={textPresets.caption}>{item.description}</Text>
+      </View>
+    </PCard>
+  );
 
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
         <PInput
-          style={styles.searchInput}
-          placeholder="Buscar componente..."
-          placeholderTextColor={colors.textSecondary}
+          containerStyle={styles.searchInput}
+          placeholder="Search component..."
           value={searchQuery}
           onChangeText={setSearchQuery}
           clearButtonMode="while-editing"
@@ -74,12 +68,8 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContainer}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No se encontraron componentes</Text>
-          </View>
-        }
+        ItemSeparatorComponent={ItemSeparator}
+        ListEmptyComponent={EmptyList}
       />
     </View>
   );
@@ -88,22 +78,17 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
   },
   searchContainer: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
+    backgroundColor: colors.background,
+    borderBottomWidth: borderWidth.thin,
     borderBottomColor: colors.surface,
   },
   searchInput: {
-    height: 40,
-    backgroundColor: colors.background,
-    borderRadius: spacing.sm,
-    paddingHorizontal: spacing.md,
-    fontSize: typography.sizes.md,
-    color: colors.textPrimary,
+    marginBottom: 0,
   },
   listContainer: {
     padding: spacing.lg,

@@ -1,0 +1,9 @@
+node_modules/
+lib/
+
+# local / secret files
+.env*
+*.jks
+*.p12
+*.key
+*.mobileprovision

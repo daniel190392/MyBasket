@@ -1,15 +1,27 @@
 import React from 'react';
 import {
   TouchableOpacity,
+  TouchableOpacityProps,
   Text,
   StyleSheet,
   GestureResponderEvent,
   ActivityIndicator,
 } from 'react-native';
 
-import { colors, typography, spacing, borderRadius } from '../theme';
+import {
+  colors,
+  typography,
+  spacing,
+  borderRadius,
+  borderWidth,
+  controlHeight,
+  opacity,
+} from '../theme';
 
-export interface PButtonProps {
+export interface PButtonProps extends Omit<
+  TouchableOpacityProps,
+  'children' | 'disabled'
+> {
   title: string;
   onPress: (event: GestureResponderEvent) => void;
   variant?: 'primary' | 'secondary';
@@ -17,26 +29,30 @@ export interface PButtonProps {
   isDisabled?: boolean;
 }
 
-export default function PButton({
+export function PButton({
   title,
   onPress,
   variant = 'primary',
   isLoading = false,
   isDisabled = false,
+  style,
+  ...rest
 }: PButtonProps) {
   const isPrimary = variant === 'primary';
   const isInteractive = !isDisabled && !isLoading;
 
   return (
     <TouchableOpacity
+      activeOpacity={opacity.pressedLight}
+      {...rest}
       onPress={onPress}
       disabled={!isInteractive}
       style={[
         styles.base,
         isPrimary ? styles.primaryContainer : styles.secondaryContainer,
         isDisabled && styles.disabledContainer,
+        style,
       ]}
-      activeOpacity={0.8}
     >
       {isLoading ? (
         <ActivityIndicator color={isPrimary ? colors.white : colors.primary} />
@@ -62,7 +78,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
+    minHeight: controlHeight.md,
     width: '100%',
   },
   primaryContainer: {
@@ -71,14 +87,14 @@ const styles = StyleSheet.create({
   },
   secondaryContainer: {
     backgroundColor: colors.surfaceInput,
-    borderWidth: 1.5,
+    borderWidth: borderWidth.medium,
     borderColor: colors.primary,
   },
   disabledContainer: {
     backgroundColor: colors.backgroundDisabled,
-    borderWidth: 1,
+    borderWidth: borderWidth.thin,
     borderColor: colors.borderDisabled,
-    opacity: 0.7,
+    opacity: opacity.disabled,
   },
   text: {
     fontSize: typography.sizes.md,

@@ -1,10 +1,9 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView, Text, StyleSheet, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 
-import { PCard, PButton } from '../../../src';
 import {
+  PCard,
+  PButton,
   colors,
   spacing,
   textPresets,
@@ -13,21 +12,18 @@ import {
   withOpacity,
 } from '../../../src';
 
+import { showcaseStyles } from './showcaseStyles';
+
+const OVERLAY_OPACITY = 0.5;
+
 export const CardScreen = () => {
-  const navigation = useNavigation();
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      title: 'PCard',
-    });
-  }, [navigation]);
-
   return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+    <>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+        style={showcaseStyles.container}
+        contentContainerStyle={showcaseStyles.content}
       >
         <PCard onPress={() => setIsModalVisible(true)}>
           <Text style={styles.cardTitle}>Enabled Card</Text>
@@ -39,40 +35,28 @@ export const CardScreen = () => {
 
       <Modal
         visible={isModalVisible}
-        transparent={true}
+        transparent
         animationType="fade"
         onRequestClose={() => setIsModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>¡Card Pressed!</Text>
+            <Text style={styles.modalTitle}>Card pressed!</Text>
             <PButton title="Ok" onPress={() => setIsModalVisible(false)} />
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
-  scrollContent: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.xxl,
-    gap: spacing.lg,
-  },
   cardTitle: {
     ...textPresets.caption,
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: withOpacity(colors.shadow, 0.5),
+    backgroundColor: withOpacity(colors.shadow, OVERLAY_OPACITY),
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
@@ -86,7 +70,6 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     ...textPresets.subtitle,
-    color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
 });

@@ -1,7 +1,10 @@
-export { default as PBadge } from './PBadge';
+export { PBadge } from './PBadge';
 export type { PBadgeProps, BadgeVariant } from './PBadge';
+export { PButton } from './PButton';
+export type { PButtonProps } from './PButton';
 export { PCard } from './PCard';
 export type { PCardProps } from './PCard';
-export { default as PButton } from './PButton';
-export * from './PInput';
-export * from './PLink';
+export { PInput } from './PInput';
+export type { PInputProps } from './PInput';
+export { PLink } from './PLink';
+export type { PLinkProps } from './PLink';

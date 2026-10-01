@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "example",
-    "slug": "example",
+    "name": "ui-components-example",
+    "slug": "ui-components-example",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

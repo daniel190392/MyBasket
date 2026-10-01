@@ -1,9 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ViewProps } from 'react-native';
 
-import { colors, typography, spacing, borderRadius } from '../theme';
+import {
+  colors,
+  typography,
+  spacing,
+  borderRadius,
+  withOpacity,
+} from '../theme';
 
 export type BadgeVariant = 'important' | 'warning' | 'informative';
+
+const BACKGROUND_OPACITY = 0.125;
 
 const VARIANT_COLORS: Record<BadgeVariant, string> = {
   important: colors.secondary,
@@ -11,24 +19,22 @@ const VARIANT_COLORS: Record<BadgeVariant, string> = {
   informative: colors.textPrimary,
 };
 
-const getOpacityColor = (hexColor: string, opacityHex = '26') => {
-  if (hexColor.startsWith('#') && hexColor.length === 7) {
-    return `${hexColor}${opacityHex}`;
-  }
-  return hexColor;
-};
-
-export interface PBadgeProps {
+export interface PBadgeProps extends ViewProps {
   title: string;
   variant?: BadgeVariant;
 }
 
-export default function PBadge({ title, variant = 'important' }: PBadgeProps) {
-  const textColor = VARIANT_COLORS[variant] || VARIANT_COLORS.informative;
-  const backgroundColor = getOpacityColor(textColor, '20');
+export function PBadge({
+  title,
+  variant = 'important',
+  style,
+  ...rest
+}: PBadgeProps) {
+  const textColor = VARIANT_COLORS[variant];
+  const backgroundColor = withOpacity(textColor, BACKGROUND_OPACITY);
 
   return (
-    <View style={[styles.badge, { backgroundColor: backgroundColor }]}>
+    <View {...rest} style={[styles.badge, { backgroundColor }, style]}>
       <Text style={[styles.badgeText, { color: textColor }]}>{title}</Text>
     </View>
   );
