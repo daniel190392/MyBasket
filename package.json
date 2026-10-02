@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "workspaces": [
+    "apps/*",
     "modules/*"
   ],
   "main": "index.js",
@@ -26,7 +27,7 @@
     "react-native": "0.76.1"
   },
   "devDependencies": {
-    "@react-native-community/cli": "latest",
+    "@react-native-community/cli": "15.0.1",
     "@react-native/metro-config": "0.76.1",
     "@types/react": "^18.3.1",
     "@types/react-native": "^0.72.8",

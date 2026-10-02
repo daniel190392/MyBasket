@@ -19,14 +19,14 @@
   "license": "ISC",
   "type": "commonjs",
   "peerDependencies": {
-    "react": "*",
-    "react-native": "*"
+    "react": ">=18.3.1",
+    "react-native": ">=0.76.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.0",
     "@types/react-native": "^0.72.0",
-    "react": "18.2.0",
-    "react-native": "0.74.0",
+    "react": "18.3.1",
+    "react-native": "0.76.1",
     "react-native-builder-bob": "^0.43.0",
     "typescript": "^5.0.0"
   },
