@@ -6,12 +6,12 @@
     "start": "react-native start"
   },
   "dependencies": {
-    "react": "19.1.0",
-    "react-native": "0.80.3",
+    "react": "19.1.4",
+    "react-native": "0.81.6",
     "ui-components": "file:../../modules/ui-components"
   },
   "devDependencies": {
-    "@react-native/babel-preset": "0.80.3",
-    "@react-native/metro-config": "0.80.3"
+    "@react-native/babel-preset": "0.81.6",
+    "@react-native/metro-config": "0.81.6"
   }
 }
