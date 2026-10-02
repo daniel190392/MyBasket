@@ -54,8 +54,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
     // Dependencias nativas de React Native y Hermes
-    implementation("com.facebook.react:react-android:0.79.7")
-    implementation("com.facebook.react:hermes-android:0.79.7")
+    implementation("com.facebook.react:react-android:0.80.3")
+    implementation("com.facebook.react:hermes-android:0.80.3")
 
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
