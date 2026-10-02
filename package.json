@@ -24,11 +24,11 @@
   "homepage": "https://github.com/daniel190392/MyBasket#readme",
   "dependencies": {
     "react": "18.3.1",
-    "react-native": "0.76.1"
+    "react-native": "0.77.3"
   },
   "devDependencies": {
     "@react-native-community/cli": "15.0.1",
-    "@react-native/metro-config": "0.76.1",
+    "@react-native/metro-config": "0.77.3",
     "@types/react": "^18.3.1",
     "@types/react-native": "^0.72.8",
     "typescript": "^5.0.0",
