@@ -2,7 +2,7 @@ const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
 
 const projectRoot = __dirname;
-const workspaceRoot = path.resolve(projectRoot, '../../..');
+const workspaceRoot = path.resolve(projectRoot, '../../../..');
 const SINGLETON_PACKAGES = ['react', 'react-native'];
 
 const config = getDefaultConfig(projectRoot);
