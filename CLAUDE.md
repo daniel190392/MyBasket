@@ -26,7 +26,7 @@ modules/
   ui/                    Design system libraries (one package each, own example app)
     ui-components/       Component library and theme in React Native + TypeScript
     ui-animation/        Animation components that consume the ui-components tokens
-  authenticator/         Authentication flow and session (planned, empty for now)
+  auth/                  Authentication flow and session (planned, empty for now)
   feature/               Business features
     feature-home-flutter/  Flutter module for Home (empty for now)
 metro.config.js        Monorepo Metro config (projectRoot = apps/host-android)

@@ -150,7 +150,7 @@ Substitute `<module-name>` and `<Prefix>` everywhere below. Never hardcode names
      ```
    - A catalog list (`catalogConfig.ts`), a navigator, and one screen per component showing variants and states. Screens import from the module's `src` entry. All showcase text in English; no `console.log`.
 9. **Version control hygiene.** The module `.gitignore` ignores `node_modules/`, build output (`lib/`) and local/secret files (`.env*`, `*.jks`, `*.p12`, `*.key`, `*.mobileprovision`). Follow `.claude/rules/security.md`.
-10. **Rule scope.** Nothing to edit: the architecture rule applies to every `modules/ui/**` path, so a module created there is covered automatically. Modules that are not design system libraries belong in another family folder (`authenticator`, `feature`) and must not be named `ui-*`.
+10. **Rule scope.** Nothing to edit: the architecture rule applies to every `modules/ui/**` path, so a module created there is covered automatically. Modules that are not design system libraries belong in another family folder (`auth`, `feature`) and must not be named `ui-*`.
 11. **Wire the consumer** (only if the user asks): add `"<module-name>": "^<module version>"` (a semver range; npm links the workspace, and it keeps working when the module moves to its own repository) to the host app's `package.json` and import from the package name. Remind the user that `lib/` must be built (`npm run build` in the module) before Metro in the host can resolve it.
 12. **Verify.**
     - `npm install` at the repo root (workspaces pick up `modules/*/*`).
