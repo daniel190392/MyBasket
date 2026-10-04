@@ -7,8 +7,8 @@ import {
   TextInputProps,
   ViewStyle,
   TextStyle,
-  NativeSyntheticEvent,
-  TextInputFocusEventData,
+  BlurEvent,
+  FocusEvent,
 } from 'react-native';
 
 import {
@@ -23,8 +23,6 @@ import {
 } from '../theme';
 
 import type { ReactNode } from 'react';
-
-type FocusEvent = NativeSyntheticEvent<TextInputFocusEventData>;
 
 export interface PInputProps extends Omit<TextInputProps, 'style'> {
   label?: string;
@@ -59,7 +57,7 @@ export const PInput = ({
     onFocus?.(e);
   };
 
-  const handleBlur = (e: FocusEvent) => {
+  const handleBlur = (e: BlurEvent) => {
     setIsFocused(false);
     onBlur?.(e);
   };

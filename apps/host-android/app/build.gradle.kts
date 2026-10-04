@@ -1,17 +1,22 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.facebook.react")
 }
 
-// Configuración de React Native / Hermes para Kotlin DSL
-extra["react"] = mapOf(
-    "enableHermes" to true,
-    "newArchEnabled" to false
-)
+// The plugin defaults assume node_modules next to the app; here it is hoisted to the monorepo root.
+react {
+    reactNativeDir.set(rootDir.resolve("../../node_modules/react-native"))
+    codegenDir.set(rootDir.resolve("../../node_modules/@react-native/codegen"))
+    cliFile.set(rootDir.resolve("../../node_modules/react-native/cli.js"))
+    autolinkLibrariesWithApp()
+}
 
 android {
     namespace = "com.example.androidhostapp"
     compileSdk = 36
+    ndkVersion = "27.1.12297006"
 
     defaultConfig {
         applicationId = "com.example.androidhostapp"
@@ -22,24 +27,29 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk {
-            abiFilters.addAll(setOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
+            abiFilters.addAll(providers.gradleProperty("reactNativeArchitectures").get().split(","))
         }
     }
 
     buildTypes {
         release {
-            optimization {
-                enable = false
-            }
+            isMinifyEnabled = false
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+// React Native requires Java 17. AGP 8 does not align Kotlin with compileOptions (AGP 9 does), so the target must match Java's explicitly.
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 
@@ -53,9 +63,9 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
-    // Dependencias nativas de React Native y Hermes
-    implementation("com.facebook.react:react-android:0.76.1")
-    implementation("com.facebook.react:hermes-android:0.76.1")
+    // The React Native Gradle plugin sets both versions from node_modules/react-native/package.json
+    implementation("com.facebook.react:react-android")
+    implementation("com.facebook.react:hermes-android")
 
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))

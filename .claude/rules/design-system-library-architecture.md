@@ -35,7 +35,7 @@ theme (tokens)  →  components
 5. **Extend native props.** Props types extend the underlying React Native props and forward the rest, so consumers keep full control.
 6. **Tokens only.** No hardcoded colors, spacing, font sizes, radii or durations/easings in components; use `theme`.
 7. **No heavy dependencies.** `react` and `react-native` are `peerDependencies`. Adding any other runtime dependency needs explicit approval.
-8. **Typed events and props.** No `any` in public props or event handlers; use React Native event types (e.g. `NativeSyntheticEvent<TextInputFocusEventData>`).
+8. **Typed events and props.** No `any` in public props or event handlers; use React Native event types (e.g. `FocusEvent` and `BlurEvent`, which replace the deprecated `NativeSyntheticEvent<TextInputFocusEventData>`).
 9. **Every component has a showcase screen** in the module's `example/` documenting its variants and states.
 
 ## Structure
