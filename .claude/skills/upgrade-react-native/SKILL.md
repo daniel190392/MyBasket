@@ -1,6 +1,6 @@
 ---
 name: upgrade-react-native
-description: Upgrade React Native (and the React / tooling versions that must move with it) across the MyBasket monorepo and verify the Android host still works. Use when asked to bump react-native in apps/host-android and modules/ui-*, or to re-verify the host after any dependency or Gradle change.
+description: Upgrade React Native (and the React / tooling versions that must move with it) across the MyBasket monorepo and verify the Android host still works. Use when asked to bump react-native in apps/host-android and the modules under modules/, or to re-verify the host after any dependency or Gradle change.
 ---
 
 # Upgrade React Native
@@ -41,7 +41,7 @@ If the new version needs a different React minor, that changes `react` and `@typ
 |---|---|
 | `package.json` (root) | `react-native`, `react`, `@react-native/metro-config`, `@types/react` |
 | `apps/host-android/package.json` | `react`, `react-native`, `@react-native/babel-preset`, `@react-native/metro-config` |
-| `modules/*/package.json` | `devDependencies`: `react`, `react-native`, `@types/react`. `peerDependencies`: set the minimums to the oldest version still verified, not the newest (`react-native` `>=<minor>.0`, `react` `>=<react version>`). The Expo `example` apps (`modules/*/example`) pin an older React Native than the host and set the floor; check them with `npx tsc --noEmit` and `npx expo export --platform android` in each example before changing the minimums |
+| `modules/*/*/package.json` | `devDependencies`: `react`, `react-native`, `@types/react`. `peerDependencies`: set the minimums to the oldest version still verified, not the newest (`react-native` `>=<minor>.0`, `react` `>=<react version>`). The Expo `example` apps (`modules/*/*/example`) pin an older React Native than the host and set the floor; check them with `npx tsc --noEmit` and `npx expo export --platform android` in each example before changing the minimums |
 | `apps/host-android/app/build.gradle.kts` | `com.facebook.react:react-android` and `hermes-android` versions |
 
 Pin exact versions (no `^`) for `react`, `react-native` and the `@react-native/*` packages. Keep `@react-native-community/cli` pinned (never `latest`); only bump it if the bundle fails with `Invalid platform "android"`.

@@ -93,6 +93,11 @@ if (Test-Path $localProperties) {
 }
 $adb = Join-Path $sdkDir 'platform-tools\adb.exe'
 
+# Modules live one level down, inside their family folder (modules/<family>/<module>).
+$ModuleDirs = @(Get-ChildItem (Join-Path $RepoRoot 'modules') -Directory |
+    ForEach-Object { Get-ChildItem $_.FullName -Directory } |
+    Where-Object { Test-Path (Join-Path $_.FullName 'package.json') })
+
 # --- step 1: versions --------------------------------------------------------
 
 $hostPackageJson = Join-Path $HostDir 'package.json'
@@ -103,7 +108,7 @@ $installedReact = (Get-Content (Join-Path $RepoRoot 'node_modules\react\package.
 $gradleFile = Join-Path $HostDir 'app\build.gradle.kts'
 $gradleVersions = @(Select-String -Path $gradleFile -Pattern '(react-android|hermes-android):([\d.]+)' |
     ForEach-Object { $_.Matches[0].Groups[2].Value } | Sort-Object -Unique)
-$nestedCopies = @(Get-ChildItem (Join-Path $RepoRoot 'modules'), (Join-Path $RepoRoot 'apps') -Directory |
+$nestedCopies = @(($ModuleDirs + @(Get-ChildItem (Join-Path $RepoRoot 'apps') -Directory)) |
     Where-Object { Test-Path (Join-Path $_.FullName 'node_modules\react-native\package.json') } |
     ForEach-Object { $_.Name })
 
@@ -127,7 +132,7 @@ Write-Step 'PASS' 'versions' "react-native $installedNative (package.json = inst
 # --- step 2: UI modules ------------------------------------------------------
 
 $builtModules = @()
-foreach ($moduleDir in Get-ChildItem (Join-Path $RepoRoot 'modules') -Directory) {
+foreach ($moduleDir in $ModuleDirs) {
     $modulePackageJson = Join-Path $moduleDir.FullName 'package.json'
     if (-not (Test-Path $modulePackageJson)) { continue }
     if (-not (Get-Content $modulePackageJson -Raw | ConvertFrom-Json).scripts.build) { continue }
@@ -158,7 +163,12 @@ if ($SkipEmulator) {
     exit 2
 }
 
-$connectedDevices = @(& $adb devices | Select-String '\tdevice$')
+# Right after the adb server (re)starts the device list is empty for a few seconds, so retry before giving up.
+$connectedDevices = @()
+for ($attempt = 0; $attempt -lt 10 -and $connectedDevices.Count -eq 0; $attempt++) {
+    $connectedDevices = @(& $adb devices | Select-String '\tdevice$')
+    if ($connectedDevices.Count -eq 0) { Start-Sleep -Seconds 2 }
+}
 if ($connectedDevices.Count -eq 0) {
     Write-Step 'SKIP' 'emulator' 'no device connected (start one, e.g. emulator -avd Pixel_9)'
     Write-Host 'RESULT: PARTIAL (emulator not available)'

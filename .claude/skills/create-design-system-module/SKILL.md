@@ -1,11 +1,11 @@
 ---
 name: create-design-system-module
-description: Scaffold a new React Native module that follows the design-system-library architecture (tokens + presentational components, one public entry point, showcase app, built with react-native-builder-bob). Use when asked to create a new UI/component library module under modules/.
+description: Scaffold a new React Native module that follows the design-system-library architecture (tokens + presentational components, one public entry point, showcase app, built with react-native-builder-bob). Use when asked to create a new UI/component library module under modules/ui/.
 ---
 
 # Create a design system library module
 
-Scaffolds a new module under `modules/` as a **design system library**: design tokens, presentational components, a single public API, and a showcase app that documents it. It is a library, not an application: no domain logic, navigation, networking or app state.
+Scaffolds a new module under `modules/ui/` (the `ui` family) as a **design system library**: design tokens, presentational components, a single public API, and a showcase app that documents it. It is a library, not an application: no domain logic, navigation, networking or app state.
 
 The architecture is defined in `.claude/rules/design-system-library-architecture.md`. Read it first and follow it.
 
@@ -13,7 +13,7 @@ The architecture is defined in `.claude/rules/design-system-library-architecture
 
 ## Reference modules (optional, orientative)
 
-Existing `modules/ui-*` modules (e.g. `modules/ui-components`) can be consulted as examples of a working module. Rules for using them:
+Existing `modules/ui/*` modules (e.g. `modules/ui/ui-components`) can be consulted as examples of a working module. Rules for using them:
 
 - **This skill and the rules win** over any existing module whenever they differ.
 - Copy the *structure and configuration*; do **not** copy their imperfections: `lib/` committed to git, `any` in props or events, hardcoded values instead of tokens, `console.log` left in showcase screens, user-facing text in a language other than English, and `react` / `react-native` versions that differ from the rest of the workspaces.
@@ -32,8 +32,8 @@ Substitute `<module-name>` and `<Prefix>` everywhere below. Never hardcode names
 
 ## Steps
 
-1. **Check for overlap.** List `modules/`. If an existing module already covers the need, or the tokens should be shared, say so and confirm with the user before creating another one.
-2. **Create the structure** at `modules/<module-name>/`:
+1. **Check for overlap.** List `modules/ui/`. If an existing module already covers the need, or the tokens should be shared, say so and confirm with the user before creating another one.
+2. **Create the structure** at `modules/ui/<module-name>/`:
    ```
    package.json
    tsconfig.json
@@ -113,13 +113,13 @@ Substitute `<module-name>` and `<Prefix>` everywhere below. Never hardcode names
 8. **Showcase app** in `example/` (Expo + React Navigation):
    - `index.ts`: `registerRootComponent(App)` from `expo`. `App.tsx`: `SafeAreaProvider` > `NavigationContainer` > navigator. `tsconfig.json`: `{ "extends": "expo/tsconfig.base", "compilerOptions": { "strict": true } }`. `app.json`: Expo config with `name` and `slug` set to `<module-name>-example`, plus the default icon assets.
    - `package.json` (`"private": true`, name `<module-name>-example`, `"main": "index.ts"`, scripts `start`/`android`/`ios`) with dependencies `expo`, `expo-asset`, `expo-constants`, `expo-status-bar`, `react`, `react-native`, `@react-navigation/native`, `@react-navigation/stack`, `@react-navigation/native-stack`, `react-native-gesture-handler`, `react-native-safe-area-context`, `react-native-screens`, and dev dependencies `typescript` and `@types/react`. Pick versions compatible with one Expo SDK (use `npx expo install <packages>` so they match). Run `npm install` inside `example/`.
-   - `metro.config.js`: watch the workspace root, resolve its `node_modules`, **and force a single copy of `react` and `react-native`**. Without this the app crashes at runtime with `TurboModuleRegistry.getEnforcing(...): 'PlatformConstants' could not be found` (the bundle compiles fine, it is not a syntax error). Do **not** use `resolver.disableHierarchicalLookup = true`: it breaks nested dependencies such as `@react-native/virtualized-lists`. `workspaceRoot` is the **repository root**: from `modules/<module-name>/example` that is three levels up (`../../..`); double-check the count.
+   - `metro.config.js`: watch the workspace root, resolve its `node_modules`, **and force a single copy of `react` and `react-native`**. Without this the app crashes at runtime with `TurboModuleRegistry.getEnforcing(...): 'PlatformConstants' could not be found` (the bundle compiles fine, it is not a syntax error). Do **not** use `resolver.disableHierarchicalLookup = true`: it breaks nested dependencies such as `@react-native/virtualized-lists`. `workspaceRoot` is the **repository root**: from `modules/ui/<module-name>/example` that is four levels up (`../../../..`); double-check the count.
      ```js
      const { getDefaultConfig } = require('expo/metro-config');
      const path = require('path');
 
      const projectRoot = __dirname;
-     const workspaceRoot = path.resolve(projectRoot, '../../..');
+     const workspaceRoot = path.resolve(projectRoot, '../../../..');
      const SINGLETON_PACKAGES = ['react', 'react-native'];
 
      const config = getDefaultConfig(projectRoot);
@@ -150,10 +150,10 @@ Substitute `<module-name>` and `<Prefix>` everywhere below. Never hardcode names
      ```
    - A catalog list (`catalogConfig.ts`), a navigator, and one screen per component showing variants and states. Screens import from the module's `src` entry. All showcase text in English; no `console.log`.
 9. **Version control hygiene.** The module `.gitignore` ignores `node_modules/`, build output (`lib/`) and local/secret files (`.env*`, `*.jks`, `*.p12`, `*.key`, `*.mobileprovision`). Follow `.claude/rules/security.md`.
-10. **Rule scope.** Nothing to edit: the architecture rule applies to every `modules/ui-*/**` path, so a correctly named module is covered automatically. Do not name non-library modules `ui-*`.
-11. **Wire the consumer** (only if the user asks): add `"<module-name>": "file:../../modules/<module-name>"` to the host app's `package.json` and import from the package name. Remind the user that `lib/` must be built (`npm run build` in the module) before Metro in the host can resolve it.
+10. **Rule scope.** Nothing to edit: the architecture rule applies to every `modules/ui/**` path, so a module created there is covered automatically. Modules that are not design system libraries belong in another family folder (`authenticator`, `feature`) and must not be named `ui-*`.
+11. **Wire the consumer** (only if the user asks): add `"<module-name>": "^<module version>"` (a semver range; npm links the workspace, and it keeps working when the module moves to its own repository) to the host app's `package.json` and import from the package name. Remind the user that `lib/` must be built (`npm run build` in the module) before Metro in the host can resolve it.
 12. **Verify.**
-    - `npm install` at the repo root (workspaces pick up `modules/*`).
+    - `npm install` at the repo root (workspaces pick up `modules/*/*`).
     - `npx tsc --noEmit` and `npm run build` in the module; both must pass.
     - `npx tsc --noEmit` in `example/` as well, and `npx prettier --check` on `src` and `example` (the repo `.prettierrc` applies).
     - Run the showcase step by step, checking each one before the next:
