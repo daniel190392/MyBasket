@@ -19,8 +19,8 @@
   "license": "ISC",
   "type": "commonjs",
   "peerDependencies": {
-    "react": ">=19.1.4",
-    "react-native": ">=0.82.0"
+    "react": ">=19.1.0",
+    "react-native": ">=0.81.0"
   },
   "devDependencies": {
     "@types/react": "^19.1.4",
