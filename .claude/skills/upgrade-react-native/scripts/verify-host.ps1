@@ -32,6 +32,13 @@ $AppLogPattern = 'ReactNative|BridgelessReact|ReactHost|FATAL EXCEPTION'
 
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 
+# Windows may suspend the machine while the script runs unattended, freezing the build and the emulator.
+# The flag lasts for the lifetime of this process and is cleared automatically when it exits.
+Add-Type -Namespace Win32 -Name Power -MemberDefinition '[DllImport("kernel32.dll")] public static extern uint SetThreadExecutionState(uint flags);'
+$ExecutionStateContinuous = [uint32] 2147483648
+$ExecutionStateSystemRequired = [uint32] 1
+[void] [Win32.Power]::SetThreadExecutionState($ExecutionStateContinuous -bor $ExecutionStateSystemRequired)
+
 function Write-Step([string] $status, [string] $name, [string] $detail) {
     Write-Host ('[{0}] {1,-10} {2}' -f $status, $name, $detail)
 }
@@ -113,7 +120,9 @@ if ($versionProblems.Count -gt 0) {
     Write-Host 'RESULT: FAIL (versions)'
     exit 1
 }
-Write-Step 'PASS' 'versions' "react-native $installedNative (package.json = installed = gradle), react $installedReact, no nested copies"
+# Without explicit versions in build.gradle.kts the React Native Gradle plugin takes them from package.json.
+$gradleSource = if ($gradleVersions.Count -eq 0) { 'gradle follows via RN plugin' } else { 'gradle' }
+Write-Step 'PASS' 'versions' "react-native $installedNative (package.json = installed = $gradleSource), react $installedReact, no nested copies"
 
 # --- step 2: UI modules ------------------------------------------------------
 
@@ -201,11 +210,12 @@ function Close-CompatibilityDialog([string] $uiDump) {
 }
 
 $emulatorLog = Join-Path $LogDir 'emulator.log'
-$metroLog = Join-Path $LogDir 'metro.log'
+# One log per run: a Metro left over from a previous run may still hold the old log file open.
+$metroLog = Join-Path $LogDir ('metro-{0}.log' -f (Get-Date -Format 'HHmmss'))
 
 # Metro must be restarted: rebuilding lib/ leaves a running Metro with a stale file index.
 $listener = Get-NetTCPConnection -LocalPort $MetroPort -State Listen -ErrorAction SilentlyContinue
-if ($listener) { Stop-Process -Id $listener.OwningProcess -Force }
+if ($listener) { & taskkill.exe /F /T /PID $listener.OwningProcess | Out-Null }
 # Started through WMI so Metro does not inherit this script's output handles; otherwise whoever waits for
 # the script's output (a redirected file or pipe) stays blocked, or locked, for as long as Metro runs.
 $metroCommand = "cmd.exe /d /s /c `"npx react-native start --reset-cache > `"$metroLog`" 2>&1`""
@@ -260,7 +270,7 @@ if ($afterTapLog -match $FatalLogPattern) { Stop-WithFailure 'emulator' "app cra
 Write-Step 'PASS' 'emulator' "$MainComponent rendered '$ExpectedText', tap OK, no crash"
 
 if ($afterTapLog -match 'Legacy Architecture') {
-    Write-Step 'INFO' 'app logs' 'Legacy Architecture warning present (host has isNewArchEnabled = false)'
+    Write-Step 'INFO' 'app logs' 'Legacy Architecture warning present (the host is running the Legacy Architecture)'
 }
 Write-Host 'RESULT: PASS'
 exit 0
