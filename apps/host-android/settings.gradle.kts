@@ -1,4 +1,6 @@
 pluginManagement {
+    // The React Native Gradle plugin is consumed from node_modules so it always matches the react-native package.
+    includeBuild("../../node_modules/@react-native/gradle-plugin")
     repositories {
         google {
             content {
@@ -13,14 +15,24 @@ pluginManagement {
 }
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+    id("com.facebook.react.settings")
+}
+extensions.configure<com.facebook.react.ReactSettingsExtension> {
+    // The defaults assume the Android project lives in an `android/` subfolder, so they would run the command
+    // and watch the lockfiles one level above this folder. Here this folder is the React Native project root.
+    autolinkLibrariesFromCommand(
+        workingDirectory = rootDir,
+        lockFiles = layout.rootDirectory.files("../../package-lock.json", "package.json", "react-native.config.js")
+    )
 }
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    // The React Native plugin declares project repositories of its own, which FAIL_ON_PROJECT_REPOS would reject.
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         google()
         mavenCentral()
 
-        // Apunta a la raíz real de node_modules (subiendo 2 niveles desde host-android)
+        // node_modules lives at the monorepo root, two levels above host-android
         maven {
             url = uri("${rootDir}/../../node_modules/react-native/android")
         }
@@ -32,3 +44,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "AndroidHostApp"
 include(":app")
+includeBuild("../../node_modules/@react-native/gradle-plugin")
