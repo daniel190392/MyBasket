@@ -23,12 +23,18 @@ apps/
   host-android/        Native Android app (Kotlin/Gradle) that hosts React Native views
   host-ios/            Native iOS app (empty for now)
 modules/
-  ui-components/       Component library and theme in React Native + TypeScript
-  feature-home-flutter/  Flutter module for Home (empty for now)
+  ui/                    Design system libraries (one package each, own example app)
+    ui-components/       Component library and theme in React Native + TypeScript
+    ui-animation/        Animation components that consume the ui-components tokens
+  auth/                  Authentication flow and session (planned, empty for now)
+  feature/               Business features
+    feature-home-flutter/  Flutter module for Home (empty for now)
 metro.config.js        Monorepo Metro config (projectRoot = apps/host-android)
 ```
 
-### `modules/ui-components`
+The folders under `modules/` are **families**. The first version is a monorepo, but each family is meant to become its own repository later, and each host (`apps/host-*`) too. Until then, keep the boundaries clean: packages depend on each other by name with a semver range (not `file:` or relative paths) and never import across families through relative paths.
+
+### `modules/ui/ui-components`
 
 UI library with the `P` prefix (`PButton`, `PCard`, `PBadge`, `PInput`, `PLink`) and a theme (`colors`, `spacing`, typography, borders, shadows, `textPresets`). Built with `react-native-builder-bob` (`module` and `commonjs` targets, types via `tsc`) into `lib/`.
 
@@ -38,11 +44,13 @@ UI library with the `P` prefix (`PButton`, `PCard`, `PBadge`, `PInput`, `PLink`)
 
 ### `apps/host-android`
 
-Native Android app that loads React Native. `index.js` registers the `UIComponentsView` component, which consumes `ui-components` (dependency `file:../../modules/ui-components`). Metro is started with `npm start` in that folder.
+Native Android app that loads React Native. `index.js` registers the `UIComponentsView` component, which consumes `ui-components` (dependency `^1.0.0`, linked by the npm workspace). Metro is started with `npm start` in that folder.
+
+The host applies the React Native Gradle plugin, so `react-android` and `hermes-android` take their version from `package.json`, and it runs on the New Architecture. The plugin needs a JDK 17 installed (for example in `~/.jdks`); the toolchain is Gradle 9.0.0 and AGP 8.12.0.
 
 ## Stack
 
-- React 18 + React Native 0.74/0.76 (versions differ between workspaces; keep this in mind when upgrading)
+- React 19.1 + React Native 0.82 across the root, the host and the modules (`upgrade-react-native` skill to bump them). The Expo example apps pin their own, older versions and set the minimum the `peerDependencies` declare.
 - TypeScript
 - Android: Gradle (Kotlin DSL)
 - Flutter planned for `feature-home-flutter`

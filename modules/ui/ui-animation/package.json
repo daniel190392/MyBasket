@@ -19,7 +19,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "ui-components": "file:../ui-components"
+    "ui-components": "^1.0.0"
   },
   "peerDependencies": {
     "react": ">=19.1.0",

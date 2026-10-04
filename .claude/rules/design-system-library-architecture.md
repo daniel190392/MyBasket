@@ -1,17 +1,18 @@
 ---
 paths:
-  - "modules/ui-*/**"
+  - "modules/ui/**"
 ---
 
 # Architecture: design system library modules
 
-Applies to every module under `modules/` named `ui-*` (e.g. `ui-components`, `ui-animation`). Modules of this type are **design system libraries**, not applications. Do not apply app patterns (MVVM, Clean Architecture, global state) here.
+Applies to every module under `modules/ui/` (the `ui` family; e.g. `ui-components`, `ui-animation`). Modules of this type are **design system libraries**, not applications. Do not apply app patterns (MVVM, Clean Architecture, global state) here.
 
 ## Naming convention
 
-- Design system library modules are named `ui-<topic>` (kebab-case). The `ui-` prefix is what scopes this rule to them, so new modules are covered automatically.
+- Modules are grouped in family folders under `modules/`, each meant to become its own repository when the monorepo is split: `ui` (design system libraries), `auth` (authentication flow and session) and `feature` (business features). Never import across families through relative paths; depend on the package by name with a semver range.
+- Design system library modules live in `modules/ui/` and are named `ui-<topic>` (kebab-case). The folder is what scopes this rule to them, so new modules placed there are covered automatically.
 - Each module has its own short component prefix (e.g. `P`), unique across modules to avoid name collisions for consumers.
-- Modules that are not design system libraries (feature modules, native hosts) must **not** use the `ui-` prefix.
+- Modules that are not design system libraries (auth and feature modules, native hosts) go in their own family folder and must **not** use the `ui-` prefix.
 
 ## Layers
 

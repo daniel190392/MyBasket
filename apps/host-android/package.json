@@ -8,7 +8,7 @@
   "dependencies": {
     "react": "19.1.4",
     "react-native": "0.82.1",
-    "ui-components": "file:../../modules/ui-components"
+    "ui-components": "^1.0.0"
   },
   "devDependencies": {
     "@react-native/babel-preset": "0.82.1",
