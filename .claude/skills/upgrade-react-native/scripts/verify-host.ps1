@@ -55,14 +55,12 @@ function Stop-WithFailure([string] $name, [string] $detail, [string] $logFile) {
 
 function Invoke-Logged([string] $name, [string] $commandLine, [string] $workingDirectory) {
     $logFile = Join-Path $LogDir "$name.log"
-    Push-Location $workingDirectory
-    try {
-        & cmd.exe /d /s /c "$commandLine > `"$logFile`" 2>&1"
-        $exitCode = $LASTEXITCODE
-    } finally {
-        Pop-Location
-    }
-    return [pscustomobject] @{ Succeeded = ($exitCode -eq 0); LogFile = $logFile }
+    # Wait only for the cmd process: a long-lived child it spawns (the Gradle daemon) must not keep this script waiting.
+    $process = Start-Process -FilePath cmd.exe -WorkingDirectory $workingDirectory -WindowStyle Hidden -PassThru `
+        -ArgumentList '/d', '/s', '/c', "`"$commandLine > `"$logFile`" 2>&1`""
+    $null = $process.Handle # keeps the exit code readable after the process ends
+    $process.WaitForExit()
+    return [pscustomobject] @{ Succeeded = ($process.ExitCode -eq 0); LogFile = $logFile }
 }
 
 function Get-JsonVersion([string] $packageJsonPath, [string[]] $sections, [string] $packageName) {
@@ -203,22 +201,24 @@ function Close-CompatibilityDialog([string] $uiDump) {
 }
 
 $emulatorLog = Join-Path $LogDir 'emulator.log'
-$metroOut = Join-Path $LogDir 'metro.out.log'
-$metroErr = Join-Path $LogDir 'metro.err.log'
+$metroLog = Join-Path $LogDir 'metro.log'
 
 # Metro must be restarted: rebuilding lib/ leaves a running Metro with a stale file index.
 $listener = Get-NetTCPConnection -LocalPort $MetroPort -State Listen -ErrorAction SilentlyContinue
 if ($listener) { Stop-Process -Id $listener.OwningProcess -Force }
-$npx = (Get-Command npx.cmd).Source
-Start-Process -FilePath $npx -ArgumentList 'react-native', 'start', '--reset-cache' -WorkingDirectory $HostDir `
-    -WindowStyle Hidden -RedirectStandardOutput $metroOut -RedirectStandardError $metroErr
+# Started through WMI so Metro does not inherit this script's output handles; otherwise whoever waits for
+# the script's output (a redirected file or pipe) stays blocked, or locked, for as long as Metro runs.
+$metroCommand = "cmd.exe /d /s /c `"npx react-native start --reset-cache > `"$metroLog`" 2>&1`""
+$metroStart = Invoke-CimMethod -ClassName Win32_Process -MethodName Create `
+    -Arguments @{ CommandLine = $metroCommand; CurrentDirectory = $HostDir }
+if ($metroStart.ReturnValue -ne 0) { Stop-WithFailure 'emulator' "could not start Metro (WMI code $($metroStart.ReturnValue))" $null }
 
 $metroReady = $false
 for ($attempt = 0; $attempt -lt 30 -and -not $metroReady; $attempt++) {
     Start-Sleep -Seconds 2
     try { $metroReady = (Invoke-WebRequest "http://localhost:$MetroPort/status" -UseBasicParsing -TimeoutSec 2).StatusCode -eq 200 } catch { }
 }
-if (-not $metroReady) { Stop-WithFailure 'emulator' 'Metro did not start' $metroErr }
+if (-not $metroReady) { Stop-WithFailure 'emulator' 'Metro did not start' $metroLog }
 
 $apk = Join-Path $HostDir 'app\build\outputs\apk\debug\app-debug.apk'
 Invoke-AdbQuiet "reverse tcp:$MetroPort tcp:$MetroPort"
