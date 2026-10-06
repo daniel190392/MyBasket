@@ -1,2 +1,5 @@
 node_modules/
 apps/host-android/.idea/
+
+# Personal study notes and diagrams, not shared
+docs/diagrams-local/

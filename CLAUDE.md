@@ -26,7 +26,8 @@ modules/
   ui/                    Design system libraries (one package each, own example app)
     ui-components/       Component library and theme in React Native + TypeScript
     ui-animation/        Animation components that consume the ui-components tokens
-  auth/                  Authentication flow and session (planned, empty for now)
+  auth/                  Authentication modules (one package each, own example app)
+    auth-flow/           Login flow, session state and backend contract (mock + swappable provider)
   feature/               Business features
     feature-home-flutter/  Flutter module for Home (empty for now)
 metro.config.js        Monorepo Metro config (projectRoot = apps/host-android)
@@ -41,6 +42,15 @@ UI library with the `P` prefix (`PButton`, `PCard`, `PBadge`, `PInput`, `PLink`)
 - Source code: `src/components` and `src/theme`; everything is exported from `src/index.ts`.
 - `example/` is an Expo showcase app with one screen per component.
 - Build: `npm run build` inside the module.
+
+### `modules/auth/auth-flow`
+
+Authentication module in React Native + TypeScript, built with `react-native-builder-bob` like the UI libraries. A small ports-and-adapters core behind a thin React layer: `domain` (types, `AuthError`, the `AuthProvider` and `SessionStorage` ports, validation), `data` (`MockAuthProvider`, `InMemorySessionStorage`), `application` (`AuthService`, session reducer, `AuthSessionProvider`, `useAuth`) and `presentation` (`LoginScreen`). UI comes from `ui-components` (peer dependency).
+
+- The host builds `new AuthService(provider, storage)` once and passes it to `AuthSessionProvider`. Moving to the real backend means writing an `AuthProvider` adapter in `data/` and swapping it there.
+- Mock demo credentials are in `DEFAULT_MOCK_USERS`. Unit tests: `npm test` inside the module.
+- `example/` is an Expo showcase running against the mock. Build: `npm run build` inside the module.
+- Architecture rule: `.claude/rules/auth-module-architecture.md`; scaffold new auth modules with the `create-auth-module` skill.
 
 ### `apps/host-android`
 
