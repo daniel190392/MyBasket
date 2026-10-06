@@ -5,6 +5,10 @@ const [demoUser] = DEFAULT_MOCK_USERS;
 const NO_LATENCY = { latencyMs: 0 };
 
 describe('MockAuthProvider', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('signs in a known user', async () => {
     const provider = new MockAuthProvider(NO_LATENCY);
 
@@ -82,6 +86,5 @@ describe('MockAuthProvider', () => {
 
     await jest.advanceTimersByTimeAsync(1);
     expect(onSettled).toHaveBeenCalledTimes(1);
-    jest.useRealTimers();
   });
 });

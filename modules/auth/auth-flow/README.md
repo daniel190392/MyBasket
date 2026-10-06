@@ -42,6 +42,18 @@ On success nothing is returned to the screen: the session state changes and whoe
 
 `restoring` (reading the stored session at startup) → `signedOut` or `signedIn`. The state lives in memory while the app runs; what survives a restart is whatever the `SessionStorage` adapter persists.
 
+## Design decisions
+
+**Why ports and adapters.** The module has to work against a mock today and a real backend later, and be embedded in hosts with different environments (backend URL, secure storage). Putting the backend and the storage behind interfaces makes both a one-line change at the host's entry point, and lets tests drive every state through the mock without patching anything.
+
+**Why `AuthService` is a plain class, not part of the React layer.** Other modules (features, non-React code such as an HTTP client) will need the session's access token without living inside this module's component tree. Keeping the use cases outside React makes them reusable from there and testable without a renderer. Today the service exposes the use cases (`restoreSession`, `signIn`, `signOut`); reading the current session from outside React is not exposed yet and will be added when the first consumer needs it.
+
+**Why a reducer for the session.** The session has mutually exclusive statuses. A pure reducer keeps every transition in one place and unit-testable. It is an internal detail: consumers only see `useAuth()`.
+
+**What it costs.** More files and indirection than a hook calling `fetch` directly, and two links that "Go to Definition" does not follow: `useAuth` to the provider (React context) and `AuthService` to the concrete adapter (an interface injected by the host).
+
+**When something simpler is enough.** One host, one backend and no need for a mock: a hook with `fetch` and a small store covers a login with much less structure. This design pays off as the module is reused across hosts and environments and other modules start depending on the session.
+
 ## Usage
 
 The host builds the service once, outside any component, and mounts the provider:

@@ -25,4 +25,10 @@ describe('validateCredentials', () => {
       validateCredentials({ email: ' user@example.com ', password: 'secret' })
     ).toEqual({});
   });
+
+  it('rejects an email without a domain', () => {
+    expect(validateCredentials({ email: 'user@', password: 'secret' })).toEqual(
+      { email: 'invalid-email' }
+    );
+  });
 });
