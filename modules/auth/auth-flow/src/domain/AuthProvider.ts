@@ -8,4 +8,6 @@ export interface AuthProvider {
   signIn(credentials: Credentials): Promise<Session>;
   signUp(registration: Registration): Promise<Session>;
   signOut(session: Session): Promise<void>;
+  /** Sends the recovery instructions to the email, if an account exists. */
+  requestPasswordRecovery(email: string): Promise<void>;
 }

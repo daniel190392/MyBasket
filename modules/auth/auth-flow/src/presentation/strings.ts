@@ -44,3 +44,17 @@ export const registerStrings = {
   } satisfies Record<RegistrationFieldError, string>,
   submitErrors,
 } as const;
+
+export const recoveryStrings = {
+  title: 'Recupera tu contraseña',
+  description:
+    'Ingresa tu email y te enviaremos las instrucciones para crear una nueva contraseña',
+  emailPlaceholder: 'Email',
+  submit: 'Enviar instrucciones',
+  successMessage:
+    'Si existe una cuenta con este email, recibirás las instrucciones en unos minutos',
+  backToSignIn: 'Volver a iniciar sesión',
+  logoLabel: 'PantryHub',
+  fieldErrors: loginStrings.fieldErrors,
+  submitErrors,
+} as const;

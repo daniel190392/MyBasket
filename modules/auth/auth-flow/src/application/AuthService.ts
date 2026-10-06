@@ -34,6 +34,10 @@ export class AuthService {
     return session;
   }
 
+  async requestPasswordRecovery(email: string): Promise<void> {
+    await this.provider.requestPasswordRecovery(email);
+  }
+
   async signOut(session: Session): Promise<void> {
     try {
       await this.provider.signOut(session);

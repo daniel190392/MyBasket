@@ -16,3 +16,5 @@ export { LoginScreen } from './presentation/LoginScreen';
 export type { LoginScreenProps } from './presentation/LoginScreen';
 export { RegisterScreen } from './presentation/RegisterScreen';
 export type { RegisterScreenProps } from './presentation/RegisterScreen';
+export { RecoveryScreen } from './presentation/RecoveryScreen';
+export type { RecoveryScreenProps } from './presentation/RecoveryScreen';
