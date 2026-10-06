@@ -15,7 +15,7 @@ presentation  ->  application  ->  domain  <-  data
 | `domain`       | Types, `AuthError`, the `AuthProvider` and `SessionStorage` ports, validation | nothing (no React)             |
 | `data`         | Adapters of the ports: `MockAuthProvider`, `InMemorySessionStorage`           | `domain`                       |
 | `application`  | `AuthService` (use cases), session reducer, `AuthSessionProvider`, `useAuth`  | `domain`                       |
-| `presentation` | `LoginScreen`, `RegisterScreen`, their form hooks and strings                 | `application`, `ui-components` |
+| `presentation` | `LoginScreen`, `RegisterScreen`, `RecoveryScreen`, their form hooks and strings | `application`, `ui-components` |
 
 Rules that keep it swappable:
 
@@ -46,7 +46,7 @@ On success nothing is returned to the screen: the session state changes and whoe
 
 **Why ports and adapters.** The module has to work against a mock today and a real backend later, and be embedded in hosts with different environments (backend URL, secure storage). Putting the backend and the storage behind interfaces makes both a one-line change at the host's entry point, and lets tests drive every state through the mock without patching anything.
 
-**Why `AuthService` is a plain class, not part of the React layer.** Other modules (features, non-React code such as an HTTP client) will need the session's access token without living inside this module's component tree. Keeping the use cases outside React makes them reusable from there and testable without a renderer. Today the service exposes the use cases (`restoreSession`, `signIn`, `signUp`, `signOut`); reading the current session from outside React is not exposed yet and will be added when the first consumer needs it.
+**Why `AuthService` is a plain class, not part of the React layer.** Other modules (features, non-React code such as an HTTP client) will need the session's access token without living inside this module's component tree. Keeping the use cases outside React makes them reusable from there and testable without a renderer. Today the service exposes the use cases (`restoreSession`, `signIn`, `signUp`, `requestPasswordRecovery`, `signOut`); reading the current session from outside React is not exposed yet and will be added when the first consumer needs it.
 
 **Why a reducer for the session.** The session has mutually exclusive statuses. A pure reducer keeps every transition in one place and unit-testable. It is an internal detail: consumers only see `useAuth()`.
 
@@ -107,6 +107,7 @@ interface AuthProvider {
   signIn(credentials: Credentials): Promise<Session>;
   signUp(registration: Registration): Promise<Session>;
   signOut(session: Session): Promise<void>;
+  requestPasswordRecovery(email: string): Promise<void>;
 }
 ```
 
@@ -136,4 +137,4 @@ npm run build     # lib/ via react-native-builder-bob
 
 ## Public API
 
-Everything is exported from the package entry point: the domain types, `AuthError` and `isAuthError`, `validateCredentials`, `validateRegistration`, the `AuthProvider` and `SessionStorage` types, `MockAuthProvider`, `InMemorySessionStorage`, `AuthService`, `AuthSessionProvider`, `useAuth`, `LoginScreen`, `RegisterScreen`.
+Everything is exported from the package entry point: the domain types, `AuthError` and `isAuthError`, `validateCredentials`, `validateRegistration`, `validateRecovery`, the `AuthProvider` and `SessionStorage` types, `MockAuthProvider`, `InMemorySessionStorage`, `AuthService`, `AuthSessionProvider`, `useAuth`, `LoginScreen`, `RegisterScreen`, `RecoveryScreen`.

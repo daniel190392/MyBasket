@@ -103,6 +103,7 @@ describe('AuthService', () => {
       signIn: jest.fn(),
       signUp: jest.fn(),
       signOut: jest.fn().mockRejectedValue(new AuthError('network')),
+      requestPasswordRecovery: jest.fn(),
     };
     const { service, sessionStorage } = createService(failingProvider);
     const session: Session = {
@@ -116,5 +117,33 @@ describe('AuthService', () => {
     });
 
     expect(await sessionStorage.load()).toBeNull();
+  });
+});
+
+describe('AuthService password recovery', () => {
+  it('delegates the request to the provider without creating a session', async () => {
+    const provider = new MockAuthProvider({ latencyMs: 0 });
+    const requestPasswordRecovery = jest.spyOn(
+      provider,
+      'requestPasswordRecovery'
+    );
+    const { service, sessionStorage } = createService(provider);
+
+    await service.requestPasswordRecovery(demoUser.email);
+
+    expect(requestPasswordRecovery).toHaveBeenCalledWith(demoUser.email);
+    expect(await sessionStorage.load()).toBeNull();
+  });
+
+  it('propagates the provider error', async () => {
+    const provider = new MockAuthProvider({
+      latencyMs: 0,
+      failWith: 'network',
+    });
+    const { service } = createService(provider);
+
+    await expect(
+      service.requestPasswordRecovery(demoUser.email)
+    ).rejects.toBeInstanceOf(AuthError);
   });
 });

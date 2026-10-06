@@ -133,3 +133,32 @@ describe('MockAuthProvider', () => {
     expect(onSettled).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('MockAuthProvider password recovery', () => {
+  it('resolves for a known email', async () => {
+    const provider = new MockAuthProvider(NO_LATENCY);
+
+    await expect(
+      provider.requestPasswordRecovery(demoUser.email)
+    ).resolves.toBeUndefined();
+  });
+
+  it('resolves for an unknown email so accounts are not revealed', async () => {
+    const provider = new MockAuthProvider(NO_LATENCY);
+
+    await expect(
+      provider.requestPasswordRecovery('unknown@mybasket.test')
+    ).resolves.toBeUndefined();
+  });
+
+  it('fails with the forced error code', async () => {
+    const provider = new MockAuthProvider({
+      ...NO_LATENCY,
+      failWith: 'network',
+    });
+
+    await expect(
+      provider.requestPasswordRecovery(demoUser.email)
+    ).rejects.toMatchObject({ code: 'network' });
+  });
+});

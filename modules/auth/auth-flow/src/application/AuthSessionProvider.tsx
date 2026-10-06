@@ -20,6 +20,7 @@ export type AuthContextValue = AuthSessionState & {
   signIn: (credentials: Credentials) => Promise<void>;
   signUp: (registration: Registration) => Promise<void>;
   signOut: () => Promise<void>;
+  requestPasswordRecovery: (email: string) => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -64,6 +65,11 @@ export function AuthSessionProvider({
     [service]
   );
 
+  const requestPasswordRecovery = useCallback(
+    (email: string) => service.requestPasswordRecovery(email),
+    [service]
+  );
+
   const signOut = useCallback(async () => {
     if (state.status !== 'signedIn') return;
     try {
@@ -74,8 +80,8 @@ export function AuthSessionProvider({
   }, [service, state]);
 
   const value = useMemo(
-    () => ({ ...state, signIn, signUp, signOut }),
-    [state, signIn, signUp, signOut]
+    () => ({ ...state, signIn, signUp, signOut, requestPasswordRecovery }),
+    [state, signIn, signUp, signOut, requestPasswordRecovery]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

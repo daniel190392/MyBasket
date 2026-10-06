@@ -1,4 +1,8 @@
-import { validateCredentials, validateRegistration } from '../validation';
+import {
+  validateCredentials,
+  validateRecovery,
+  validateRegistration,
+} from '../validation';
 
 describe('validateCredentials', () => {
   it('accepts a well-formed email and a password', () => {
@@ -71,5 +75,21 @@ describe('validateRegistration', () => {
     expect(
       validateRegistration({ ...validRegistration, confirmPassword: 'other' })
     ).toEqual({ confirmPassword: 'passwords-mismatch' });
+  });
+});
+
+describe('validateRecovery', () => {
+  it('accepts a well-formed email', () => {
+    expect(validateRecovery('demo@mybasket.test')).toEqual({});
+  });
+
+  it('requires the email', () => {
+    expect(validateRecovery('   ')).toEqual({ email: 'required' });
+  });
+
+  it('rejects a malformed email', () => {
+    expect(validateRecovery('not-an-email')).toEqual({
+      email: 'invalid-email',
+    });
   });
 });

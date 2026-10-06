@@ -5,16 +5,18 @@ import { PButton, colors, spacing, textPresets } from 'ui-components';
 import {
   DEFAULT_MOCK_USERS,
   LoginScreen,
+  RecoveryScreen,
   RegisterScreen,
   useAuth,
 } from '../../src';
+
+type AuthScreen = 'login' | 'register' | 'recovery';
 
 const [demoUser] = DEFAULT_MOCK_USERS;
 
 export function AuthGate() {
   const auth = useAuth();
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [isForgotPasswordPressed, setIsForgotPasswordPressed] = useState(false);
+  const [screen, setScreen] = useState<AuthScreen>('login');
 
   if (auth.status === 'restoring') {
     return (
@@ -34,23 +36,24 @@ export function AuthGate() {
     );
   }
 
-  if (isRegistering) {
-    return <RegisterScreen onSignInPress={() => setIsRegistering(false)} />;
+  if (screen === 'register') {
+    return <RegisterScreen onSignInPress={() => setScreen('login')} />;
+  }
+
+  if (screen === 'recovery') {
+    return <RecoveryScreen onSignInPress={() => setScreen('login')} />;
   }
 
   return (
     <View style={styles.flex}>
       <LoginScreen
-        onForgotPasswordPress={() => setIsForgotPasswordPressed(true)}
-        onSignUpPress={() => setIsRegistering(true)}
+        onForgotPasswordPress={() => setScreen('recovery')}
+        onSignUpPress={() => setScreen('register')}
       />
       <View style={styles.footer}>
         <Text style={styles.hint}>
           Mock credentials: {demoUser.email} / {demoUser.password}
         </Text>
-        {isForgotPasswordPressed && (
-          <Text style={styles.hint}>Forgot password pressed</Text>
-        )}
       </View>
     </View>
   );

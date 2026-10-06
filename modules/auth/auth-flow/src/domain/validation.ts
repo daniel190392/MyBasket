@@ -8,17 +8,22 @@ export type CredentialsFieldErrors = Partial<
   Record<keyof Credentials, CredentialsFieldError>
 >;
 
+const validateEmail = (email: string): CredentialsFieldError | undefined => {
+  const trimmedEmail = email.trim();
+  if (!trimmedEmail) return 'required';
+  if (!EMAIL_PATTERN.test(trimmedEmail)) return 'invalid-email';
+  return undefined;
+};
+
 export const validateCredentials = ({
   email,
   password,
 }: Credentials): CredentialsFieldErrors => {
   const errors: CredentialsFieldErrors = {};
-  const trimmedEmail = email.trim();
 
-  if (!trimmedEmail) {
-    errors.email = 'required';
-  } else if (!EMAIL_PATTERN.test(trimmedEmail)) {
-    errors.email = 'invalid-email';
+  const emailError = validateEmail(email);
+  if (emailError) {
+    errors.email = emailError;
   }
 
   if (!password) {
@@ -59,4 +64,13 @@ export const validateRegistration = ({
   }
 
   return errors;
+};
+
+export type RecoveryFieldErrors = Partial<
+  Record<'email', CredentialsFieldError>
+>;
+
+export const validateRecovery = (email: string): RecoveryFieldErrors => {
+  const emailError = validateEmail(email);
+  return emailError ? { email: emailError } : {};
 };

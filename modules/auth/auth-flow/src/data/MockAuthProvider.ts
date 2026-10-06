@@ -85,6 +85,12 @@ export class MockAuthProvider implements AuthProvider {
     await wait(this.latencyMs);
   }
 
+  // Resolves the same way for unknown emails so the response never reveals
+  // which accounts exist.
+  async requestPasswordRecovery(_email: string): Promise<void> {
+    await this.simulateRequest();
+  }
+
   private async simulateRequest(): Promise<void> {
     await wait(this.latencyMs);
 
