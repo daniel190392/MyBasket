@@ -41,6 +41,28 @@ describe('AuthService', () => {
     expect(await sessionStorage.load()).toBeNull();
   });
 
+  it('persists the session after a successful sign up', async () => {
+    const { service, sessionStorage } = createService();
+
+    const session = await service.signUp({
+      email: 'new@mybasket.test',
+      password: 'new-password',
+      displayName: 'New User',
+    });
+
+    expect(await sessionStorage.load()).toEqual(session);
+  });
+
+  it('does not persist anything when the sign up is rejected', async () => {
+    const { service, sessionStorage } = createService();
+
+    await expect(
+      service.signUp({ ...credentials, displayName: 'Taken' })
+    ).rejects.toMatchObject({ code: 'email-already-in-use' });
+
+    expect(await sessionStorage.load()).toBeNull();
+  });
+
   it('restores the stored session', async () => {
     const { service } = createService();
     const session = await service.signIn(credentials);
@@ -79,6 +101,7 @@ describe('AuthService', () => {
   it('clears the stored session even when the provider fails on sign out', async () => {
     const failingProvider: AuthProvider = {
       signIn: jest.fn(),
+      signUp: jest.fn(),
       signOut: jest.fn().mockRejectedValue(new AuthError('network')),
     };
     const { service, sessionStorage } = createService(failingProvider);

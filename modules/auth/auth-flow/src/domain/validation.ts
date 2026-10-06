@@ -1,4 +1,4 @@
-import type { Credentials } from './types';
+import type { Credentials, Registration } from './types';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -23,6 +23,39 @@ export const validateCredentials = ({
 
   if (!password) {
     errors.password = 'required';
+  }
+
+  return errors;
+};
+
+export type RegistrationInput = Registration & { confirmPassword: string };
+
+export type RegistrationFieldError =
+  CredentialsFieldError | 'passwords-mismatch';
+
+export type RegistrationFieldErrors = Partial<
+  Record<keyof RegistrationInput, RegistrationFieldError>
+>;
+
+export const validateRegistration = ({
+  email,
+  password,
+  confirmPassword,
+  displayName,
+}: RegistrationInput): RegistrationFieldErrors => {
+  const errors: RegistrationFieldErrors = validateCredentials({
+    email,
+    password,
+  });
+
+  if (!confirmPassword) {
+    errors.confirmPassword = 'required';
+  } else if (confirmPassword !== password) {
+    errors.confirmPassword = 'passwords-mismatch';
+  }
+
+  if (!displayName.trim()) {
+    errors.displayName = 'required';
   }
 
   return errors;

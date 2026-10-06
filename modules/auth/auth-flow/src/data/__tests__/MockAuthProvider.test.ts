@@ -45,6 +45,51 @@ describe('MockAuthProvider', () => {
     });
   });
 
+  it('signs up a new user who can then sign in', async () => {
+    const provider = new MockAuthProvider(NO_LATENCY);
+    const registration = {
+      email: 'new@mybasket.test',
+      password: 'new-password',
+      displayName: 'New User',
+    };
+
+    const session = await provider.signUp(registration);
+    const nextSession = await provider.signIn({
+      email: registration.email,
+      password: registration.password,
+    });
+
+    expect(session.user.displayName).toBe(registration.displayName);
+    expect(nextSession.user.id).toBe(session.user.id);
+  });
+
+  it('rejects a sign up with an email already in use', async () => {
+    const provider = new MockAuthProvider(NO_LATENCY);
+
+    const attempt = provider.signUp({
+      email: `  ${demoUser.email.toUpperCase()} `,
+      password: 'another-password',
+      displayName: 'Impostor',
+    });
+
+    await expect(attempt).rejects.toMatchObject({
+      code: 'email-already-in-use',
+    });
+  });
+
+  it('does not share registered users between instances', async () => {
+    const registration = {
+      email: 'new@mybasket.test',
+      password: 'new-password',
+      displayName: 'New User',
+    };
+    await new MockAuthProvider(NO_LATENCY).signUp(registration);
+
+    await expect(
+      new MockAuthProvider(NO_LATENCY).signUp(registration)
+    ).resolves.toBeDefined();
+  });
+
   it('fails every call with the forced error code', async () => {
     const provider = new MockAuthProvider({
       ...NO_LATENCY,
