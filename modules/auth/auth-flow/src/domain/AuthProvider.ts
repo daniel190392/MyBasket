@@ -1,4 +1,4 @@
-import type { Credentials, Session } from './types';
+import type { Credentials, Registration, Session } from './types';
 
 /**
  * Contract with the authentication backend. The mock and the real backend
@@ -6,5 +6,6 @@ import type { Credentials, Session } from './types';
  */
 export interface AuthProvider {
   signIn(credentials: Credentials): Promise<Session>;
+  signUp(registration: Registration): Promise<Session>;
   signOut(session: Session): Promise<void>;
 }

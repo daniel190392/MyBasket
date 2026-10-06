@@ -14,10 +14,11 @@ import {
 import type { ReactNode } from 'react';
 import type { AuthService } from './AuthService';
 import type { AuthSessionState } from './authSessionReducer';
-import type { Credentials } from '../domain/types';
+import type { Credentials, Registration } from '../domain/types';
 
 export type AuthContextValue = AuthSessionState & {
   signIn: (credentials: Credentials) => Promise<void>;
+  signUp: (registration: Registration) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -55,6 +56,14 @@ export function AuthSessionProvider({
     [service]
   );
 
+  const signUp = useCallback(
+    async (registration: Registration) => {
+      const session = await service.signUp(registration);
+      dispatch({ type: 'signedIn', session });
+    },
+    [service]
+  );
+
   const signOut = useCallback(async () => {
     if (state.status !== 'signedIn') return;
     try {
@@ -65,8 +74,8 @@ export function AuthSessionProvider({
   }, [service, state]);
 
   const value = useMemo(
-    () => ({ ...state, signIn, signOut }),
-    [state, signIn, signOut]
+    () => ({ ...state, signIn, signUp, signOut }),
+    [state, signIn, signUp, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -3,6 +3,12 @@ export type Credentials = {
   password: string;
 };
 
+export type Registration = {
+  email: string;
+  password: string;
+  displayName: string;
+};
+
 export type AuthUser = {
   id: string;
   email: string;

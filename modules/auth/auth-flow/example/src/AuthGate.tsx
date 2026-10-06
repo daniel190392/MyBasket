@@ -2,13 +2,19 @@ import React, { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { PButton, colors, spacing, textPresets } from 'ui-components';
 
-import { DEFAULT_MOCK_USERS, LoginScreen, useAuth } from '../../src';
+import {
+  DEFAULT_MOCK_USERS,
+  LoginScreen,
+  RegisterScreen,
+  useAuth,
+} from '../../src';
 
 const [demoUser] = DEFAULT_MOCK_USERS;
 
 export function AuthGate() {
   const auth = useAuth();
-  const [lastPressedLink, setLastPressedLink] = useState<string | null>(null);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [isForgotPasswordPressed, setIsForgotPasswordPressed] = useState(false);
 
   if (auth.status === 'restoring') {
     return (
@@ -28,18 +34,22 @@ export function AuthGate() {
     );
   }
 
+  if (isRegistering) {
+    return <RegisterScreen onSignInPress={() => setIsRegistering(false)} />;
+  }
+
   return (
     <View style={styles.flex}>
       <LoginScreen
-        onForgotPasswordPress={() => setLastPressedLink('Forgot password')}
-        onSignUpPress={() => setLastPressedLink('Sign up')}
+        onForgotPasswordPress={() => setIsForgotPasswordPressed(true)}
+        onSignUpPress={() => setIsRegistering(true)}
       />
       <View style={styles.footer}>
         <Text style={styles.hint}>
           Mock credentials: {demoUser.email} / {demoUser.password}
         </Text>
-        {lastPressedLink && (
-          <Text style={styles.hint}>{lastPressedLink} pressed</Text>
+        {isForgotPasswordPressed && (
+          <Text style={styles.hint}>Forgot password pressed</Text>
         )}
       </View>
     </View>

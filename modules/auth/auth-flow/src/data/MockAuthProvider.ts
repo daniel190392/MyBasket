@@ -2,7 +2,7 @@ import { AuthError } from '../domain/errors';
 
 import type { AuthErrorCode } from '../domain/errors';
 import type { AuthProvider } from '../domain/AuthProvider';
-import type { Credentials, Session } from '../domain/types';
+import type { Credentials, Registration, Session } from '../domain/types';
 
 export type MockUser = {
   email: string;
@@ -42,17 +42,14 @@ export class MockAuthProvider implements AuthProvider {
     latencyMs = DEFAULT_MOCK_LATENCY_MS,
     failWith,
   }: MockAuthProviderOptions = {}) {
-    this.users = users;
+    // Copied so sign ups never leak into the shared default users list.
+    this.users = [...users];
     this.latencyMs = latencyMs;
     this.failWith = failWith;
   }
 
   async signIn({ email, password }: Credentials): Promise<Session> {
-    await wait(this.latencyMs);
-
-    if (this.failWith) {
-      throw new AuthError(this.failWith);
-    }
+    await this.simulateRequest();
 
     const userIndex = this.users.findIndex(
       (user) =>
@@ -63,14 +60,44 @@ export class MockAuthProvider implements AuthProvider {
       throw new AuthError('invalid-credentials');
     }
 
-    const { email: userEmail, displayName } = this.users[userIndex];
-    return {
-      user: { id: `mock-user-${userIndex}`, email: userEmail, displayName },
-      accessToken: `mock-access-token-${userIndex}`,
-    };
+    return this.createSession(userIndex);
+  }
+
+  async signUp({
+    email,
+    password,
+    displayName,
+  }: Registration): Promise<Session> {
+    await this.simulateRequest();
+
+    const isEmailTaken = this.users.some(
+      (user) => normalizeEmail(user.email) === normalizeEmail(email)
+    );
+    if (isEmailTaken) {
+      throw new AuthError('email-already-in-use');
+    }
+
+    this.users.push({ email: email.trim(), password, displayName });
+    return this.createSession(this.users.length - 1);
   }
 
   async signOut(): Promise<void> {
     await wait(this.latencyMs);
+  }
+
+  private async simulateRequest(): Promise<void> {
+    await wait(this.latencyMs);
+
+    if (this.failWith) {
+      throw new AuthError(this.failWith);
+    }
+  }
+
+  private createSession(userIndex: number): Session {
+    const { email, displayName } = this.users[userIndex];
+    return {
+      user: { id: `mock-user-${userIndex}`, email, displayName },
+      accessToken: `mock-access-token-${userIndex}`,
+    };
   }
 }
