@@ -17,6 +17,7 @@ const [demoUser] = DEFAULT_MOCK_USERS;
 export function AuthGate() {
   const auth = useAuth();
   const [screen, setScreen] = useState<AuthScreen>('login');
+  const [emailToConfirm, setEmailToConfirm] = useState<string | null>(null);
 
   if (auth.status === 'restoring') {
     return (
@@ -37,7 +38,19 @@ export function AuthGate() {
   }
 
   if (screen === 'register') {
-    return <RegisterScreen onSignInPress={() => setScreen('login')} />;
+    return (
+      <View style={styles.flex}>
+        <RegisterScreen
+          onSignInPress={() => setScreen('login')}
+          onConfirmationRequired={setEmailToConfirm}
+        />
+        {emailToConfirm && (
+          <Text style={styles.hint}>
+            Confirmation required: {emailToConfirm}
+          </Text>
+        )}
+      </View>
+    );
   }
 
   if (screen === 'recovery') {

@@ -2,7 +2,12 @@ import { AuthError } from '../domain/errors';
 
 import type { AuthErrorCode } from '../domain/errors';
 import type { AuthProvider } from '../domain/AuthProvider';
-import type { Credentials, Registration, Session } from '../domain/types';
+import type {
+  Credentials,
+  Registration,
+  Session,
+  SignUpResult,
+} from '../domain/types';
 
 export type MockUser = {
   email: string;
@@ -67,7 +72,7 @@ export class MockAuthProvider implements AuthProvider {
     email,
     password,
     displayName,
-  }: Registration): Promise<Session> {
+  }: Registration): Promise<SignUpResult> {
     await this.simulateRequest();
 
     const isEmailTaken = this.users.some(
@@ -78,7 +83,10 @@ export class MockAuthProvider implements AuthProvider {
     }
 
     this.users.push({ email: email.trim(), password, displayName });
-    return this.createSession(this.users.length - 1);
+    return {
+      status: 'signedIn',
+      session: this.createSession(this.users.length - 1),
+    };
   }
 
   async signOut(): Promise<void> {

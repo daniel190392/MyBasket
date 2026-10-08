@@ -53,14 +53,14 @@ describe('MockAuthProvider', () => {
       displayName: 'New User',
     };
 
-    const session = await provider.signUp(registration);
+    const result = await provider.signUp(registration);
     const nextSession = await provider.signIn({
       email: registration.email,
       password: registration.password,
     });
 
-    expect(session.user.displayName).toBe(registration.displayName);
-    expect(nextSession.user.id).toBe(session.user.id);
+    expect(result).toEqual({ status: 'signedIn', session: nextSession });
+    expect(nextSession.user.displayName).toBe(registration.displayName);
   });
 
   it('rejects a sign up with an email already in use', async () => {

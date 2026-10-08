@@ -8,6 +8,8 @@ import type {
 const submitErrors = {
   'invalid-credentials': 'Email o contraseña incorrectos',
   'email-already-in-use': 'Ya existe una cuenta con este email',
+  'weak-password':
+    'La contraseña debe tener al menos 8 caracteres, con mayúscula, minúscula y número',
   network: 'No pudimos conectar. Revisa tu conexión e inténtalo de nuevo',
   unknown: 'Algo salió mal. Inténtalo de nuevo',
 } satisfies Record<AuthErrorCode, string>;

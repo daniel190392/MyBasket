@@ -14,11 +14,11 @@ import {
 import type { ReactNode } from 'react';
 import type { AuthService } from './AuthService';
 import type { AuthSessionState } from './authSessionReducer';
-import type { Credentials, Registration } from '../domain/types';
+import type { Credentials, Registration, SignUpResult } from '../domain/types';
 
 export type AuthContextValue = AuthSessionState & {
   signIn: (credentials: Credentials) => Promise<void>;
-  signUp: (registration: Registration) => Promise<void>;
+  signUp: (registration: Registration) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
   requestPasswordRecovery: (email: string) => Promise<void>;
 };
@@ -59,8 +59,11 @@ export function AuthSessionProvider({
 
   const signUp = useCallback(
     async (registration: Registration) => {
-      const session = await service.signUp(registration);
-      dispatch({ type: 'signedIn', session });
+      const result = await service.signUp(registration);
+      if (result.status === 'signedIn') {
+        dispatch({ type: 'signedIn', session: result.session });
+      }
+      return result;
     },
     [service]
   );

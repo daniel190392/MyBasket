@@ -1,5 +1,9 @@
 export type AuthErrorCode =
-  'invalid-credentials' | 'email-already-in-use' | 'network' | 'unknown';
+  | 'invalid-credentials'
+  | 'email-already-in-use'
+  | 'weak-password'
+  | 'network'
+  | 'unknown';
 
 export class AuthError extends Error {
   readonly code: AuthErrorCode;

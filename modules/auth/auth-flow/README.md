@@ -105,7 +105,7 @@ Implement `AuthProvider` in `src/data/` (for example `HttpAuthProvider`), map HT
 ```ts
 interface AuthProvider {
   signIn(credentials: Credentials): Promise<Session>;
-  signUp(registration: Registration): Promise<Session>;
+  signUp(registration: Registration): Promise<SignUpResult>;
   signOut(session: Session): Promise<void>;
   requestPasswordRecovery(email: string): Promise<void>;
 }

@@ -29,11 +29,14 @@ const SUBMIT_ERROR_MIN_HEIGHT = 48;
 export type RegisterScreenProps = {
   logo?: ImageSourcePropType;
   onSignInPress: () => void;
+  /** The account exists but must be confirmed before the first sign in. */
+  onConfirmationRequired: (email: string) => void;
 };
 
 export function RegisterScreen({
   logo = require('./assets/logo.png'),
   onSignInPress,
+  onConfirmationRequired,
 }: RegisterScreenProps) {
   const {
     email,
@@ -48,7 +51,7 @@ export function RegisterScreen({
     submitErrorCode,
     isSubmitting,
     submit,
-  } = useRegisterForm();
+  } = useRegisterForm(onConfirmationRequired);
 
   const fieldError = (code?: keyof typeof registerStrings.fieldErrors) =>
     code ? registerStrings.fieldErrors[code] : undefined;

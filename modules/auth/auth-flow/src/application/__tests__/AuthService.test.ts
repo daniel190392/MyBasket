@@ -44,13 +44,41 @@ describe('AuthService', () => {
   it('persists the session after a successful sign up', async () => {
     const { service, sessionStorage } = createService();
 
-    const session = await service.signUp({
+    const result = await service.signUp({
       email: 'new@mybasket.test',
       password: 'new-password',
       displayName: 'New User',
     });
 
-    expect(await sessionStorage.load()).toEqual(session);
+    expect(result.status).toBe('signedIn');
+    expect(await sessionStorage.load()).toEqual(
+      result.status === 'signedIn' ? result.session : undefined
+    );
+  });
+
+  it('does not persist anything when the sign up needs confirmation', async () => {
+    const provider: AuthProvider = {
+      signIn: jest.fn(),
+      signUp: jest.fn().mockResolvedValue({
+        status: 'confirmationRequired',
+        email: 'new@mybasket.test',
+      }),
+      signOut: jest.fn(),
+      requestPasswordRecovery: jest.fn(),
+    };
+    const { service, sessionStorage } = createService(provider);
+
+    const result = await service.signUp({
+      email: 'new@mybasket.test',
+      password: 'new-password',
+      displayName: 'New User',
+    });
+
+    expect(result).toEqual({
+      status: 'confirmationRequired',
+      email: 'new@mybasket.test',
+    });
+    expect(await sessionStorage.load()).toBeNull();
   });
 
   it('does not persist anything when the sign up is rejected', async () => {
