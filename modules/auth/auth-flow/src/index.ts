@@ -6,6 +6,7 @@ export type { SessionStorage } from './domain/SessionStorage';
 
 export * from './data/MockAuthProvider';
 export * from './data/InMemorySessionStorage';
+export * from './data/RemoteAuthProvider';
 
 export { AuthService } from './application/AuthService';
 export { AuthSessionProvider } from './application/AuthSessionProvider';
