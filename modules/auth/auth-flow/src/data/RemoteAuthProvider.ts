@@ -6,6 +6,7 @@ import type {
   Credentials,
   Registration,
   Session,
+  SignUpConfirmation,
   SignUpResult,
 } from '../domain/types';
 
@@ -49,6 +50,10 @@ const ERROR_CODES = new Map<string, AuthErrorCode>([
   ['UserNotFoundException', 'invalid-credentials'],
   ['UsernameExistsException', 'email-already-in-use'],
   ['InvalidPasswordException', 'weak-password'],
+  ['CodeMismatchException', 'invalid-code'],
+  ['ExpiredCodeException', 'expired-code'],
+  ['LimitExceededException', 'too-many-requests'],
+  ['TooManyRequestsException', 'too-many-requests'],
 ]);
 
 // atob yields a binary string; decoding it as percent-encoded bytes keeps
@@ -124,6 +129,21 @@ export class RemoteAuthProvider implements AuthProvider {
       return { status: 'signedIn', session };
     }
     return { status: 'confirmationRequired', email: username };
+  }
+
+  async confirmSignUp({ email, code }: SignUpConfirmation): Promise<void> {
+    await this.call('ConfirmSignUp', {
+      ClientId: this.options.clientId,
+      Username: email.trim(),
+      ConfirmationCode: code,
+    });
+  }
+
+  async resendConfirmationCode(email: string): Promise<void> {
+    await this.call('ResendConfirmationCode', {
+      ClientId: this.options.clientId,
+      Username: email.trim(),
+    });
   }
 
   async signOut(_session: Session): Promise<void> {

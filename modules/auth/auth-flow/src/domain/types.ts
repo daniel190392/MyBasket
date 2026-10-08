@@ -20,6 +20,12 @@ export type Session = {
   accessToken: string;
 };
 
+export type SignUpConfirmation = {
+  email: string;
+  /** Code the backend emailed to the user. */
+  code: string;
+};
+
 /**
  * Outcome of a sign up. A backend that verifies the email first cannot return
  * a session yet: the user has to confirm the account before signing in.

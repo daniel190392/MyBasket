@@ -10,6 +10,9 @@ const submitErrors = {
   'email-already-in-use': 'Ya existe una cuenta con este email',
   'weak-password':
     'La contraseña debe tener al menos 8 caracteres, con mayúscula, minúscula y número',
+  'invalid-code': 'El código es incorrecto',
+  'expired-code': 'El código caducó. Solicita uno nuevo',
+  'too-many-requests': 'Demasiados intentos. Inténtalo más tarde',
   network: 'No pudimos conectar. Revisa tu conexión e inténtalo de nuevo',
   unknown: 'Algo salió mal. Inténtalo de nuevo',
 } satisfies Record<AuthErrorCode, string>;

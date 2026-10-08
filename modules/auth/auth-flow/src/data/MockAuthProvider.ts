@@ -6,6 +6,7 @@ import type {
   Credentials,
   Registration,
   Session,
+  SignUpConfirmation,
   SignUpResult,
 } from '../domain/types';
 
@@ -20,9 +21,13 @@ export type MockAuthProviderOptions = {
   latencyMs?: number;
   /** Makes every call fail with this code, to exercise error states. */
   failWith?: AuthErrorCode;
+  /** Makes sign up return `confirmationRequired`, like the real backend. */
+  requireConfirmation?: boolean;
 };
 
 export const DEFAULT_MOCK_LATENCY_MS = 600;
+export const MOCK_CONFIRMATION_CODE = '123456';
+export const MOCK_EXPIRED_CONFIRMATION_CODE = '000000';
 
 export const DEFAULT_MOCK_USERS: MockUser[] = [
   {
@@ -41,16 +46,20 @@ export class MockAuthProvider implements AuthProvider {
   private readonly users: MockUser[];
   private readonly latencyMs: number;
   private readonly failWith?: AuthErrorCode;
+  private readonly requireConfirmation: boolean;
+  private readonly pendingUsers: MockUser[] = [];
 
   constructor({
     users = DEFAULT_MOCK_USERS,
     latencyMs = DEFAULT_MOCK_LATENCY_MS,
     failWith,
+    requireConfirmation = false,
   }: MockAuthProviderOptions = {}) {
     // Copied so sign ups never leak into the shared default users list.
     this.users = [...users];
     this.latencyMs = latencyMs;
     this.failWith = failWith;
+    this.requireConfirmation = requireConfirmation;
   }
 
   async signIn({ email, password }: Credentials): Promise<Session> {
@@ -75,18 +84,48 @@ export class MockAuthProvider implements AuthProvider {
   }: Registration): Promise<SignUpResult> {
     await this.simulateRequest();
 
-    const isEmailTaken = this.users.some(
+    const isEmailTaken = [...this.users, ...this.pendingUsers].some(
       (user) => normalizeEmail(user.email) === normalizeEmail(email)
     );
     if (isEmailTaken) {
       throw new AuthError('email-already-in-use');
     }
 
-    this.users.push({ email: email.trim(), password, displayName });
+    const newUser = { email: email.trim(), password, displayName };
+    if (this.requireConfirmation) {
+      this.pendingUsers.push(newUser);
+      return { status: 'confirmationRequired', email: newUser.email };
+    }
+
+    this.users.push(newUser);
     return {
       status: 'signedIn',
       session: this.createSession(this.users.length - 1),
     };
+  }
+
+  async confirmSignUp({ email, code }: SignUpConfirmation): Promise<void> {
+    await this.simulateRequest();
+
+    if (code === MOCK_EXPIRED_CONFIRMATION_CODE) {
+      throw new AuthError('expired-code');
+    }
+    if (code !== MOCK_CONFIRMATION_CODE) {
+      throw new AuthError('invalid-code');
+    }
+
+    const pendingIndex = this.pendingUsers.findIndex(
+      (user) => normalizeEmail(user.email) === normalizeEmail(email)
+    );
+    if (pendingIndex !== -1) {
+      const [confirmedUser] = this.pendingUsers.splice(pendingIndex, 1);
+      this.users.push(confirmedUser);
+    }
+  }
+
+  // Resolves for any email so the response never reveals which accounts exist.
+  async resendConfirmationCode(_email: string): Promise<void> {
+    await this.simulateRequest();
   }
 
   async signOut(): Promise<void> {

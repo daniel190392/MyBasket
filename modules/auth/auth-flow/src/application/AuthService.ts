@@ -4,6 +4,7 @@ import type {
   Credentials,
   Registration,
   Session,
+  SignUpConfirmation,
   SignUpResult,
 } from '../domain/types';
 
@@ -39,6 +40,14 @@ export class AuthService {
       await this.storage.save(result.session);
     }
     return result;
+  }
+
+  async confirmSignUp(confirmation: SignUpConfirmation): Promise<void> {
+    await this.provider.confirmSignUp(confirmation);
+  }
+
+  async resendConfirmationCode(email: string): Promise<void> {
+    await this.provider.resendConfirmationCode(email);
   }
 
   async requestPasswordRecovery(email: string): Promise<void> {

@@ -14,12 +14,19 @@ import {
 import type { ReactNode } from 'react';
 import type { AuthService } from './AuthService';
 import type { AuthSessionState } from './authSessionReducer';
-import type { Credentials, Registration, SignUpResult } from '../domain/types';
+import type {
+  Credentials,
+  Registration,
+  SignUpConfirmation,
+  SignUpResult,
+} from '../domain/types';
 
 export type AuthContextValue = AuthSessionState & {
   signIn: (credentials: Credentials) => Promise<void>;
   signUp: (registration: Registration) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
+  confirmSignUp: (confirmation: SignUpConfirmation) => Promise<void>;
+  resendConfirmationCode: (email: string) => Promise<void>;
   requestPasswordRecovery: (email: string) => Promise<void>;
 };
 
@@ -68,6 +75,16 @@ export function AuthSessionProvider({
     [service]
   );
 
+  const confirmSignUp = useCallback(
+    (confirmation: SignUpConfirmation) => service.confirmSignUp(confirmation),
+    [service]
+  );
+
+  const resendConfirmationCode = useCallback(
+    (email: string) => service.resendConfirmationCode(email),
+    [service]
+  );
+
   const requestPasswordRecovery = useCallback(
     (email: string) => service.requestPasswordRecovery(email),
     [service]
@@ -83,8 +100,24 @@ export function AuthSessionProvider({
   }, [service, state]);
 
   const value = useMemo(
-    () => ({ ...state, signIn, signUp, signOut, requestPasswordRecovery }),
-    [state, signIn, signUp, signOut, requestPasswordRecovery]
+    () => ({
+      ...state,
+      signIn,
+      signUp,
+      signOut,
+      confirmSignUp,
+      resendConfirmationCode,
+      requestPasswordRecovery,
+    }),
+    [
+      state,
+      signIn,
+      signUp,
+      signOut,
+      confirmSignUp,
+      resendConfirmationCode,
+      requestPasswordRecovery,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
