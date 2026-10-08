@@ -7,9 +7,9 @@ import { validateCredentials } from '../domain/validation';
 import type { AuthErrorCode } from '../domain/errors';
 import type { CredentialsFieldErrors } from '../domain/validation';
 
-export const useLoginForm = () => {
+export const useLoginForm = (initialEmail = '') => {
   const { signIn } = useAuth();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<CredentialsFieldErrors>({});
   const [submitErrorCode, setSubmitErrorCode] = useState<AuthErrorCode | null>(

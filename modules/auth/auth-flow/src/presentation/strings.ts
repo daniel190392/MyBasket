@@ -1,5 +1,6 @@
 import type { AuthErrorCode } from '../domain/errors';
 import type {
+  ConfirmationFieldError,
   CredentialsFieldError,
   RegistrationFieldError,
 } from '../domain/validation';
@@ -61,5 +62,22 @@ export const recoveryStrings = {
   backToSignIn: 'Volver a iniciar sesión',
   logoLabel: 'PantryHub',
   fieldErrors: loginStrings.fieldErrors,
+  submitErrors,
+} as const;
+
+export const confirmationStrings = {
+  title: 'Confirma tu email',
+  description: 'Ingresa el código de 6 dígitos que enviamos a',
+  codePlaceholder: 'Código',
+  submit: 'Confirmar',
+  resend: 'Reenviar código',
+  resendIn: 'Reenviar código en',
+  resentMessage: 'Te enviamos un nuevo código',
+  backToSignIn: 'Volver a iniciar sesión',
+  logoLabel: 'PantryHub',
+  fieldErrors: {
+    required: 'Este campo es obligatorio',
+    'invalid-code-format': 'Ingresa el código de 6 dígitos',
+  } satisfies Record<ConfirmationFieldError, string>,
   submitErrors,
 } as const;

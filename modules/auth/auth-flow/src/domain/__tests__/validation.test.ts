@@ -1,5 +1,6 @@
 import {
   validateCredentials,
+  validateConfirmationCode,
   validateRecovery,
   validateRegistration,
 } from '../validation';
@@ -90,6 +91,26 @@ describe('validateRecovery', () => {
   it('rejects a malformed email', () => {
     expect(validateRecovery('not-an-email')).toEqual({
       email: 'invalid-email',
+    });
+  });
+});
+
+describe('validateConfirmationCode', () => {
+  it('accepts a code of six digits', () => {
+    expect(validateConfirmationCode('123456')).toEqual({});
+  });
+
+  it('ignores the spaces around the code', () => {
+    expect(validateConfirmationCode(' 123456 ')).toEqual({});
+  });
+
+  it('requires the code', () => {
+    expect(validateConfirmationCode('   ')).toEqual({ code: 'required' });
+  });
+
+  it.each(['12345', '1234567', '12345a', 'abcdef'])('rejects %s', (code) => {
+    expect(validateConfirmationCode(code)).toEqual({
+      code: 'invalid-code-format',
     });
   });
 });
