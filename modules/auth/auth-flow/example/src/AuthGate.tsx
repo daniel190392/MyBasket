@@ -3,23 +3,22 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { PButton, colors, spacing, textPresets } from 'ui-components';
 
 import {
-  ConfirmationScreen,
   DEFAULT_MOCK_USERS,
   LoginScreen,
   MOCK_CONFIRMATION_CODE,
   PasswordRecoveryFlow,
-  RegisterScreen,
+  SignUpFlow,
   useAuth,
 } from '../../src';
 
-type AuthScreen = 'login' | 'register' | 'confirmation' | 'recovery';
+type AuthScreen = 'login' | 'signUp' | 'recovery';
 
 const [demoUser] = DEFAULT_MOCK_USERS;
 
 export function AuthGate() {
   const auth = useAuth();
   const [screen, setScreen] = useState<AuthScreen>('login');
-  const [emailToConfirm, setEmailToConfirm] = useState<string | null>(null);
+  const [confirmedEmail, setConfirmedEmail] = useState<string | null>(null);
 
   if (auth.status === 'restoring') {
     return (
@@ -39,25 +38,15 @@ export function AuthGate() {
     );
   }
 
-  if (screen === 'register') {
-    return (
-      <RegisterScreen
-        onSignInPress={() => setScreen('login')}
-        onConfirmationRequired={(email) => {
-          setEmailToConfirm(email);
-          setScreen('confirmation');
-        }}
-      />
-    );
-  }
-
-  if (screen === 'confirmation' && emailToConfirm) {
+  if (screen === 'signUp') {
     return (
       <View style={styles.flex}>
-        <ConfirmationScreen
-          email={emailToConfirm}
-          onConfirmed={() => setScreen('login')}
-          onBackPress={() => setScreen('login')}
+        <SignUpFlow
+          onFinished={(email) => {
+            setConfirmedEmail(email);
+            setScreen('login');
+          }}
+          onSignInPress={() => setScreen('login')}
         />
         <View style={styles.footer}>
           <Text style={styles.hint}>
@@ -87,9 +76,9 @@ export function AuthGate() {
   return (
     <View style={styles.flex}>
       <LoginScreen
-        initialEmail={emailToConfirm ?? undefined}
+        initialEmail={confirmedEmail ?? undefined}
         onForgotPasswordPress={() => setScreen('recovery')}
-        onSignUpPress={() => setScreen('register')}
+        onSignUpPress={() => setScreen('signUp')}
       />
       <View style={styles.footer}>
         <Text style={styles.hint}>

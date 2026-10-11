@@ -19,6 +19,8 @@ export { RegisterScreen } from './presentation/RegisterScreen';
 export type { RegisterScreenProps } from './presentation/RegisterScreen';
 export { ConfirmationScreen } from './presentation/ConfirmationScreen';
 export type { ConfirmationScreenProps } from './presentation/ConfirmationScreen';
+export { SignUpFlow } from './presentation/SignUpFlow';
+export type { SignUpFlowProps } from './presentation/SignUpFlow';
 export { PasswordRecoveryFlow } from './presentation/PasswordRecoveryFlow';
 export type { PasswordRecoveryFlowProps } from './presentation/PasswordRecoveryFlow';
 export { RecoveryScreen } from './presentation/RecoveryScreen';
