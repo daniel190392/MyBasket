@@ -10,12 +10,12 @@ A small ports-and-adapters core behind a thin React layer.
 presentation  ->  application  ->  domain  <-  data
 ```
 
-| Layer          | Contains                                                                      | Depends on                     |
-| -------------- | ----------------------------------------------------------------------------- | ------------------------------ |
-| `domain`       | Types, `AuthError`, the `AuthProvider` and `SessionStorage` ports, validation | nothing (no React)             |
-| `data`         | Adapters of the ports: `MockAuthProvider`, `InMemorySessionStorage`           | `domain`                       |
-| `application`  | `AuthService` (use cases), session reducer, `AuthSessionProvider`, `useAuth`  | `domain`                       |
-| `presentation` | `LoginScreen`, `RegisterScreen`, `ConfirmationScreen`, `RecoveryScreen`, their form hooks and strings | `application`, `ui-components` |
+| Layer          | Contains                                                                                                                     | Depends on                     |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `domain`       | Types, `AuthError`, the `AuthProvider` and `SessionStorage` ports, validation                                                | nothing (no React)             |
+| `data`         | Adapters of the ports: `MockAuthProvider`, `InMemorySessionStorage`                                                          | `domain`                       |
+| `application`  | `AuthService` (use cases), session reducer, `AuthSessionProvider`, `useAuth`                                                 | `domain`                       |
+| `presentation` | `LoginScreen`, `RegisterScreen`, `ConfirmationScreen`, `RecoveryScreen`, `ResetPasswordScreen`, their form hooks and strings | `application`, `ui-components` |
 
 Rules that keep it swappable:
 
@@ -110,6 +110,9 @@ interface AuthProvider {
   confirmSignUp(confirmation: SignUpConfirmation): Promise<void>;
   resendConfirmationCode(email: string): Promise<void>;
   requestPasswordRecovery(email: string): Promise<void>;
+  confirmPasswordRecovery(
+    confirmation: PasswordRecoveryConfirmation
+  ): Promise<void>;
 }
 ```
 
@@ -139,4 +142,4 @@ npm run build     # lib/ via react-native-builder-bob
 
 ## Public API
 
-Everything is exported from the package entry point: the domain types, `AuthError` and `isAuthError`, `validateCredentials`, `validateRegistration`, `validateConfirmationCode`, `validateRecovery`, the `AuthProvider` and `SessionStorage` types, `MockAuthProvider`, `InMemorySessionStorage`, `AuthService`, `AuthSessionProvider`, `useAuth`, `LoginScreen`, `RegisterScreen`, `ConfirmationScreen`, `RecoveryScreen`.
+Everything is exported from the package entry point: the domain types, `AuthError` and `isAuthError`, `validateCredentials`, `validateRegistration`, `validateConfirmationCode`, `validateRecovery`, `validateResetPassword`, the `AuthProvider` and `SessionStorage` types, `MockAuthProvider`, `InMemorySessionStorage`, `AuthService`, `AuthSessionProvider`, `useAuth`, `LoginScreen`, `RegisterScreen`, `ConfirmationScreen`, `RecoveryScreen`, `ResetPasswordScreen`.

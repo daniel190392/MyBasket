@@ -3,6 +3,7 @@ import {
   validateConfirmationCode,
   validateRecovery,
   validateRegistration,
+  validateResetPassword,
 } from '../validation';
 
 describe('validateCredentials', () => {
@@ -112,5 +113,54 @@ describe('validateConfirmationCode', () => {
     expect(validateConfirmationCode(code)).toEqual({
       code: 'invalid-code-format',
     });
+  });
+});
+
+describe('validateResetPassword', () => {
+  const validInput = {
+    code: '123456',
+    newPassword: 'Newpass1',
+    confirmPassword: 'Newpass1',
+  };
+
+  it('accepts a code and a password that meets the policy', () => {
+    expect(validateResetPassword(validInput)).toEqual({});
+  });
+
+  it('requires every field', () => {
+    expect(
+      validateResetPassword({ code: '', newPassword: '', confirmPassword: '' })
+    ).toEqual({
+      code: 'required',
+      newPassword: 'required',
+      confirmPassword: 'required',
+    });
+  });
+
+  it('rejects a malformed code', () => {
+    expect(validateResetPassword({ ...validInput, code: '12ab' })).toEqual({
+      code: 'invalid-code-format',
+    });
+  });
+
+  it.each([
+    ['too short', 'Ab1'],
+    ['without lowercase', 'NEWPASS12'],
+    ['without uppercase', 'newpass12'],
+    ['without a digit', 'Newpasswd'],
+  ])('rejects a password %s', (_reason, newPassword) => {
+    expect(
+      validateResetPassword({
+        ...validInput,
+        newPassword,
+        confirmPassword: newPassword,
+      })
+    ).toEqual({ newPassword: 'weak-password' });
+  });
+
+  it('rejects a confirmation that differs from the password', () => {
+    expect(
+      validateResetPassword({ ...validInput, confirmPassword: 'Other1234' })
+    ).toEqual({ confirmPassword: 'passwords-mismatch' });
   });
 });

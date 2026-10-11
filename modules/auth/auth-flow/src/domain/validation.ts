@@ -96,3 +96,49 @@ export const validateConfirmationCode = (
   }
   return {};
 };
+
+export const PASSWORD_MIN_LENGTH = 8;
+const LOWERCASE_PATTERN = /[a-z]/;
+const UPPERCASE_PATTERN = /[A-Z]/;
+const DIGIT_PATTERN = /\d/;
+
+export type ResetPasswordInput = {
+  code: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
+export type ResetPasswordFieldError =
+  ConfirmationFieldError | 'weak-password' | 'passwords-mismatch';
+
+export type ResetPasswordFieldErrors = Partial<
+  Record<keyof ResetPasswordInput, ResetPasswordFieldError>
+>;
+
+const isStrongPassword = (password: string) =>
+  password.length >= PASSWORD_MIN_LENGTH &&
+  LOWERCASE_PATTERN.test(password) &&
+  UPPERCASE_PATTERN.test(password) &&
+  DIGIT_PATTERN.test(password);
+
+export const validateResetPassword = ({
+  code,
+  newPassword,
+  confirmPassword,
+}: ResetPasswordInput): ResetPasswordFieldErrors => {
+  const errors: ResetPasswordFieldErrors = validateConfirmationCode(code);
+
+  if (!newPassword) {
+    errors.newPassword = 'required';
+  } else if (!isStrongPassword(newPassword)) {
+    errors.newPassword = 'weak-password';
+  }
+
+  if (!confirmPassword) {
+    errors.confirmPassword = 'required';
+  } else if (confirmPassword !== newPassword) {
+    errors.confirmPassword = 'passwords-mismatch';
+  }
+
+  return errors;
+};
