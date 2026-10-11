@@ -200,7 +200,7 @@ describe('MockAuthProvider password recovery confirmation', () => {
     expect(demoUser.password).not.toBe(NEW_PASSWORD);
   });
 
-  it('resolves for an unknown email so accounts are not revealed', async () => {
+  it('reports an unknown email as an invalid code so accounts are not revealed', async () => {
     const provider = new MockAuthProvider(NO_LATENCY);
 
     await expect(
@@ -209,7 +209,7 @@ describe('MockAuthProvider password recovery confirmation', () => {
         code: MOCK_CONFIRMATION_CODE,
         newPassword: NEW_PASSWORD,
       })
-    ).resolves.toBeUndefined();
+    ).rejects.toMatchObject({ code: 'invalid-code' });
   });
 
   it.each([
