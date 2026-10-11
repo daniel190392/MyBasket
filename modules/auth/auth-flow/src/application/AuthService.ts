@@ -1,6 +1,12 @@
 import type { AuthProvider } from '../domain/AuthProvider';
 import type { SessionStorage } from '../domain/SessionStorage';
-import type { Credentials, Registration, Session } from '../domain/types';
+import type {
+  Credentials,
+  Registration,
+  Session,
+  SignUpConfirmation,
+  SignUpResult,
+} from '../domain/types';
 
 /**
  * Authentication use cases. Plain TypeScript with no React, so the host can
@@ -28,10 +34,20 @@ export class AuthService {
     return session;
   }
 
-  async signUp(registration: Registration): Promise<Session> {
-    const session = await this.provider.signUp(registration);
-    await this.storage.save(session);
-    return session;
+  async signUp(registration: Registration): Promise<SignUpResult> {
+    const result = await this.provider.signUp(registration);
+    if (result.status === 'signedIn') {
+      await this.storage.save(result.session);
+    }
+    return result;
+  }
+
+  async confirmSignUp(confirmation: SignUpConfirmation): Promise<void> {
+    await this.provider.confirmSignUp(confirmation);
+  }
+
+  async resendConfirmationCode(email: string): Promise<void> {
+    await this.provider.resendConfirmationCode(email);
   }
 
   async requestPasswordRecovery(email: string): Promise<void> {

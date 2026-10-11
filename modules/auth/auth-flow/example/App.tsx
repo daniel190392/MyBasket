@@ -12,7 +12,7 @@ import { AuthGate } from './src/AuthGate';
 // Built once, outside the component: switching to the real backend means
 // replacing MockAuthProvider here, nothing else.
 const authService = new AuthService(
-  new MockAuthProvider(),
+  new MockAuthProvider({ requireConfirmation: true }),
   new InMemorySessionStorage()
 );
 

@@ -3,20 +3,23 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { PButton, colors, spacing, textPresets } from 'ui-components';
 
 import {
+  ConfirmationScreen,
   DEFAULT_MOCK_USERS,
   LoginScreen,
+  MOCK_CONFIRMATION_CODE,
   RecoveryScreen,
   RegisterScreen,
   useAuth,
 } from '../../src';
 
-type AuthScreen = 'login' | 'register' | 'recovery';
+type AuthScreen = 'login' | 'register' | 'confirmation' | 'recovery';
 
 const [demoUser] = DEFAULT_MOCK_USERS;
 
 export function AuthGate() {
   const auth = useAuth();
   const [screen, setScreen] = useState<AuthScreen>('login');
+  const [emailToConfirm, setEmailToConfirm] = useState<string | null>(null);
 
   if (auth.status === 'restoring') {
     return (
@@ -37,7 +40,32 @@ export function AuthGate() {
   }
 
   if (screen === 'register') {
-    return <RegisterScreen onSignInPress={() => setScreen('login')} />;
+    return (
+      <RegisterScreen
+        onSignInPress={() => setScreen('login')}
+        onConfirmationRequired={(email) => {
+          setEmailToConfirm(email);
+          setScreen('confirmation');
+        }}
+      />
+    );
+  }
+
+  if (screen === 'confirmation' && emailToConfirm) {
+    return (
+      <View style={styles.flex}>
+        <ConfirmationScreen
+          email={emailToConfirm}
+          onConfirmed={() => setScreen('login')}
+          onBackPress={() => setScreen('login')}
+        />
+        <View style={styles.footer}>
+          <Text style={styles.hint}>
+            Mock confirmation code: {MOCK_CONFIRMATION_CODE}
+          </Text>
+        </View>
+      </View>
+    );
   }
 
   if (screen === 'recovery') {
@@ -47,6 +75,7 @@ export function AuthGate() {
   return (
     <View style={styles.flex}>
       <LoginScreen
+        initialEmail={emailToConfirm ?? undefined}
         onForgotPasswordPress={() => setScreen('recovery')}
         onSignUpPress={() => setScreen('register')}
       />

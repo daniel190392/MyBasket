@@ -1,5 +1,10 @@
 import { isAuthError } from '../../domain/errors';
-import { DEFAULT_MOCK_USERS, MockAuthProvider } from '../MockAuthProvider';
+import {
+  DEFAULT_MOCK_USERS,
+  MOCK_CONFIRMATION_CODE,
+  MOCK_EXPIRED_CONFIRMATION_CODE,
+  MockAuthProvider,
+} from '../MockAuthProvider';
 
 const [demoUser] = DEFAULT_MOCK_USERS;
 const NO_LATENCY = { latencyMs: 0 };
@@ -53,14 +58,14 @@ describe('MockAuthProvider', () => {
       displayName: 'New User',
     };
 
-    const session = await provider.signUp(registration);
+    const result = await provider.signUp(registration);
     const nextSession = await provider.signIn({
       email: registration.email,
       password: registration.password,
     });
 
-    expect(session.user.displayName).toBe(registration.displayName);
-    expect(nextSession.user.id).toBe(session.user.id);
+    expect(result).toEqual({ status: 'signedIn', session: nextSession });
+    expect(nextSession.user.displayName).toBe(registration.displayName);
   });
 
   it('rejects a sign up with an email already in use', async () => {
@@ -160,5 +165,89 @@ describe('MockAuthProvider password recovery', () => {
     await expect(
       provider.requestPasswordRecovery(demoUser.email)
     ).rejects.toMatchObject({ code: 'network' });
+  });
+});
+
+describe('MockAuthProvider sign up confirmation', () => {
+  const registration = {
+    email: 'new@mybasket.test',
+    password: 'new-password',
+    displayName: 'New User',
+  };
+  const buildProvider = () =>
+    new MockAuthProvider({ ...NO_LATENCY, requireConfirmation: true });
+
+  it('asks for confirmation instead of returning a session', async () => {
+    const result = await buildProvider().signUp(registration);
+
+    expect(result).toEqual({
+      status: 'confirmationRequired',
+      email: registration.email,
+    });
+  });
+
+  it('does not let an unconfirmed user sign in', async () => {
+    const provider = buildProvider();
+    await provider.signUp(registration);
+
+    await expect(
+      provider.signIn({
+        email: registration.email,
+        password: registration.password,
+      })
+    ).rejects.toMatchObject({ code: 'invalid-credentials' });
+  });
+
+  it('lets the user sign in after confirming with the right code', async () => {
+    const provider = buildProvider();
+    await provider.signUp(registration);
+
+    await provider.confirmSignUp({
+      email: registration.email,
+      code: MOCK_CONFIRMATION_CODE,
+    });
+
+    await expect(
+      provider.signIn({
+        email: registration.email,
+        password: registration.password,
+      })
+    ).resolves.toMatchObject({ user: { email: registration.email } });
+  });
+
+  it('rejects a wrong code', async () => {
+    const provider = buildProvider();
+    await provider.signUp(registration);
+
+    await expect(
+      provider.confirmSignUp({ email: registration.email, code: '999999' })
+    ).rejects.toMatchObject({ code: 'invalid-code' });
+  });
+
+  it('rejects an expired code', async () => {
+    const provider = buildProvider();
+    await provider.signUp(registration);
+
+    await expect(
+      provider.confirmSignUp({
+        email: registration.email,
+        code: MOCK_EXPIRED_CONFIRMATION_CODE,
+      })
+    ).rejects.toMatchObject({ code: 'expired-code' });
+  });
+
+  it('keeps the email reserved while the account is unconfirmed', async () => {
+    const provider = buildProvider();
+    await provider.signUp(registration);
+
+    await expect(provider.signUp(registration)).rejects.toMatchObject({
+      code: 'email-already-in-use',
+    });
+  });
+
+  it('resolves a resend for any email', async () => {
+    await expect(
+      buildProvider().resendConfirmationCode('unknown@mybasket.test')
+    ).resolves.toBeUndefined();
   });
 });

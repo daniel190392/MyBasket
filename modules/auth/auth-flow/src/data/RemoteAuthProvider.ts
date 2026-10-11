@@ -1,7 +1,14 @@
 import { AuthError } from '../domain/errors';
 
+import type { AuthErrorCode } from '../domain/errors';
 import type { AuthProvider } from '../domain/AuthProvider';
-import type { Credentials, Registration, Session } from '../domain/types';
+import type {
+  Credentials,
+  Registration,
+  Session,
+  SignUpConfirmation,
+  SignUpResult,
+} from '../domain/types';
 
 export type RemoteAuthProviderOptions = {
   clientId: string;
@@ -17,6 +24,7 @@ type CognitoAuthenticationResult = {
 type CognitoResponseBody = {
   __type?: string;
   AuthenticationResult?: CognitoAuthenticationResult;
+  UserConfirmed?: boolean;
 };
 
 type IdTokenClaims = {
@@ -33,9 +41,18 @@ const TARGET_PREFIX = 'AWSCognitoIdentityProviderService';
 const USER_PASSWORD_AUTH_FLOW = 'USER_PASSWORD_AUTH';
 const JWT_PAYLOAD_PART_INDEX = 1;
 
-// Cognito does not tell an unknown email apart from a wrong password on
-// purpose, so both map to the same code.
-const CREDENTIALS_ERRORS = ['NotAuthorizedException', 'UserNotFoundException'];
+const NAME_ATTRIBUTE = 'name';
+
+const ERROR_CODES = new Map<string, AuthErrorCode>([
+  ['NotAuthorizedException', 'invalid-credentials'],
+  ['UserNotFoundException', 'invalid-credentials'],
+  ['UsernameExistsException', 'email-already-in-use'],
+  ['InvalidPasswordException', 'weak-password'],
+  ['CodeMismatchException', 'invalid-code'],
+  ['ExpiredCodeException', 'expired-code'],
+  ['LimitExceededException', 'too-many-requests'],
+  ['TooManyRequestsException', 'too-many-requests'],
+]);
 
 // atob yields a binary string; decoding it as percent-encoded bytes keeps
 // non-ASCII names (accents) intact.
@@ -92,8 +109,39 @@ export class RemoteAuthProvider implements AuthProvider {
     return toSession(AuthenticationResult);
   }
 
-  async signUp(_registration: Registration): Promise<Session> {
-    throw new AuthError('unknown', 'signUp is not implemented yet');
+  async signUp({
+    email,
+    password,
+    displayName,
+  }: Registration): Promise<SignUpResult> {
+    const username = email.trim();
+    const { UserConfirmed } = await this.call('SignUp', {
+      ClientId: this.options.clientId,
+      Username: username,
+      Password: password,
+      UserAttributes: [{ Name: NAME_ATTRIBUTE, Value: displayName }],
+    });
+
+    if (UserConfirmed) {
+      const session = await this.signIn({ email: username, password });
+      return { status: 'signedIn', session };
+    }
+    return { status: 'confirmationRequired', email: username };
+  }
+
+  async confirmSignUp({ email, code }: SignUpConfirmation): Promise<void> {
+    await this.call('ConfirmSignUp', {
+      ClientId: this.options.clientId,
+      Username: email.trim(),
+      ConfirmationCode: code,
+    });
+  }
+
+  async resendConfirmationCode(email: string): Promise<void> {
+    await this.call('ResendConfirmationCode', {
+      ClientId: this.options.clientId,
+      Username: email.trim(),
+    });
   }
 
   async signOut(_session: Session): Promise<void> {
@@ -133,8 +181,9 @@ export class RemoteAuthProvider implements AuthProvider {
 
   private toAuthError(cognitoErrorType?: string): AuthError {
     const errorName = cognitoErrorType?.split('#').pop() ?? '';
-    if (CREDENTIALS_ERRORS.includes(errorName)) {
-      return new AuthError('invalid-credentials');
+    const code = ERROR_CODES.get(errorName);
+    if (code) {
+      return new AuthError(code);
     }
     return new AuthError('unknown', errorName || 'Unexpected Cognito error');
   }

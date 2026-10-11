@@ -74,3 +74,25 @@ export const validateRecovery = (email: string): RecoveryFieldErrors => {
   const emailError = validateEmail(email);
   return emailError ? { email: emailError } : {};
 };
+
+export const CONFIRMATION_CODE_LENGTH = 6;
+const CONFIRMATION_CODE_PATTERN = new RegExp(
+  `^\\d{${CONFIRMATION_CODE_LENGTH}}$`
+);
+
+export type ConfirmationFieldError = 'required' | 'invalid-code-format';
+
+export type ConfirmationFieldErrors = Partial<
+  Record<'code', ConfirmationFieldError>
+>;
+
+export const validateConfirmationCode = (
+  code: string
+): ConfirmationFieldErrors => {
+  const trimmedCode = code.trim();
+  if (!trimmedCode) return { code: 'required' };
+  if (!CONFIRMATION_CODE_PATTERN.test(trimmedCode)) {
+    return { code: 'invalid-code-format' };
+  }
+  return {};
+};

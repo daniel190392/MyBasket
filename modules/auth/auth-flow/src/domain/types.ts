@@ -19,3 +19,12 @@ export type Session = {
   user: AuthUser;
   accessToken: string;
 };
+
+export type SignUpConfirmation = {
+  email: string;
+  code: string;
+};
+
+export type SignUpResult =
+  | { status: 'signedIn'; session: Session }
+  | { status: 'confirmationRequired'; email: string };

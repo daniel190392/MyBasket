@@ -1,6 +1,7 @@
 import { InMemorySessionStorage } from '../../data/InMemorySessionStorage';
 import {
   DEFAULT_MOCK_USERS,
+  MOCK_CONFIRMATION_CODE,
   MockAuthProvider,
 } from '../../data/MockAuthProvider';
 import { AuthError } from '../../domain/errors';
@@ -44,13 +45,43 @@ describe('AuthService', () => {
   it('persists the session after a successful sign up', async () => {
     const { service, sessionStorage } = createService();
 
-    const session = await service.signUp({
+    const result = await service.signUp({
       email: 'new@mybasket.test',
       password: 'new-password',
       displayName: 'New User',
     });
 
-    expect(await sessionStorage.load()).toEqual(session);
+    expect(result.status).toBe('signedIn');
+    expect(await sessionStorage.load()).toEqual(
+      result.status === 'signedIn' ? result.session : undefined
+    );
+  });
+
+  it('does not persist anything when the sign up needs confirmation', async () => {
+    const provider: AuthProvider = {
+      signIn: jest.fn(),
+      signUp: jest.fn().mockResolvedValue({
+        status: 'confirmationRequired',
+        email: 'new@mybasket.test',
+      }),
+      signOut: jest.fn(),
+      confirmSignUp: jest.fn(),
+      resendConfirmationCode: jest.fn(),
+      requestPasswordRecovery: jest.fn(),
+    };
+    const { service, sessionStorage } = createService(provider);
+
+    const result = await service.signUp({
+      email: 'new@mybasket.test',
+      password: 'new-password',
+      displayName: 'New User',
+    });
+
+    expect(result).toEqual({
+      status: 'confirmationRequired',
+      email: 'new@mybasket.test',
+    });
+    expect(await sessionStorage.load()).toBeNull();
   });
 
   it('does not persist anything when the sign up is rejected', async () => {
@@ -103,6 +134,8 @@ describe('AuthService', () => {
       signIn: jest.fn(),
       signUp: jest.fn(),
       signOut: jest.fn().mockRejectedValue(new AuthError('network')),
+      confirmSignUp: jest.fn(),
+      resendConfirmationCode: jest.fn(),
       requestPasswordRecovery: jest.fn(),
     };
     const { service, sessionStorage } = createService(failingProvider);
@@ -145,5 +178,43 @@ describe('AuthService password recovery', () => {
     await expect(
       service.requestPasswordRecovery(demoUser.email)
     ).rejects.toBeInstanceOf(AuthError);
+  });
+});
+
+describe('AuthService sign up confirmation', () => {
+  it('delegates the confirmation without creating a session', async () => {
+    const provider = new MockAuthProvider({ latencyMs: 0 });
+    const confirmSignUp = jest.spyOn(provider, 'confirmSignUp');
+    const { service, sessionStorage } = createService(provider);
+    const confirmation = {
+      email: 'new@mybasket.test',
+      code: MOCK_CONFIRMATION_CODE,
+    };
+
+    await service.confirmSignUp(confirmation);
+
+    expect(confirmSignUp).toHaveBeenCalledWith(confirmation);
+    expect(await sessionStorage.load()).toBeNull();
+  });
+
+  it('propagates the error of a wrong code', async () => {
+    const { service } = createService();
+
+    await expect(
+      service.confirmSignUp({ email: 'new@mybasket.test', code: '999999' })
+    ).rejects.toMatchObject({ code: 'invalid-code' });
+  });
+
+  it('delegates the resend to the provider', async () => {
+    const provider = new MockAuthProvider({ latencyMs: 0 });
+    const resendConfirmationCode = jest.spyOn(
+      provider,
+      'resendConfirmationCode'
+    );
+    const { service } = createService(provider);
+
+    await service.resendConfirmationCode('new@mybasket.test');
+
+    expect(resendConfirmationCode).toHaveBeenCalledWith('new@mybasket.test');
   });
 });

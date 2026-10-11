@@ -7,7 +7,9 @@ import { validateRegistration } from '../domain/validation';
 import type { AuthErrorCode } from '../domain/errors';
 import type { RegistrationFieldErrors } from '../domain/validation';
 
-export const useRegisterForm = () => {
+export const useRegisterForm = (
+  onConfirmationRequired: (email: string) => void
+) => {
   const { signUp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,11 +34,14 @@ export const useRegisterForm = () => {
 
     setIsSubmitting(true);
     try {
-      await signUp({
+      const result = await signUp({
         email: email.trim(),
         password,
         displayName: displayName.trim(),
       });
+      if (result.status === 'confirmationRequired') {
+        onConfirmationRequired(result.email);
+      }
     } catch (error) {
       setSubmitErrorCode(isAuthError(error) ? error.code : 'unknown');
     } finally {

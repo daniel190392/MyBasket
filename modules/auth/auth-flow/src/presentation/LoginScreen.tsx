@@ -30,12 +30,15 @@ export type LoginScreenProps = {
   logo?: ImageSourcePropType;
   onForgotPasswordPress: () => void;
   onSignUpPress: () => void;
+  /** Pre-fills the email, for example after confirming an account. */
+  initialEmail?: string;
 };
 
 export function LoginScreen({
   logo = require('./assets/logo.png'),
   onForgotPasswordPress,
   onSignUpPress,
+  initialEmail,
 }: LoginScreenProps) {
   const {
     email,
@@ -46,7 +49,7 @@ export function LoginScreen({
     submitErrorCode,
     isSubmitting,
     submit,
-  } = useLoginForm();
+  } = useLoginForm(initialEmail);
 
   const fieldError = (code?: keyof typeof loginStrings.fieldErrors) =>
     code ? loginStrings.fieldErrors[code] : undefined;

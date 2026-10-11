@@ -1,5 +1,6 @@
 import type { AuthErrorCode } from '../domain/errors';
 import type {
+  ConfirmationFieldError,
   CredentialsFieldError,
   RegistrationFieldError,
 } from '../domain/validation';
@@ -8,6 +9,11 @@ import type {
 const submitErrors = {
   'invalid-credentials': 'Email o contraseña incorrectos',
   'email-already-in-use': 'Ya existe una cuenta con este email',
+  'weak-password':
+    'La contraseña debe tener al menos 8 caracteres, con mayúscula, minúscula y número',
+  'invalid-code': 'El código es incorrecto',
+  'expired-code': 'El código caducó. Solicita uno nuevo',
+  'too-many-requests': 'Demasiados intentos. Inténtalo más tarde',
   network: 'No pudimos conectar. Revisa tu conexión e inténtalo de nuevo',
   unknown: 'Algo salió mal. Inténtalo de nuevo',
 } satisfies Record<AuthErrorCode, string>;
@@ -56,5 +62,22 @@ export const recoveryStrings = {
   backToSignIn: 'Volver a iniciar sesión',
   logoLabel: 'PantryHub',
   fieldErrors: loginStrings.fieldErrors,
+  submitErrors,
+} as const;
+
+export const confirmationStrings = {
+  title: 'Confirma tu email',
+  description: 'Ingresa el código de 6 dígitos que enviamos a',
+  codePlaceholder: 'Código',
+  submit: 'Confirmar',
+  resend: 'Reenviar código',
+  resendIn: 'Reenviar código en',
+  resentMessage: 'Te enviamos un nuevo código',
+  backToSignIn: 'Volver a iniciar sesión',
+  logoLabel: 'PantryHub',
+  fieldErrors: {
+    required: 'Este campo es obligatorio',
+    'invalid-code-format': 'Ingresa el código de 6 dígitos',
+  } satisfies Record<ConfirmationFieldError, string>,
   submitErrors,
 } as const;
