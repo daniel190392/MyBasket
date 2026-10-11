@@ -124,7 +124,7 @@ The example and the tests use an in-memory storage (in `src/testing/`, not expor
 
 ## Mock backend
 
-`MockAuthProvider` lives in `src/testing/` and is neither exported nor built: the example app and the tests import it by relative path. Options:
+`MockAuthProvider` lives in `src/testing/` and is neither exported nor built: the example app and the tests import it by relative path. A contract suite (`src/testing/authProviderContract.ts`) runs against the mock and against `RemoteAuthProvider`, so both keep answering the same way. Options:
 
 | Option      | Default                              | Purpose                                           |
 | ----------- | ------------------------------------ | ------------------------------------------------- |
@@ -144,4 +144,4 @@ npm run build     # lib/ via react-native-builder-bob
 
 ## Public API
 
-Everything is exported from the package entry point: the domain types, `AuthError` and `isAuthError`, `validateCredentials`, `validateRegistration`, `validateConfirmationCode`, `validateRecovery`, `validateResetPassword`, the `AuthProvider` and `SessionStorage` types, `RemoteAuthProvider`, `AuthService`, `AuthSessionProvider`, `useAuth`, `LoginScreen`, `RegisterScreen`, `ConfirmationScreen`, `RecoveryScreen`, `ResetPasswordScreen`, `SignUpFlow`, `PasswordRecoveryFlow`.
+Everything is exported from the package entry point: the domain types, `AuthError` and `isAuthError`, `validateCredentials`, `validateRegistration`, `validateConfirmationCode`, `validateRecovery`, `validateResetPassword`, `isStrongPassword`, the `AuthProvider` and `SessionStorage` types, `RemoteAuthProvider`, `AuthService`, `AuthSessionProvider`, `useAuth`, `LoginScreen`, `RegisterScreen`, `ConfirmationScreen`, `RecoveryScreen`, `ResetPasswordScreen`, `SignUpFlow`, `PasswordRecoveryFlow`.
