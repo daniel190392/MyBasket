@@ -39,7 +39,8 @@ Substitute `<module-name>` everywhere below.
    src/
      index.ts
      domain/         types.ts, errors.ts, AuthProvider.ts, SessionStorage.ts, validation.ts
-     data/           MockAuthProvider.ts, InMemorySessionStorage.ts
+     data/           (real adapters, added when the backend exists)
+     testing/        MockAuthProvider.ts, InMemorySessionStorage.ts, __tests__/ (not exported, not built)
      application/    AuthService.ts, authSessionReducer.ts, AuthSessionProvider.tsx, useAuth.ts
      presentation/   <Screen>.tsx, use<Screen>Form.ts, strings.ts
    example/          showcase app (Expo) wired to the mock
@@ -85,10 +86,11 @@ Substitute `<module-name>` everywhere below.
        },
        "./package.json": "./package.json"
      },
-     "files": ["src", "lib", "!**/__tests__", "!**/__fixtures__", "!**/__mocks__"],
+     "files": ["src", "lib", "!**/__tests__", "!**/__fixtures__", "!**/__mocks__", "!src/testing"],
      "react-native-builder-bob": {
        "source": "src",
        "output": "lib",
+       "exclude": "**/{__tests__,__fixtures__,__mocks__,testing}/**",
        "targets": [["module", { "esm": true }], "commonjs"]
      }
    }
@@ -121,7 +123,7 @@ Substitute `<module-name>` everywhere below.
    {
      "extends": "./tsconfig.json",
      "compilerOptions": { "types": [] },
-     "exclude": ["node_modules", "lib", "example", "src/**/__tests__"]
+     "exclude": ["node_modules", "lib", "example", "src/**/__tests__", "src/testing"]
    }
    ```
    If images are imported (`require('./logo.png')`) and `tsc` does not know the module, add `src/assets.d.ts` with `declare module '*.png';`.
@@ -178,10 +180,10 @@ Substitute `<module-name>` everywhere below.
      ```
      Add a method to `AuthProvider` only for a use case that exists (sign up, password recovery...). Every addition also needs a mock implementation and tests.
    - `validation.ts`: pure `validateCredentials(credentials): CredentialsFieldErrors`, returning `Partial<Record<keyof Credentials, 'required' | 'invalid-email'>>`. The email pattern is a named constant. No messages here, only codes.
-7. **Data** (`src/data/`): adapters, depend on `domain` only.
+7. **Test double** (`src/testing/`): one shared mock for the example and the tests, depends on `domain` only. It is **not** exported from `src/index.ts` and is excluded from the build (see the `exclude` / `files` entries in steps 3 and 4); the example and the tests import it by relative path.
    - `MockAuthProvider.ts` implements `AuthProvider`. Options object: `users` (default: one clearly fake demo user, exported as `DEFAULT_MOCK_USERS`), `latencyMs` (named default constant), `failWith?: AuthErrorCode` to force every call to fail. `signIn` waits the latency, throws `AuthError('network')`-style errors when forced, throws `AuthError('invalid-credentials')` for an unknown email/password (compare the email case-insensitively and trimmed), and otherwise returns a `Session` with an obviously fake token (`mock-access-token-<id>`). `signOut` waits the latency.
    - `InMemorySessionStorage.ts` implements `SessionStorage` with a private field. It is for the mock and tests; document that production needs a Keychain / Keystore adapter supplied by the host.
-   - A real backend later means a new file here (e.g. `HttpAuthProvider.ts`) implementing `AuthProvider`, mapping HTTP/network failures to `AuthError` codes. Nothing else changes.
+   - A real backend later means a new file in `src/data/` (e.g. `RemoteAuthProvider.ts`) implementing `AuthProvider`, mapping HTTP/network failures to `AuthError` codes. Nothing else changes.
 8. **Application** (`src/application/`):
    - `AuthService.ts`, plain TypeScript, no React:
      ```ts
@@ -224,12 +226,12 @@ Substitute `<module-name>` everywhere below.
    - `use<Screen>Form.ts`: owns the field values, validation errors, submit error code and `isSubmitting`. It validates with the domain function, calls `useAuth()` and maps a caught error with `isAuthError(error) ? error.code : 'unknown'`. It never calls a provider or storage.
    - `<Screen>.tsx`: composes `ui-components` only (`PInput`, `PButton`, `PLink`, tokens through `colors`, `spacing`, `textPresets`, `typography`, `controlHeight`). Match the design reference layout. Props: optional `logo` (`ImageSourcePropType`, with a bundled default under `src/presentation/assets/`) and the navigation callbacks (`onSignUpPress`, `onForgotPasswordPress`). Keyboard handling with `KeyboardAvoidingView` + `ScrollView` (`keyboardShouldPersistTaps="handled"`). Email input: `keyboardType="email-address"`, `autoCapitalize="none"`, `autoComplete="email"`. Password input: `secureTextEntry`. Show the submit error in the free space above the button, using tokens. Give inputs and buttons `accessibilityLabel`s from `strings`. Layout constants (logo size) are named constants at the top of the file.
    - If a logo has to be extracted from the design reference image, crop it to a PNG with a transparent or matching background and keep it small.
-10. **Public API**: `src/index.ts` exports the domain types, errors and ports, `AuthService`, `AuthSessionProvider`, `useAuth`, `MockAuthProvider`, `InMemorySessionStorage` and the screens. Nothing else.
-11. **Tests** (`__tests__/` next to the code): validation, mock provider (success, wrong password, case-insensitive email, forced failure, latency via fake timers), `AuthService` (sign in persists, sign out clears even when the provider fails, restore returns the stored session, restore recovers from a failing storage), reducer (every transition).
+10. **Public API**: `src/index.ts` exports the domain types, errors and ports, `AuthService`, `AuthSessionProvider`, `useAuth` and the screens. Nothing else: the mock and the in-memory storage stay out of the public API.
+11. **Tests** (`__tests__/` next to the code; the mock's tests live in `src/testing/__tests__/`): validation, mock provider (success, wrong password, case-insensitive email, forced failure, latency via fake timers), `AuthService` (sign in persists, sign out clears even when the provider fails, restore returns the stored session, restore recovers from a failing storage), reducer (every transition).
 12. **Version control hygiene.** The module `.gitignore` ignores `node_modules/`, `lib/` and local/secret files (`.env*`, `*.jks`, `*.p12`, `*.key`, `*.mobileprovision`). Follow `.claude/rules/security.md`.
 13. **Showcase app** in `example/` (Expo), wired to the mock:
     - Same layout and `metro.config.js` as the design-system showcase (see `.claude/skills/create-design-system-module/SKILL.md`, step 8): watch the repo root, resolve its `node_modules`, force a single `react` / `react-native`. `workspaceRoot` is the repository root (four levels up from `modules/auth/<module-name>/example`). Install with `npx expo install` so versions match one Expo SDK, and add `"plugins": ["expo-asset"]` to `app.json` if the screen uses bundled images.
-    - `App.tsx` builds the service **outside** the component (`new AuthService(new MockAuthProvider(), new InMemorySessionStorage())`), wraps the tree in `AuthSessionProvider` and renders by `useAuth().status`: a spinner while `restoring`, the login screen when `signedOut`, and a simple signed-in view (user name + sign-out button) when `signedIn`.
+    - `App.tsx` builds the service **outside** the component (`new AuthService(new MockAuthProvider(), new InMemorySessionStorage())`, both imported from `../src/testing/...` because they are not exported), wraps the tree in `AuthSessionProvider` and renders by `useAuth().status`: a spinner while `restoring`, the login screen when `signedOut`, and a simple signed-in view (user name + sign-out button) when `signedIn`.
     - Show the mock demo credentials on screen and surface the navigation callbacks (for example a text line "Sign up pressed"). All showcase text in English; no `console.log`.
 14. **Verify.**
     - `npm install` at the repo root so the workspace links the new package and `ui-components`.

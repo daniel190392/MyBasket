@@ -10,17 +10,18 @@ A small ports-and-adapters core behind a thin React layer.
 presentation  ->  application  ->  domain  <-  data
 ```
 
-| Layer          | Contains                                                                                                                     | Depends on                     |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| `domain`       | Types, `AuthError`, the `AuthProvider` and `SessionStorage` ports, validation                                                | nothing (no React)             |
-| `data`         | Adapters of the ports: `MockAuthProvider`, `InMemorySessionStorage`                                                          | `domain`                       |
-| `application`  | `AuthService` (use cases), session reducer, `AuthSessionProvider`, `useAuth`                                                 | `domain`                       |
+| Layer          | Contains                                                                                                                                                           | Depends on                     |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------ |
+| `domain`       | Types, `AuthError`, the `AuthProvider` and `SessionStorage` ports, validation                                                                                      | nothing (no React)             |
+| `data`         | Adapters of the ports: `RemoteAuthProvider`                                                                                                                        | `domain`                       |
+| `application`  | `AuthService` (use cases), session reducer, `AuthSessionProvider`, `useAuth`                                                                                       | `domain`                       |
 | `presentation` | `LoginScreen`, `RegisterScreen`, `ConfirmationScreen`, `RecoveryScreen`, `ResetPasswordScreen`, `SignUpFlow`, `PasswordRecoveryFlow`, their form hooks and strings | `application`, `ui-components` |
 
 Rules that keep it swappable:
 
 - Screens never call the backend. They read state and call actions through `useAuth()`.
 - `application` and `presentation` never import a concrete adapter. The host chooses the adapters.
+- The shared mock (`MockAuthProvider`, `InMemorySessionStorage`) lives in `src/testing/`: it serves the example and the tests, is not exported and is not part of the build.
 - Errors are typed (`AuthError` with a `code`); the UI maps codes to messages.
 
 ### Sign-in call chain
@@ -31,8 +32,8 @@ LoginScreen
    └─ useAuth()                       reads the context published by the provider
       └─ AuthSessionProvider.signIn
          ├─ AuthService.signIn
-         │  ├─ AuthProvider.signIn    port; MockAuthProvider today
-         │  └─ SessionStorage.save    port; InMemorySessionStorage today
+         │  ├─ AuthProvider.signIn    port; RemoteAuthProvider (the mock in tests and the example)
+         │  └─ SessionStorage.save    port; supplied by the host (in memory in the example)
          └─ dispatch(signedIn)        authSessionReducer computes the new state
 ```
 
@@ -62,15 +63,16 @@ The host builds the service once, outside any component, and mounts the provider
 import {
   AuthService,
   AuthSessionProvider,
-  InMemorySessionStorage,
   LoginScreen,
-  MockAuthProvider,
+  RemoteAuthProvider,
   useAuth,
 } from 'auth-flow';
 
+// clientId and endpoint come from the host configuration, never from code.
+// secureSessionStorage is a SessionStorage backed by Keychain / Keystore.
 const authService = new AuthService(
-  new MockAuthProvider(),
-  new InMemorySessionStorage()
+  new RemoteAuthProvider({ clientId, endpoint }),
+  secureSessionStorage
 );
 
 function AuthGate() {
@@ -100,7 +102,7 @@ The module does not navigate: the screen exposes callbacks and the host decides 
 
 ## Switching to a real backend
 
-Implement `AuthProvider` in `src/data/` (for example `HttpAuthProvider`), map HTTP and network failures to `AuthError` codes, and pass it to `AuthService` instead of the mock. Nothing else changes.
+`RemoteAuthProvider` is the adapter for the real backend (Amazon Cognito over HTTPS). To support another backend, implement `AuthProvider` in `src/data/`, map HTTP and network failures to `AuthError` codes, and pass it to `AuthService`. Nothing else changes.
 
 ```ts
 interface AuthProvider {
@@ -118,11 +120,11 @@ interface AuthProvider {
 
 ## Session persistence
 
-`InMemorySessionStorage` is for the mock and tests only: the session is lost when the app closes. A production host must supply a `SessionStorage` adapter backed by the platform secure storage (Keychain on iOS, Keystore on Android).
+The example and the tests use an in-memory storage (in `src/testing/`, not exported): the session is lost when the app closes. A production host must supply a `SessionStorage` adapter backed by the platform secure storage (Keychain on iOS, Keystore on Android).
 
 ## Mock backend
 
-`MockAuthProvider` is a public adapter meant for development and tests. Options:
+`MockAuthProvider` lives in `src/testing/` and is neither exported nor built: the example app and the tests import it by relative path. Options:
 
 | Option      | Default                              | Purpose                                           |
 | ----------- | ------------------------------------ | ------------------------------------------------- |
@@ -142,4 +144,4 @@ npm run build     # lib/ via react-native-builder-bob
 
 ## Public API
 
-Everything is exported from the package entry point: the domain types, `AuthError` and `isAuthError`, `validateCredentials`, `validateRegistration`, `validateConfirmationCode`, `validateRecovery`, `validateResetPassword`, the `AuthProvider` and `SessionStorage` types, `MockAuthProvider`, `InMemorySessionStorage`, `AuthService`, `AuthSessionProvider`, `useAuth`, `LoginScreen`, `RegisterScreen`, `ConfirmationScreen`, `RecoveryScreen`, `ResetPasswordScreen`, `SignUpFlow`, `PasswordRecoveryFlow`.
+Everything is exported from the package entry point: the domain types, `AuthError` and `isAuthError`, `validateCredentials`, `validateRegistration`, `validateConfirmationCode`, `validateRecovery`, `validateResetPassword`, the `AuthProvider` and `SessionStorage` types, `RemoteAuthProvider`, `AuthService`, `AuthSessionProvider`, `useAuth`, `LoginScreen`, `RegisterScreen`, `ConfirmationScreen`, `RecoveryScreen`, `ResetPasswordScreen`, `SignUpFlow`, `PasswordRecoveryFlow`.
