@@ -16,6 +16,7 @@ import type { AuthService } from './AuthService';
 import type { AuthSessionState } from './authSessionReducer';
 import type {
   Credentials,
+  PasswordRecoveryConfirmation,
   Registration,
   SignUpConfirmation,
   SignUpResult,
@@ -28,6 +29,9 @@ export type AuthContextValue = AuthSessionState & {
   confirmSignUp: (confirmation: SignUpConfirmation) => Promise<void>;
   resendConfirmationCode: (email: string) => Promise<void>;
   requestPasswordRecovery: (email: string) => Promise<void>;
+  confirmPasswordRecovery: (
+    confirmation: PasswordRecoveryConfirmation
+  ) => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -90,6 +94,12 @@ export function AuthSessionProvider({
     [service]
   );
 
+  const confirmPasswordRecovery = useCallback(
+    (confirmation: PasswordRecoveryConfirmation) =>
+      service.confirmPasswordRecovery(confirmation),
+    [service]
+  );
+
   const signOut = useCallback(async () => {
     if (state.status !== 'signedIn') return;
     try {
@@ -108,6 +118,7 @@ export function AuthSessionProvider({
       confirmSignUp,
       resendConfirmationCode,
       requestPasswordRecovery,
+      confirmPasswordRecovery,
     }),
     [
       state,
@@ -117,6 +128,7 @@ export function AuthSessionProvider({
       confirmSignUp,
       resendConfirmationCode,
       requestPasswordRecovery,
+      confirmPasswordRecovery,
     ]
   );
 

@@ -25,6 +25,12 @@ export type SignUpConfirmation = {
   code: string;
 };
 
+export type PasswordRecoveryConfirmation = {
+  email: string;
+  code: string;
+  newPassword: string;
+};
+
 export type SignUpResult =
   | { status: 'signedIn'; session: Session }
   | { status: 'confirmationRequired'; email: string };

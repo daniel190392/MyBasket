@@ -4,6 +4,7 @@ import type { AuthErrorCode } from '../domain/errors';
 import type { AuthProvider } from '../domain/AuthProvider';
 import type {
   Credentials,
+  PasswordRecoveryConfirmation,
   Registration,
   Session,
   SignUpConfirmation,
@@ -106,13 +107,7 @@ export class MockAuthProvider implements AuthProvider {
 
   async confirmSignUp({ email, code }: SignUpConfirmation): Promise<void> {
     await this.simulateRequest();
-
-    if (code === MOCK_EXPIRED_CONFIRMATION_CODE) {
-      throw new AuthError('expired-code');
-    }
-    if (code !== MOCK_CONFIRMATION_CODE) {
-      throw new AuthError('invalid-code');
-    }
+    this.assertValidCode(code);
 
     const pendingIndex = this.pendingUsers.findIndex(
       (user) => normalizeEmail(user.email) === normalizeEmail(email)
@@ -136,6 +131,35 @@ export class MockAuthProvider implements AuthProvider {
   // which accounts exist.
   async requestPasswordRecovery(_email: string): Promise<void> {
     await this.simulateRequest();
+  }
+
+  async confirmPasswordRecovery({
+    email,
+    code,
+    newPassword,
+  }: PasswordRecoveryConfirmation): Promise<void> {
+    await this.simulateRequest();
+    this.assertValidCode(code);
+
+    const userIndex = this.users.findIndex(
+      (user) => normalizeEmail(user.email) === normalizeEmail(email)
+    );
+    if (userIndex !== -1) {
+      // Replaced, not mutated: the user objects may be shared with the defaults.
+      this.users[userIndex] = {
+        ...this.users[userIndex],
+        password: newPassword,
+      };
+    }
+  }
+
+  private assertValidCode(code: string): void {
+    if (code === MOCK_EXPIRED_CONFIRMATION_CODE) {
+      throw new AuthError('expired-code');
+    }
+    if (code !== MOCK_CONFIRMATION_CODE) {
+      throw new AuthError('invalid-code');
+    }
   }
 
   private async simulateRequest(): Promise<void> {

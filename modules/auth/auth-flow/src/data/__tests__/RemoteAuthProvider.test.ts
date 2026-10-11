@@ -240,6 +240,60 @@ describe('RemoteAuthProvider.signOut', () => {
   });
 });
 
+describe('RemoteAuthProvider password recovery', () => {
+  const confirmation = {
+    email: CREDENTIALS.email,
+    code: '123456',
+    newPassword: 'New-password-1',
+  };
+
+  it('asks the backend to send a recovery code', async () => {
+    const fetchMock = jest.fn().mockReturnValue(jsonResponse({}));
+
+    await buildProvider(fetchMock).requestPasswordRecovery(CREDENTIALS.email);
+
+    const [, init] = fetchMock.mock.calls[0];
+    expect(init.headers['X-Amz-Target']).toBe(
+      'AWSCognitoIdentityProviderService.ForgotPassword'
+    );
+    expect(JSON.parse(init.body)).toEqual({
+      ClientId: OPTIONS.clientId,
+      Username: CREDENTIALS.email,
+    });
+  });
+
+  it('sends the code and the new password to the backend', async () => {
+    const fetchMock = jest.fn().mockReturnValue(jsonResponse({}));
+
+    await buildProvider(fetchMock).confirmPasswordRecovery(confirmation);
+
+    const [, init] = fetchMock.mock.calls[0];
+    expect(init.headers['X-Amz-Target']).toBe(
+      'AWSCognitoIdentityProviderService.ConfirmForgotPassword'
+    );
+    expect(JSON.parse(init.body)).toEqual({
+      ClientId: OPTIONS.clientId,
+      Username: CREDENTIALS.email,
+      ConfirmationCode: confirmation.code,
+      Password: confirmation.newPassword,
+    });
+  });
+
+  it.each([
+    ['CodeMismatchException', 'invalid-code'],
+    ['ExpiredCodeException', 'expired-code'],
+    ['InvalidPasswordException', 'weak-password'],
+    ['LimitExceededException', 'too-many-requests'],
+    ['TooManyFailedAttemptsException', 'too-many-requests'],
+  ])('maps %s to %s', async (errorType, expectedCode) => {
+    const error = await buildProvider(errorFetch(errorType))
+      .confirmPasswordRecovery(confirmation)
+      .catch((caught) => caught);
+
+    expect(isAuthError(error) && error.code).toBe(expectedCode);
+  });
+});
+
 describe('RemoteAuthProvider.resendConfirmationCode', () => {
   it('asks the backend for a new code', async () => {
     const fetchMock = jest.fn().mockReturnValue(jsonResponse({}));

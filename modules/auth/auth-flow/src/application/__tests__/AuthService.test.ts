@@ -68,6 +68,7 @@ describe('AuthService', () => {
       confirmSignUp: jest.fn(),
       resendConfirmationCode: jest.fn(),
       requestPasswordRecovery: jest.fn(),
+      confirmPasswordRecovery: jest.fn(),
     };
     const { service, sessionStorage } = createService(provider);
 
@@ -137,6 +138,7 @@ describe('AuthService', () => {
       confirmSignUp: jest.fn(),
       resendConfirmationCode: jest.fn(),
       requestPasswordRecovery: jest.fn(),
+      confirmPasswordRecovery: jest.fn(),
     };
     const { service, sessionStorage } = createService(failingProvider);
     const session: Session = {
@@ -216,5 +218,38 @@ describe('AuthService sign up confirmation', () => {
     await service.resendConfirmationCode('new@mybasket.test');
 
     expect(resendConfirmationCode).toHaveBeenCalledWith('new@mybasket.test');
+  });
+});
+
+describe('AuthService password recovery confirmation', () => {
+  it('delegates the confirmation without creating a session', async () => {
+    const provider = new MockAuthProvider({ latencyMs: 0 });
+    const confirmPasswordRecovery = jest.spyOn(
+      provider,
+      'confirmPasswordRecovery'
+    );
+    const { service, sessionStorage } = createService(provider);
+    const confirmation = {
+      email: demoUser.email,
+      code: MOCK_CONFIRMATION_CODE,
+      newPassword: 'New-password-1',
+    };
+
+    await service.confirmPasswordRecovery(confirmation);
+
+    expect(confirmPasswordRecovery).toHaveBeenCalledWith(confirmation);
+    expect(await sessionStorage.load()).toBeNull();
+  });
+
+  it('propagates the error of a wrong code', async () => {
+    const { service } = createService();
+
+    await expect(
+      service.confirmPasswordRecovery({
+        email: demoUser.email,
+        code: '999999',
+        newPassword: 'New-password-1',
+      })
+    ).rejects.toMatchObject({ code: 'invalid-code' });
   });
 });
