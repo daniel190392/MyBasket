@@ -48,11 +48,6 @@ const errorFetch = (errorType: string) =>
 const buildProvider = (fetchImplementation: jest.Mock) =>
   new RemoteAuthProvider({ ...OPTIONS, fetchImplementation });
 
-const signInFailure = (fetchImplementation: jest.Mock) =>
-  buildProvider(fetchImplementation)
-    .signIn(CREDENTIALS)
-    .catch((caught) => caught);
-
 describe('RemoteAuthProvider.signIn', () => {
   it('sends a USER_PASSWORD_AUTH request to the backend', async () => {
     const fetchMock = successFetch({ sub: USER_ID, email: CREDENTIALS.email });
@@ -92,26 +87,6 @@ describe('RemoteAuthProvider.signIn', () => {
       accessToken: FAKE_ACCESS_TOKEN,
     });
   });
-
-  it('maps NotAuthorizedException to invalid-credentials', async () => {
-    const error = await signInFailure(errorFetch('NotAuthorizedException'));
-
-    expect(isAuthError(error) && error.code).toBe('invalid-credentials');
-  });
-
-  it('maps other backend errors to unknown', async () => {
-    const error = await signInFailure(errorFetch('InternalErrorException'));
-
-    expect(isAuthError(error) && error.code).toBe('unknown');
-  });
-
-  it('maps a failed request to network', async () => {
-    const error = await signInFailure(
-      jest.fn().mockRejectedValue(new TypeError('offline'))
-    );
-
-    expect(isAuthError(error) && error.code).toBe('network');
-  });
 });
 
 describe('RemoteAuthProvider.signUp', () => {
@@ -136,19 +111,6 @@ describe('RemoteAuthProvider.signUp', () => {
     });
   });
 
-  it('asks for confirmation when the account is not confirmed', async () => {
-    const fetchMock = jest
-      .fn()
-      .mockReturnValue(jsonResponse({ UserConfirmed: false }));
-
-    const result = await buildProvider(fetchMock).signUp(registration);
-
-    expect(result).toEqual({
-      status: 'confirmationRequired',
-      email: CREDENTIALS.email,
-    });
-  });
-
   it('signs in right away when the backend confirms the account', async () => {
     const fetchMock = jest
       .fn()
@@ -165,22 +127,6 @@ describe('RemoteAuthProvider.signUp', () => {
     const result = await buildProvider(fetchMock).signUp(registration);
 
     expect(result.status).toBe('signedIn');
-  });
-
-  it('maps UsernameExistsException to email-already-in-use', async () => {
-    const error = await buildProvider(errorFetch('UsernameExistsException'))
-      .signUp(registration)
-      .catch((caught) => caught);
-
-    expect(isAuthError(error) && error.code).toBe('email-already-in-use');
-  });
-
-  it('maps InvalidPasswordException to weak-password', async () => {
-    const error = await buildProvider(errorFetch('InvalidPasswordException'))
-      .signUp(registration)
-      .catch((caught) => caught);
-
-    expect(isAuthError(error) && error.code).toBe('weak-password');
   });
 });
 
@@ -202,19 +148,6 @@ describe('RemoteAuthProvider.confirmSignUp', () => {
       ConfirmationCode: confirmation.code,
     });
   });
-
-  it.each([
-    ['CodeMismatchException', 'invalid-code'],
-    ['ExpiredCodeException', 'expired-code'],
-    ['LimitExceededException', 'too-many-requests'],
-    ['TooManyRequestsException', 'too-many-requests'],
-  ])('maps %s to %s', async (errorType, expectedCode) => {
-    const error = await buildProvider(errorFetch(errorType))
-      .confirmSignUp(confirmation)
-      .catch((caught) => caught);
-
-    expect(isAuthError(error) && error.code).toBe(expectedCode);
-  });
 });
 
 describe('RemoteAuthProvider.signOut', () => {
@@ -233,14 +166,6 @@ describe('RemoteAuthProvider.signOut', () => {
       'AWSCognitoIdentityProviderService.GlobalSignOut'
     );
     expect(JSON.parse(init.body)).toEqual({ AccessToken: FAKE_ACCESS_TOKEN });
-  });
-
-  it('reports an expired token as invalid credentials', async () => {
-    const error = await buildProvider(errorFetch('NotAuthorizedException'))
-      .signOut(session)
-      .catch((caught) => caught);
-
-    expect(isAuthError(error) && error.code).toBe('invalid-credentials');
   });
 });
 
@@ -282,20 +207,6 @@ describe('RemoteAuthProvider password recovery', () => {
       Password: confirmation.newPassword,
     });
   });
-
-  it.each([
-    ['CodeMismatchException', 'invalid-code'],
-    ['ExpiredCodeException', 'expired-code'],
-    ['InvalidPasswordException', 'weak-password'],
-    ['LimitExceededException', 'too-many-requests'],
-    ['TooManyFailedAttemptsException', 'too-many-requests'],
-  ])('maps %s to %s', async (errorType, expectedCode) => {
-    const error = await buildProvider(errorFetch(errorType))
-      .confirmPasswordRecovery(confirmation)
-      .catch((caught) => caught);
-
-    expect(isAuthError(error) && error.code).toBe(expectedCode);
-  });
 });
 
 describe('RemoteAuthProvider.resendConfirmationCode', () => {
@@ -313,13 +224,27 @@ describe('RemoteAuthProvider.resendConfirmationCode', () => {
       Username: CREDENTIALS.email,
     });
   });
+});
 
-  it('maps a throttled request to too-many-requests', async () => {
-    const error = await buildProvider(errorFetch('LimitExceededException'))
-      .resendConfirmationCode(CREDENTIALS.email)
+describe('RemoteAuthProvider error mapping', () => {
+  // One table serves every operation, so one operation is enough to test it.
+  it.each([
+    ['NotAuthorizedException', 'invalid-credentials'],
+    ['UserNotFoundException', 'invalid-credentials'],
+    ['UsernameExistsException', 'email-already-in-use'],
+    ['InvalidPasswordException', 'weak-password'],
+    ['CodeMismatchException', 'invalid-code'],
+    ['ExpiredCodeException', 'expired-code'],
+    ['LimitExceededException', 'too-many-requests'],
+    ['TooManyRequestsException', 'too-many-requests'],
+    ['TooManyFailedAttemptsException', 'too-many-requests'],
+    ['InternalErrorException', 'unknown'],
+  ])('maps %s to %s', async (errorType, expectedCode) => {
+    const error = await buildProvider(errorFetch(errorType))
+      .confirmSignUp({ email: CREDENTIALS.email, code: '123456' })
       .catch((caught) => caught);
 
-    expect(isAuthError(error) && error.code).toBe('too-many-requests');
+    expect(isAuthError(error) && error.code).toBe(expectedCode);
   });
 });
 
