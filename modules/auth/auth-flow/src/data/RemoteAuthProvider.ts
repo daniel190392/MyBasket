@@ -144,8 +144,8 @@ export class RemoteAuthProvider implements AuthProvider {
     });
   }
 
-  async signOut(_session: Session): Promise<void> {
-    throw new AuthError('unknown', 'signOut is not implemented yet');
+  async signOut({ accessToken }: Session): Promise<void> {
+    await this.call('GlobalSignOut', { AccessToken: accessToken });
   }
 
   async requestPasswordRecovery(_email: string): Promise<void> {

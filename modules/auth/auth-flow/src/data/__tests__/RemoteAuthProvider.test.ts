@@ -213,6 +213,33 @@ describe('RemoteAuthProvider.confirmSignUp', () => {
   });
 });
 
+describe('RemoteAuthProvider.signOut', () => {
+  const session = {
+    user: { id: USER_ID, email: CREDENTIALS.email, displayName: DISPLAY_NAME },
+    accessToken: FAKE_ACCESS_TOKEN,
+  };
+
+  it('revokes the session in the backend with the access token', async () => {
+    const fetchMock = jest.fn().mockReturnValue(jsonResponse({}));
+
+    await buildProvider(fetchMock).signOut(session);
+
+    const [, init] = fetchMock.mock.calls[0];
+    expect(init.headers['X-Amz-Target']).toBe(
+      'AWSCognitoIdentityProviderService.GlobalSignOut'
+    );
+    expect(JSON.parse(init.body)).toEqual({ AccessToken: FAKE_ACCESS_TOKEN });
+  });
+
+  it('reports an expired token as invalid credentials', async () => {
+    const error = await buildProvider(errorFetch('NotAuthorizedException'))
+      .signOut(session)
+      .catch((caught) => caught);
+
+    expect(isAuthError(error) && error.code).toBe('invalid-credentials');
+  });
+});
+
 describe('RemoteAuthProvider.resendConfirmationCode', () => {
   it('asks the backend for a new code', async () => {
     const fetchMock = jest.fn().mockReturnValue(jsonResponse({}));
