@@ -1,5 +1,11 @@
-import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  BackHandler,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { PButton, colors, spacing, textPresets } from 'ui-components';
 
 import {
@@ -19,6 +25,21 @@ export function AuthGate() {
   const auth = useAuth();
   const [screen, setScreen] = useState<AuthScreen>('login');
   const [confirmedEmail, setConfirmedEmail] = useState<string | null>(null);
+
+  // Leaving a flow is the host's call: back from any screen but login returns
+  // to login, and on login the system default (leaving the app) applies.
+  useEffect(() => {
+    if (screen === 'login') return;
+
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        setScreen('login');
+        return true;
+      }
+    );
+    return () => subscription.remove();
+  }, [screen]);
 
   if (auth.status === 'restoring') {
     return (
