@@ -115,7 +115,7 @@ export type ResetPasswordFieldErrors = Partial<
   Record<keyof ResetPasswordInput, ResetPasswordFieldError>
 >;
 
-const isStrongPassword = (password: string) =>
+export const isStrongPassword = (password: string) =>
   password.length >= PASSWORD_MIN_LENGTH &&
   LOWERCASE_PATTERN.test(password) &&
   UPPERCASE_PATTERN.test(password) &&

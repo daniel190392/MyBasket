@@ -1,5 +1,9 @@
 import { isAuthError } from '../../domain/errors';
+import { describeAuthProviderContract } from '../../testing/authProviderContract';
 import { RemoteAuthProvider } from '../RemoteAuthProvider';
+import { FakeCognito } from './fakeCognito';
+
+import type { ContractSubjectFactory } from '../../testing/authProviderContract';
 
 // Node global, used only to build fake tokens.
 declare const Buffer: {
@@ -318,3 +322,33 @@ describe('RemoteAuthProvider.resendConfirmationCode', () => {
     expect(isAuthError(error) && error.code).toBe('too-many-requests');
   });
 });
+
+const CONTRACT_USER = {
+  email: 'demo@mybasket.test',
+  password: 'Demo-password-1',
+  displayName: 'Demo User',
+};
+const CONTRACT_VALID_CODE = '123456';
+const CONTRACT_EXPIRED_CODE = '000000';
+
+const createRemoteSubject: ContractSubjectFactory = ({
+  isOffline = false,
+} = {}) => {
+  const cognito = new FakeCognito({
+    users: [CONTRACT_USER],
+    validCode: CONTRACT_VALID_CODE,
+    expiredCode: CONTRACT_EXPIRED_CODE,
+    isOffline,
+  });
+  return {
+    provider: new RemoteAuthProvider({
+      ...OPTIONS,
+      fetchImplementation: cognito.fetch,
+    }),
+    knownUser: CONTRACT_USER,
+    validCode: CONTRACT_VALID_CODE,
+    expiredCode: CONTRACT_EXPIRED_CODE,
+  };
+};
+
+describeAuthProviderContract('RemoteAuthProvider', createRemoteSubject);
