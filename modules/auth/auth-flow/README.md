@@ -121,6 +121,8 @@ interface AuthProvider {
 
 Signing in to an account that was never confirmed rejects with `user-not-confirmed`. `LoginScreen` hands the email to the host through `onConfirmationRequired`, and the host can open `SignUpFlow` at its confirmation step with `initialEmailToConfirm`. Signing up again with that email is rejected with `email-already-in-use`: the module never resends a code on sign up, because it would let anyone who knows an email set the password of an account its owner confirms.
 
+`requestPasswordRecovery` resolves the same way for a known email, an unknown one and an account that was never confirmed (the backend rejects the last one, and the adapter hides it), so the response does not reveal which emails exist or have a pending sign up.
+
 ## Session persistence
 
 The example and the tests use an in-memory storage (in `src/testing/`, not exported): the session is lost when the app closes. A production host must supply a `SessionStorage` adapter backed by the platform secure storage (Keychain on iOS, Keystore on Android).
