@@ -43,8 +43,6 @@ const JWT_PAYLOAD_PART_INDEX = 1;
 
 const NAME_ATTRIBUTE = 'name';
 
-// Cognito does not tell an unknown email apart from a wrong password on
-// purpose, so both map to the same code.
 const ERROR_CODES = new Map<string, AuthErrorCode>([
   ['NotAuthorizedException', 'invalid-credentials'],
   ['UserNotFoundException', 'invalid-credentials'],
