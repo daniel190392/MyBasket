@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { BackHandler } from 'react-native';
 
 import { RecoveryScreen } from './RecoveryScreen';
 import { ResetPasswordScreen } from './ResetPasswordScreen';
@@ -19,6 +20,21 @@ export function PasswordRecoveryFlow({
   onSignInPress,
 }: PasswordRecoveryFlowProps) {
   const [emailToReset, setEmailToReset] = useState<string | null>(null);
+
+  // Only the code step handles back: nothing was created on the server yet, so
+  // returning to fix the email is safe. On the first step the host decides.
+  useEffect(() => {
+    if (!emailToReset) return;
+
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        setEmailToReset(null);
+        return true;
+      }
+    );
+    return () => subscription.remove();
+  }, [emailToReset]);
 
   if (emailToReset) {
     return (

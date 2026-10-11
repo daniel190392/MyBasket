@@ -45,10 +45,10 @@ UI library with the `P` prefix (`PButton`, `PCard`, `PBadge`, `PInput`, `PLink`)
 
 ### `modules/auth/auth-flow`
 
-Authentication module in React Native + TypeScript, built with `react-native-builder-bob` like the UI libraries. A small ports-and-adapters core behind a thin React layer: `domain` (types, `AuthError`, the `AuthProvider` and `SessionStorage` ports, validation), `data` (`MockAuthProvider`, `InMemorySessionStorage`), `application` (`AuthService`, session reducer, `AuthSessionProvider`, `useAuth`) and `presentation` (`LoginScreen`). UI comes from `ui-components` (peer dependency).
+Authentication module in React Native + TypeScript, built with `react-native-builder-bob` like the UI libraries. A small ports-and-adapters core behind a thin React layer: `domain` (types, `AuthError`, the `AuthProvider` and `SessionStorage` ports, validation), `data` (`RemoteAuthProvider`), `application` (`AuthService`, session reducer, `AuthSessionProvider`, `useAuth`) and `presentation` (screens and the `SignUpFlow` / `PasswordRecoveryFlow` flows). UI comes from `ui-components` (peer dependency).
 
-- The host builds `new AuthService(provider, storage)` once and passes it to `AuthSessionProvider`. Moving to the real backend means writing an `AuthProvider` adapter in `data/` and swapping it there.
-- Mock demo credentials are in `DEFAULT_MOCK_USERS`. Unit tests: `npm test` inside the module.
+- The host builds `new AuthService(provider, storage)` once and passes it to `AuthSessionProvider`. A different backend means writing an `AuthProvider` adapter in `data/` and swapping it there.
+- The shared mock (`MockAuthProvider`, `InMemorySessionStorage`) lives in `src/testing/`: it is not exported nor built, and the example and the tests import it by relative path. Demo credentials are in `DEFAULT_MOCK_USERS`. Unit tests: `npm test` inside the module.
 - `example/` is an Expo showcase running against the mock. Build: `npm run build` inside the module.
 - Architecture rule: `.claude/rules/auth-module-architecture.md`; scaffold new auth modules with the `create-auth-module` skill.
 

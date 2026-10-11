@@ -36,26 +36,27 @@ presentation  →  application  →  domain  ←  data
 | Layer | Contains | May depend on |
 |---|---|---|
 | `domain/` | Types (`Credentials`, `Session`, `AuthUser`), `AuthError`, the ports `AuthProvider` and `SessionStorage`, validation | nothing (pure TypeScript, no `react`, no `react-native`) |
-| `data/` | Adapters implementing the ports: `MockAuthProvider`, `InMemorySessionStorage` and, later, the HTTP provider and a secure storage | `domain` |
+| `data/` | Adapters implementing the ports: `RemoteAuthProvider` and, later, a secure storage | `domain` |
 | `application/` | `AuthService` (use cases: restore, sign in, sign out), the session reducer, `AuthSessionProvider`, `useAuth` | `domain` (and `react`) |
 | `presentation/` | Screens, flow components, their form hooks and the strings | `application`, `domain` types, `ui-components` |
 
 - `AuthService` is plain TypeScript with no React, so it is testable without a renderer and usable by non-React code (a future HTTP client needs the access token).
 - `data/` never imports from `application/` or `presentation/`.
+- `testing/` holds the shared test double (`MockAuthProvider`, `InMemorySessionStorage`). It may import `domain` only, is not exported from `src/index.ts` and is excluded from the build.
 
 ## Rules
 
 1. **Screens never talk to the backend.** They call `useAuth()` and render its state. No `fetch`, no provider calls and no storage access inside `presentation/`.
 2. **The backend is a port.** Everything the flow needs from the server goes through `AuthProvider`. Switching to the real backend means writing one new adapter in `data/` and passing it to the `AuthService` the host builds; no other file changes.
 3. **Dependencies are injected, not imported.** The host builds `new AuthService(provider, storage)` once, outside any component, and passes it to `AuthSessionProvider` (`service` prop). Nothing in `application/` or `presentation/` imports a concrete adapter. The host chooses the adapters at its entry point and can reuse the same service from non-React code.
-4. **The mock is a first-class adapter**, not a test hack. It lives in `data/`, is exported publicly, simulates latency and every failure the real backend can return, and is configurable (users, latency, forced error) so tests can drive each state.
+4. **One shared mock, kept out of the public API.** `MockAuthProvider` serves the example app and the tests. It lives in `testing/`, is not exported from `src/index.ts` and is excluded from the build (`exclude` in `builder-bob`, `!src/testing` in `files`); the example and the tests import it by relative path. It simulates latency and every failure the real backend can return, and is configurable (users, latency, forced error): defaults serve the example, options serve the tests. Its behavior is pinned by the contract suite in `testing/authProviderContract.ts`, which runs against the mock and against `RemoteAuthProvider` (through an in-memory fake of the backend), so the mock cannot drift from the real backend; add a behavior to the contract whenever the backend is verified to do something new. Ad-hoc doubles (`jest.fn()`, a provider failing on one call) stay next to the tests. If another module ever needs it, decide then between a `testing` subpath and a fixed-session test wrapper; do not build that before a real consumer exists.
 5. **Typed, platform-agnostic errors.** The domain throws `AuthError` with a stable `code` (`invalid-credentials`, `network`, `unknown`, ...). The UI maps the code to a message; it never shows raw backend text and never inspects error strings.
 6. **Session state is a pure reducer** with explicit statuses (`restoring`, `signedOut`, `signedIn`). No boolean soup, no shared mutable state.
-7. **Tokens never touch plain storage.** `SessionStorage` is a port. The default `InMemorySessionStorage` is for mock/tests only; production uses an adapter backed by Keychain (iOS) / Keystore (Android), provided by the host. Never log tokens, passwords or emails.
+7. **Tokens never touch plain storage.** `SessionStorage` is a port. The default `InMemorySessionStorage` (in `testing/`) is for the example and tests only; production uses an adapter backed by Keychain (iOS) / Keystore (Android), provided by the host. Never log tokens, passwords or emails.
 8. **No secrets in code.** The mock's fake users and tokens are obviously fake values. Real endpoints and keys come from the host configuration; follow `.claude/rules/security.md`.
 9. **Validation lives in `domain/`** as pure functions returning field errors; the screen only displays them.
 10. **UI uses tokens and `P*` components only.** No hardcoded colors, spacing or font sizes; no re-implementing an input or button that `ui-components` already offers. If a needed component is missing, add it to `ui-components` instead of working around it.
-11. **Navigation stays with the host; the module only orchestrates closed flows.** Screens expose callbacks (`onSignUpPress`, `onForgotPasswordPress`); the host decides where they go. The module may ship a flow component (`SignUpFlow`, `PasswordRecoveryFlow`) that chains a few screens with plain React state, but only when its steps share data the host should not see and the flow has a single exit. A flow exposes exit callbacks (`onFinished`, `onSignInPress`), never a navigation object, and never navigates to another module or into the app: leaving the flow is the host's call, and a successful sign-in is observed through `useAuth().status`. When a flow needs hardware or gesture back, transitions, a header, deep links into a step, or more than about four steps with branches, stop and ask: that is the point to approve a navigation library.
+11. **Navigation stays with the host; the module only orchestrates closed flows.** Screens expose callbacks (`onSignUpPress`, `onForgotPasswordPress`); the host decides where they go. The module may ship a flow component (`SignUpFlow`, `PasswordRecoveryFlow`) that chains a few screens with plain React state, but only when its steps share data the host should not see and the flow has a single exit. A flow exposes exit callbacks (`onFinished`, `onSignInPress`), never a navigation object, and never navigates to another module or into the app: leaving the flow is the host's call, and a successful sign-in is observed through `useAuth().status`. Android hardware back inside a flow is handled with `BackHandler`, subscribed only while a step past the first is shown and only where returning one step is safe; back on the first step belongs to the host. When a flow needs the iOS swipe-back gesture, back across several steps, transitions, a header, deep links into a step, or more than about four steps with branches, stop and ask: that is the point to approve a navigation library.
 12. **Minimal, stable public API.** Everything public is exported from `src/index.ts`. Consumers do not deep-import.
 13. **User-facing text lives in one `strings` file** per screen group, keyed in English. Screens do not inline literals.
 14. **Every public screen and flow has a showcase** in the module's `example/` running against the mock, and the logic in `domain/`, `data/` and `application/` has unit tests (Jest).
@@ -66,7 +67,8 @@ presentation  →  application  →  domain  ←  data
 src/
   index.ts
   domain/         types.ts, errors.ts, AuthProvider.ts, SessionStorage.ts, validation.ts
-  data/           MockAuthProvider.ts, InMemorySessionStorage.ts
+  data/           RemoteAuthProvider.ts
+  testing/        MockAuthProvider.ts, InMemorySessionStorage.ts, __tests__/ (not exported, not built)
   application/    AuthService.ts, authSessionReducer.ts, AuthSessionProvider.tsx, useAuth.ts
   presentation/   <Screen>.tsx, <Name>Flow.tsx, use<Screen>Form.ts, strings.ts
 example/          showcase app (Expo) wired to the mock

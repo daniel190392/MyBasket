@@ -1,4 +1,5 @@
 import { AuthError } from '../domain/errors';
+import { isStrongPassword } from '../domain/validation';
 
 import type { AuthErrorCode } from '../domain/errors';
 import type { AuthProvider } from '../domain/AuthProvider';
@@ -85,6 +86,10 @@ export class MockAuthProvider implements AuthProvider {
   }: Registration): Promise<SignUpResult> {
     await this.simulateRequest();
 
+    if (!isStrongPassword(password)) {
+      throw new AuthError('weak-password');
+    }
+
     const isEmailTaken = [...this.users, ...this.pendingUsers].some(
       (user) => normalizeEmail(user.email) === normalizeEmail(email)
     );
@@ -144,13 +149,21 @@ export class MockAuthProvider implements AuthProvider {
     const userIndex = this.users.findIndex(
       (user) => normalizeEmail(user.email) === normalizeEmail(email)
     );
-    if (userIndex !== -1) {
-      // Replaced, not mutated: the user objects may be shared with the defaults.
-      this.users[userIndex] = {
-        ...this.users[userIndex],
-        password: newPassword,
-      };
+    if (userIndex === -1) {
+      // The real backend reports an unknown email as a wrong code, so the
+      // response does not reveal which accounts exist.
+      throw new AuthError('invalid-code');
     }
+
+    if (!isStrongPassword(newPassword)) {
+      throw new AuthError('weak-password');
+    }
+
+    // Replaced, not mutated: the user objects may be shared with the defaults.
+    this.users[userIndex] = {
+      ...this.users[userIndex],
+      password: newPassword,
+    };
   }
 
   private assertValidCode(code: string): void {

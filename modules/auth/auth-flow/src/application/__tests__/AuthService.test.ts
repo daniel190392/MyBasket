@@ -1,9 +1,9 @@
-import { InMemorySessionStorage } from '../../data/InMemorySessionStorage';
+import { InMemorySessionStorage } from '../../testing/InMemorySessionStorage';
 import {
   DEFAULT_MOCK_USERS,
   MOCK_CONFIRMATION_CODE,
   MockAuthProvider,
-} from '../../data/MockAuthProvider';
+} from '../../testing/MockAuthProvider';
 import { AuthError } from '../../domain/errors';
 import { AuthService } from '../AuthService';
 
@@ -13,6 +13,8 @@ import type { Session } from '../../domain/types';
 
 const [demoUser] = DEFAULT_MOCK_USERS;
 const credentials = { email: demoUser.email, password: demoUser.password };
+// Meets the password policy, which the mock enforces like the real backend.
+const STRONG_PASSWORD = 'Newpass1';
 
 const createService = (provider?: AuthProvider, storage?: SessionStorage) => {
   const sessionStorage = storage ?? new InMemorySessionStorage();
@@ -47,7 +49,7 @@ describe('AuthService', () => {
 
     const result = await service.signUp({
       email: 'new@mybasket.test',
-      password: 'new-password',
+      password: STRONG_PASSWORD,
       displayName: 'New User',
     });
 
@@ -89,7 +91,11 @@ describe('AuthService', () => {
     const { service, sessionStorage } = createService();
 
     await expect(
-      service.signUp({ ...credentials, displayName: 'Taken' })
+      service.signUp({
+        ...credentials,
+        password: STRONG_PASSWORD,
+        displayName: 'Taken',
+      })
     ).rejects.toMatchObject({ code: 'email-already-in-use' });
 
     expect(await sessionStorage.load()).toBeNull();

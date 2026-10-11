@@ -1,5 +1,11 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": { "types": [] },
-  "exclude": ["node_modules", "lib", "example", "src/**/__tests__"]
+  "exclude": [
+    "node_modules",
+    "lib",
+    "example",
+    "src/**/__tests__",
+    "src/testing"
+  ]
 }
