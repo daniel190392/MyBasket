@@ -3,6 +3,7 @@ export type AuthErrorCode =
   | 'user-not-confirmed'
   | 'email-already-in-use'
   | 'weak-password'
+  | 'invalid-request'
   | 'invalid-code'
   | 'expired-code'
   | 'too-many-requests'

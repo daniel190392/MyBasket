@@ -1,4 +1,4 @@
-import { AuthError } from '../domain/errors';
+import { AuthError, isAuthError } from '../domain/errors';
 
 import type { AuthErrorCode } from '../domain/errors';
 import type { AuthProvider } from '../domain/AuthProvider';
@@ -48,6 +48,7 @@ const ERROR_CODES = new Map<string, AuthErrorCode>([
   ['NotAuthorizedException', 'invalid-credentials'],
   ['UserNotFoundException', 'invalid-credentials'],
   ['UserNotConfirmedException', 'user-not-confirmed'],
+  ['InvalidParameterException', 'invalid-request'],
   ['UsernameExistsException', 'email-already-in-use'],
   ['InvalidPasswordException', 'weak-password'],
   ['CodeMismatchException', 'invalid-code'],
@@ -152,10 +153,18 @@ export class RemoteAuthProvider implements AuthProvider {
   }
 
   async requestPasswordRecovery(email: string): Promise<void> {
-    await this.call('ForgotPassword', {
-      ClientId: this.options.clientId,
-      Username: email.trim(),
-    });
+    try {
+      await this.call('ForgotPassword', {
+        ClientId: this.options.clientId,
+        Username: email.trim(),
+      });
+    } catch (error) {
+      // An unconfirmed account rejects the request while an unknown email
+      // answers as if it worked; hiding the difference keeps the response
+      // from revealing which emails have a pending sign up.
+      if (isAuthError(error) && error.code === 'invalid-request') return;
+      throw error;
+    }
   }
 
   async confirmPasswordRecovery({

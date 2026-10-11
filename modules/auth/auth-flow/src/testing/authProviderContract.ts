@@ -181,6 +181,15 @@ export const describeAuthProviderContract = (
           ).resolves.toBeUndefined();
         }
       );
+
+      it('resolves for an unconfirmed account so it is not told apart', async () => {
+        const { provider } = createSubject();
+        await provider.signUp(registration);
+
+        await expect(
+          provider.requestPasswordRecovery(NEW_EMAIL)
+        ).resolves.toBeUndefined();
+      });
     });
 
     describe('confirmPasswordRecovery', () => {

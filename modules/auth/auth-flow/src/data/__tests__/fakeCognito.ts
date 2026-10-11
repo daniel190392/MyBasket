@@ -93,8 +93,9 @@ export class FakeCognito {
       case 'ConfirmSignUp':
         return this.confirmSignUp(body);
       case 'ResendConfirmationCode':
-      case 'ForgotPassword':
         return json(CODE_DELIVERY);
+      case 'ForgotPassword':
+        return this.forgotPassword(body);
       case 'ConfirmForgotPassword':
         return this.confirmForgotPassword(body);
       case 'GlobalSignOut':
@@ -146,6 +147,15 @@ export class FakeCognito {
       isConfirmed: false,
     });
     return json({ UserConfirmed: false });
+  }
+
+  // An unknown email answers as if it worked, but an unconfirmed account
+  // rejects the request. Both were verified against the real pool.
+  private forgotPassword(body: Record<string, unknown>): Response {
+    const user = this.users.get(String(body.Username));
+    return user && !user.isConfirmed
+      ? failure('InvalidParameterException')
+      : json(CODE_DELIVERY);
   }
 
   private confirmSignUp(body: Record<string, unknown>): Response {
