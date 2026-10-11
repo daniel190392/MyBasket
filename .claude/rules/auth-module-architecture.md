@@ -38,7 +38,7 @@ presentation  →  application  →  domain  ←  data
 | `domain/` | Types (`Credentials`, `Session`, `AuthUser`), `AuthError`, the ports `AuthProvider` and `SessionStorage`, validation | nothing (pure TypeScript, no `react`, no `react-native`) |
 | `data/` | Adapters implementing the ports: `MockAuthProvider`, `InMemorySessionStorage` and, later, the HTTP provider and a secure storage | `domain` |
 | `application/` | `AuthService` (use cases: restore, sign in, sign out), the session reducer, `AuthSessionProvider`, `useAuth` | `domain` (and `react`) |
-| `presentation/` | Screens, their form hooks and the strings | `application`, `domain` types, `ui-components` |
+| `presentation/` | Screens, flow components, their form hooks and the strings | `application`, `domain` types, `ui-components` |
 
 - `AuthService` is plain TypeScript with no React, so it is testable without a renderer and usable by non-React code (a future HTTP client needs the access token).
 - `data/` never imports from `application/` or `presentation/`.
@@ -55,10 +55,10 @@ presentation  →  application  →  domain  ←  data
 8. **No secrets in code.** The mock's fake users and tokens are obviously fake values. Real endpoints and keys come from the host configuration; follow `.claude/rules/security.md`.
 9. **Validation lives in `domain/`** as pure functions returning field errors; the screen only displays them.
 10. **UI uses tokens and `P*` components only.** No hardcoded colors, spacing or font sizes; no re-implementing an input or button that `ui-components` already offers. If a needed component is missing, add it to `ui-components` instead of working around it.
-11. **No navigation inside the module.** Screens expose callbacks (`onSignUpPress`, `onForgotPasswordPress`); the host decides where they go. A successful sign-in is observed through `useAuth().status`.
+11. **Navigation stays with the host; the module only orchestrates closed flows.** Screens expose callbacks (`onSignUpPress`, `onForgotPasswordPress`); the host decides where they go. The module may ship a flow component (`SignUpFlow`, `PasswordRecoveryFlow`) that chains a few screens with plain React state, but only when its steps share data the host should not see and the flow has a single exit. A flow exposes exit callbacks (`onFinished`, `onSignInPress`), never a navigation object, and never navigates to another module or into the app: leaving the flow is the host's call, and a successful sign-in is observed through `useAuth().status`. When a flow needs hardware or gesture back, transitions, a header, deep links into a step, or more than about four steps with branches, stop and ask: that is the point to approve a navigation library.
 12. **Minimal, stable public API.** Everything public is exported from `src/index.ts`. Consumers do not deep-import.
 13. **User-facing text lives in one `strings` file** per screen group, keyed in English. Screens do not inline literals.
-14. **Every public screen has a showcase** in the module's `example/` running against the mock, and the logic in `domain/`, `data/` and `application/` has unit tests (Jest).
+14. **Every public screen and flow has a showcase** in the module's `example/` running against the mock, and the logic in `domain/`, `data/` and `application/` has unit tests (Jest).
 
 ## Structure
 
@@ -68,7 +68,7 @@ src/
   domain/         types.ts, errors.ts, AuthProvider.ts, SessionStorage.ts, validation.ts
   data/           MockAuthProvider.ts, InMemorySessionStorage.ts
   application/    AuthService.ts, authSessionReducer.ts, AuthSessionProvider.tsx, useAuth.ts
-  presentation/   <Screen>.tsx, use<Screen>Form.ts, strings.ts
+  presentation/   <Screen>.tsx, <Name>Flow.tsx, use<Screen>Form.ts, strings.ts
 example/          showcase app (Expo) wired to the mock
 ```
 
