@@ -9,13 +9,15 @@ import {
 import { PButton, colors, spacing, textPresets } from 'ui-components';
 
 import {
-  DEFAULT_MOCK_USERS,
   LoginScreen,
-  MOCK_CONFIRMATION_CODE,
   PasswordRecoveryFlow,
   SignUpFlow,
   useAuth,
 } from '../../src';
+import {
+  DEFAULT_MOCK_USERS,
+  MOCK_CONFIRMATION_CODE,
+} from '../../src/testing/MockAuthProvider';
 
 type AuthScreen = 'login' | 'signUp' | 'recovery';
 

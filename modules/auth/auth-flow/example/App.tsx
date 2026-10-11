@@ -1,12 +1,9 @@
 import React from 'react';
 import { StatusBar } from 'react-native';
 
-import {
-  AuthService,
-  AuthSessionProvider,
-  InMemorySessionStorage,
-  MockAuthProvider,
-} from '../src';
+import { AuthService, AuthSessionProvider } from '../src';
+import { InMemorySessionStorage } from '../src/testing/InMemorySessionStorage';
+import { MockAuthProvider } from '../src/testing/MockAuthProvider';
 import { AuthGate } from './src/AuthGate';
 
 // Built once, outside the component: switching to the real backend means

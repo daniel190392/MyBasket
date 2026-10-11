@@ -1,9 +1,9 @@
-import { InMemorySessionStorage } from '../../data/InMemorySessionStorage';
+import { InMemorySessionStorage } from '../../testing/InMemorySessionStorage';
 import {
   DEFAULT_MOCK_USERS,
   MOCK_CONFIRMATION_CODE,
   MockAuthProvider,
-} from '../../data/MockAuthProvider';
+} from '../../testing/MockAuthProvider';
 import { AuthError } from '../../domain/errors';
 import { AuthService } from '../AuthService';
 
