@@ -7,6 +7,8 @@ import type { ImageSourcePropType } from 'react-native';
 
 export type SignUpFlowProps = {
   logo?: ImageSourcePropType;
+  /** Starts at the confirmation step, for an account never confirmed. */
+  initialEmailToConfirm?: string;
   /** The account was confirmed; the user can sign in with this email. */
   onFinished: (email: string) => void;
   /** The user left the flow without confirming the account. */
@@ -15,10 +17,13 @@ export type SignUpFlowProps = {
 
 export function SignUpFlow({
   logo,
+  initialEmailToConfirm,
   onFinished,
   onSignInPress,
 }: SignUpFlowProps) {
-  const [emailToConfirm, setEmailToConfirm] = useState<string | null>(null);
+  const [emailToConfirm, setEmailToConfirm] = useState<string | null>(
+    initialEmailToConfirm ?? null
+  );
 
   if (emailToConfirm) {
     return (

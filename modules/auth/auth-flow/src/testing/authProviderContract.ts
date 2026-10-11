@@ -1,5 +1,3 @@
-import { AuthError } from '../domain/errors';
-
 import type { AuthProvider } from '../domain/AuthProvider';
 import type { Credentials } from '../domain/types';
 
@@ -106,13 +104,22 @@ export const describeAuthProviderContract = (
         ).rejects.toMatchObject({ code: 'weak-password' });
       });
 
-      it('does not let an unconfirmed user sign in', async () => {
+      it('asks to confirm the account when an unconfirmed user signs in', async () => {
         const { provider } = createSubject();
         await provider.signUp(registration);
 
         await expect(
           provider.signIn({ email: NEW_EMAIL, password: STRONG_PASSWORD })
-        ).rejects.toBeInstanceOf(AuthError);
+        ).rejects.toMatchObject({ code: 'user-not-confirmed' });
+      });
+
+      it('does not reveal an unconfirmed account to a wrong password', async () => {
+        const { provider } = createSubject();
+        await provider.signUp(registration);
+
+        await expect(
+          provider.signIn({ email: NEW_EMAIL, password: 'Wrong-password-1' })
+        ).rejects.toMatchObject({ code: 'invalid-credentials' });
       });
     });
 

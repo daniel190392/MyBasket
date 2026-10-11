@@ -47,6 +47,7 @@ const NAME_ATTRIBUTE = 'name';
 const ERROR_CODES = new Map<string, AuthErrorCode>([
   ['NotAuthorizedException', 'invalid-credentials'],
   ['UserNotFoundException', 'invalid-credentials'],
+  ['UserNotConfirmedException', 'user-not-confirmed'],
   ['UsernameExistsException', 'email-already-in-use'],
   ['InvalidPasswordException', 'weak-password'],
   ['CodeMismatchException', 'invalid-code'],

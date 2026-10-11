@@ -73,7 +73,16 @@ export class MockAuthProvider implements AuthProvider {
         user.password === password
     );
     if (userIndex === -1) {
-      throw new AuthError('invalid-credentials');
+      // Like the real backend, only the right password reveals the account
+      // is waiting for its confirmation.
+      const isUnconfirmed = this.pendingUsers.some(
+        (user) =>
+          normalizeEmail(user.email) === normalizeEmail(email) &&
+          user.password === password
+      );
+      throw new AuthError(
+        isUnconfirmed ? 'user-not-confirmed' : 'invalid-credentials'
+      );
     }
 
     return this.createSession(userIndex);

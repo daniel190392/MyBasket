@@ -27,6 +27,7 @@ export function AuthGate() {
   const auth = useAuth();
   const [screen, setScreen] = useState<AuthScreen>('login');
   const [confirmedEmail, setConfirmedEmail] = useState<string | null>(null);
+  const [emailToConfirm, setEmailToConfirm] = useState<string | null>(null);
 
   // Leaving a flow is the host's call: back from any screen but login returns
   // to login, and on login the system default (leaving the app) applies.
@@ -65,6 +66,7 @@ export function AuthGate() {
     return (
       <View style={styles.flex}>
         <SignUpFlow
+          initialEmailToConfirm={emailToConfirm ?? undefined}
           onFinished={(email) => {
             setConfirmedEmail(email);
             setScreen('login');
@@ -101,7 +103,14 @@ export function AuthGate() {
       <LoginScreen
         initialEmail={confirmedEmail ?? undefined}
         onForgotPasswordPress={() => setScreen('recovery')}
-        onSignUpPress={() => setScreen('signUp')}
+        onConfirmationRequired={(email) => {
+          setEmailToConfirm(email);
+          setScreen('signUp');
+        }}
+        onSignUpPress={() => {
+          setEmailToConfirm(null);
+          setScreen('signUp');
+        }}
       />
       <View style={styles.footer}>
         <Text style={styles.hint}>

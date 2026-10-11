@@ -231,6 +231,7 @@ describe('RemoteAuthProvider error mapping', () => {
   it.each([
     ['NotAuthorizedException', 'invalid-credentials'],
     ['UserNotFoundException', 'invalid-credentials'],
+    ['UserNotConfirmedException', 'user-not-confirmed'],
     ['UsernameExistsException', 'email-already-in-use'],
     ['InvalidPasswordException', 'weak-password'],
     ['CodeMismatchException', 'invalid-code'],

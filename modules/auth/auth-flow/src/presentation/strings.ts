@@ -9,6 +9,7 @@ import type {
 // Default language follows the design reference (Spanish).
 const submitErrors = {
   'invalid-credentials': 'Email o contraseña incorrectos',
+  'user-not-confirmed': 'Tu cuenta aún no está confirmada',
   'email-already-in-use': 'Ya existe una cuenta con este email',
   'weak-password':
     'La contraseña debe tener al menos 8 caracteres, con mayúscula, minúscula y número',
