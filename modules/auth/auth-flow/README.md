@@ -83,6 +83,7 @@ function AuthGate() {
       <LoginScreen
         onForgotPasswordPress={openRecovery}
         onSignUpPress={openSignUp}
+        onConfirmationRequired={openConfirmation}
       />
     );
   }
@@ -117,6 +118,8 @@ interface AuthProvider {
   ): Promise<void>;
 }
 ```
+
+Signing in to an account that was never confirmed rejects with `user-not-confirmed`. `LoginScreen` hands the email to the host through `onConfirmationRequired`, and the host can open `SignUpFlow` at its confirmation step with `initialEmailToConfirm`. Signing up again with that email is rejected with `email-already-in-use`: the module never resends a code on sign up, because it would let anyone who knows an email set the password of an account its owner confirms.
 
 ## Session persistence
 
