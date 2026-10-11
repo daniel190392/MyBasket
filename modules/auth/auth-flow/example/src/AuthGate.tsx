@@ -7,14 +7,12 @@ import {
   DEFAULT_MOCK_USERS,
   LoginScreen,
   MOCK_CONFIRMATION_CODE,
-  RecoveryScreen,
+  PasswordRecoveryFlow,
   RegisterScreen,
-  ResetPasswordScreen,
   useAuth,
 } from '../../src';
 
-type AuthScreen =
-  'login' | 'register' | 'confirmation' | 'recovery' | 'resetPassword';
+type AuthScreen = 'login' | 'register' | 'confirmation' | 'recovery';
 
 const [demoUser] = DEFAULT_MOCK_USERS;
 
@@ -22,7 +20,6 @@ export function AuthGate() {
   const auth = useAuth();
   const [screen, setScreen] = useState<AuthScreen>('login');
   const [emailToConfirm, setEmailToConfirm] = useState<string | null>(null);
-  const [emailToReset, setEmailToReset] = useState<string | null>(null);
 
   if (auth.status === 'restoring') {
     return (
@@ -73,23 +70,10 @@ export function AuthGate() {
 
   if (screen === 'recovery') {
     return (
-      <RecoveryScreen
-        onSignInPress={() => setScreen('login')}
-        onCodeSent={(email) => {
-          setEmailToReset(email);
-          setScreen('resetPassword');
-        }}
-      />
-    );
-  }
-
-  if (screen === 'resetPassword' && emailToReset) {
-    return (
       <View style={styles.flex}>
-        <ResetPasswordScreen
-          email={emailToReset}
-          onPasswordReset={() => setScreen('login')}
-          onBackPress={() => setScreen('login')}
+        <PasswordRecoveryFlow
+          onFinished={() => setScreen('login')}
+          onSignInPress={() => setScreen('login')}
         />
         <View style={styles.footer}>
           <Text style={styles.hint}>
