@@ -4,6 +4,7 @@ import type { AuthErrorCode } from '../domain/errors';
 import type { AuthProvider } from '../domain/AuthProvider';
 import type {
   Credentials,
+  PasswordRecoveryConfirmation,
   Registration,
   Session,
   SignUpConfirmation,
@@ -52,6 +53,7 @@ const ERROR_CODES = new Map<string, AuthErrorCode>([
   ['ExpiredCodeException', 'expired-code'],
   ['LimitExceededException', 'too-many-requests'],
   ['TooManyRequestsException', 'too-many-requests'],
+  ['TooManyFailedAttemptsException', 'too-many-requests'],
 ]);
 
 // atob yields a binary string; decoding it as percent-encoded bytes keeps
@@ -144,12 +146,28 @@ export class RemoteAuthProvider implements AuthProvider {
     });
   }
 
-  async signOut(_session: Session): Promise<void> {
-    throw new AuthError('unknown', 'signOut is not implemented yet');
+  async signOut({ accessToken }: Session): Promise<void> {
+    await this.call('GlobalSignOut', { AccessToken: accessToken });
   }
 
-  async requestPasswordRecovery(_email: string): Promise<void> {
-    throw new AuthError('unknown', 'Password recovery is not implemented yet');
+  async requestPasswordRecovery(email: string): Promise<void> {
+    await this.call('ForgotPassword', {
+      ClientId: this.options.clientId,
+      Username: email.trim(),
+    });
+  }
+
+  async confirmPasswordRecovery({
+    email,
+    code,
+    newPassword,
+  }: PasswordRecoveryConfirmation): Promise<void> {
+    await this.call('ConfirmForgotPassword', {
+      ClientId: this.options.clientId,
+      Username: email.trim(),
+      ConfirmationCode: code,
+      Password: newPassword,
+    });
   }
 
   private async call(

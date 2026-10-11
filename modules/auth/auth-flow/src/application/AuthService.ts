@@ -2,6 +2,7 @@ import type { AuthProvider } from '../domain/AuthProvider';
 import type { SessionStorage } from '../domain/SessionStorage';
 import type {
   Credentials,
+  PasswordRecoveryConfirmation,
   Registration,
   Session,
   SignUpConfirmation,
@@ -52,6 +53,12 @@ export class AuthService {
 
   async requestPasswordRecovery(email: string): Promise<void> {
     await this.provider.requestPasswordRecovery(email);
+  }
+
+  async confirmPasswordRecovery(
+    confirmation: PasswordRecoveryConfirmation
+  ): Promise<void> {
+    await this.provider.confirmPasswordRecovery(confirmation);
   }
 
   async signOut(session: Session): Promise<void> {

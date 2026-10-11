@@ -168,6 +168,68 @@ describe('MockAuthProvider password recovery', () => {
   });
 });
 
+describe('MockAuthProvider password recovery confirmation', () => {
+  const NEW_PASSWORD = 'New-password-1';
+
+  it('lets the user sign in with the new password only', async () => {
+    const provider = new MockAuthProvider(NO_LATENCY);
+
+    await provider.confirmPasswordRecovery({
+      email: demoUser.email,
+      code: MOCK_CONFIRMATION_CODE,
+      newPassword: NEW_PASSWORD,
+    });
+
+    await expect(
+      provider.signIn({ email: demoUser.email, password: NEW_PASSWORD })
+    ).resolves.toMatchObject({ user: { email: demoUser.email } });
+    await expect(
+      provider.signIn({ email: demoUser.email, password: demoUser.password })
+    ).rejects.toMatchObject({ code: 'invalid-credentials' });
+  });
+
+  it('does not change the shared default users', async () => {
+    const provider = new MockAuthProvider(NO_LATENCY);
+
+    await provider.confirmPasswordRecovery({
+      email: demoUser.email,
+      code: MOCK_CONFIRMATION_CODE,
+      newPassword: NEW_PASSWORD,
+    });
+
+    expect(demoUser.password).not.toBe(NEW_PASSWORD);
+  });
+
+  it('resolves for an unknown email so accounts are not revealed', async () => {
+    const provider = new MockAuthProvider(NO_LATENCY);
+
+    await expect(
+      provider.confirmPasswordRecovery({
+        email: 'unknown@mybasket.test',
+        code: MOCK_CONFIRMATION_CODE,
+        newPassword: NEW_PASSWORD,
+      })
+    ).resolves.toBeUndefined();
+  });
+
+  it.each([
+    ['999999', 'invalid-code'],
+    [MOCK_EXPIRED_CONFIRMATION_CODE, 'expired-code'],
+  ])('rejects the code %s with %s', async (code, expectedCode) => {
+    const provider = new MockAuthProvider(NO_LATENCY);
+
+    const error = await provider
+      .confirmPasswordRecovery({
+        email: demoUser.email,
+        code,
+        newPassword: NEW_PASSWORD,
+      })
+      .catch((caught) => caught);
+
+    expect(isAuthError(error) && error.code).toBe(expectedCode);
+  });
+});
+
 describe('MockAuthProvider sign up confirmation', () => {
   const registration = {
     email: 'new@mybasket.test',

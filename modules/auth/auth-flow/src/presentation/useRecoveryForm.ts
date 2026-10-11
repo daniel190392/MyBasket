@@ -7,7 +7,7 @@ import { validateRecovery } from '../domain/validation';
 import type { AuthErrorCode } from '../domain/errors';
 import type { RecoveryFieldErrors } from '../domain/validation';
 
-export const useRecoveryForm = () => {
+export const useRecoveryForm = (onCodeSent: (email: string) => void) => {
   const { requestPasswordRecovery } = useAuth();
   const [email, setEmail] = useState('');
   const [fieldErrors, setFieldErrors] = useState<RecoveryFieldErrors>({});
@@ -15,19 +15,18 @@ export const useRecoveryForm = () => {
     null
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRequestSent, setIsRequestSent] = useState(false);
 
   const submit = async () => {
     const errors = validateRecovery(email);
     setFieldErrors(errors);
     setSubmitErrorCode(null);
-    setIsRequestSent(false);
     if (Object.keys(errors).length > 0) return;
 
     setIsSubmitting(true);
     try {
-      await requestPasswordRecovery(email.trim());
-      setIsRequestSent(true);
+      const trimmedEmail = email.trim();
+      await requestPasswordRecovery(trimmedEmail);
+      onCodeSent(trimmedEmail);
     } catch (error) {
       setSubmitErrorCode(isAuthError(error) ? error.code : 'unknown');
     } finally {
@@ -41,7 +40,6 @@ export const useRecoveryForm = () => {
     fieldErrors,
     submitErrorCode,
     isSubmitting,
-    isRequestSent,
     submit,
   };
 };

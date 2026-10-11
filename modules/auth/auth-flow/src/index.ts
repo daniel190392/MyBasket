@@ -21,3 +21,5 @@ export { ConfirmationScreen } from './presentation/ConfirmationScreen';
 export type { ConfirmationScreenProps } from './presentation/ConfirmationScreen';
 export { RecoveryScreen } from './presentation/RecoveryScreen';
 export type { RecoveryScreenProps } from './presentation/RecoveryScreen';
+export { ResetPasswordScreen } from './presentation/ResetPasswordScreen';
+export type { ResetPasswordScreenProps } from './presentation/ResetPasswordScreen';

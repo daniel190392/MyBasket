@@ -29,11 +29,14 @@ const FEEDBACK_MIN_HEIGHT = 48;
 export type RecoveryScreenProps = {
   logo?: ImageSourcePropType;
   onSignInPress: () => void;
+  /** The recovery code was requested; the user must enter it next. */
+  onCodeSent: (email: string) => void;
 };
 
 export function RecoveryScreen({
   logo = require('./assets/logo.png'),
   onSignInPress,
+  onCodeSent,
 }: RecoveryScreenProps) {
   const {
     email,
@@ -41,9 +44,8 @@ export function RecoveryScreen({
     fieldErrors,
     submitErrorCode,
     isSubmitting,
-    isRequestSent,
     submit,
-  } = useRecoveryForm();
+  } = useRecoveryForm(onCodeSent);
 
   const fieldError = (code?: keyof typeof recoveryStrings.fieldErrors) =>
     code ? recoveryStrings.fieldErrors[code] : undefined;
@@ -84,11 +86,6 @@ export function RecoveryScreen({
           {submitErrorCode && (
             <Text style={styles.errorText} accessibilityRole="alert">
               {recoveryStrings.submitErrors[submitErrorCode]}
-            </Text>
-          )}
-          {isRequestSent && (
-            <Text style={styles.successText} accessibilityRole="alert">
-              {recoveryStrings.successMessage}
             </Text>
           )}
         </View>
@@ -148,11 +145,6 @@ const styles = StyleSheet.create({
   errorText: {
     ...textPresets.caption,
     color: colors.error,
-    textAlign: 'center',
-  },
-  successText: {
-    ...textPresets.caption,
-    color: colors.secondaryPressed,
     textAlign: 'center',
   },
   links: {

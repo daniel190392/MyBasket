@@ -3,6 +3,7 @@ import type {
   ConfirmationFieldError,
   CredentialsFieldError,
   RegistrationFieldError,
+  ResetPasswordFieldError,
 } from '../domain/validation';
 
 // Default language follows the design reference (Spanish).
@@ -54,11 +55,9 @@ export const registerStrings = {
 export const recoveryStrings = {
   title: 'Recupera tu contraseña',
   description:
-    'Ingresa tu email y te enviaremos las instrucciones para crear una nueva contraseña',
+    'Ingresa tu email y te enviaremos un código para crear una nueva contraseña',
   emailPlaceholder: 'Email',
-  submit: 'Enviar instrucciones',
-  successMessage:
-    'Si existe una cuenta con este email, recibirás las instrucciones en unos minutos',
+  submit: 'Enviar código',
   backToSignIn: 'Volver a iniciar sesión',
   logoLabel: 'PantryHub',
   fieldErrors: loginStrings.fieldErrors,
@@ -79,5 +78,25 @@ export const confirmationStrings = {
     required: 'Este campo es obligatorio',
     'invalid-code-format': 'Ingresa el código de 6 dígitos',
   } satisfies Record<ConfirmationFieldError, string>,
+  submitErrors,
+} as const;
+
+export const resetPasswordStrings = {
+  title: 'Crea una nueva contraseña',
+  description: 'Si existe una cuenta con este email, enviamos un código a',
+  codePlaceholder: confirmationStrings.codePlaceholder,
+  newPasswordPlaceholder: 'Nueva contraseña',
+  confirmPasswordPlaceholder: 'Confirmar contraseña',
+  submit: 'Cambiar contraseña',
+  resend: confirmationStrings.resend,
+  resendIn: confirmationStrings.resendIn,
+  resentMessage: confirmationStrings.resentMessage,
+  backToSignIn: 'Volver a iniciar sesión',
+  logoLabel: 'PantryHub',
+  fieldErrors: {
+    ...confirmationStrings.fieldErrors,
+    'weak-password': submitErrors['weak-password'],
+    'passwords-mismatch': 'Las contraseñas no coinciden',
+  } satisfies Record<ResetPasswordFieldError, string>,
   submitErrors,
 } as const;

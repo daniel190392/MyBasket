@@ -1,5 +1,6 @@
 import type {
   Credentials,
+  PasswordRecoveryConfirmation,
   Registration,
   Session,
   SignUpConfirmation,
@@ -17,4 +18,7 @@ export interface AuthProvider {
   confirmSignUp(confirmation: SignUpConfirmation): Promise<void>;
   resendConfirmationCode(email: string): Promise<void>;
   requestPasswordRecovery(email: string): Promise<void>;
+  confirmPasswordRecovery(
+    confirmation: PasswordRecoveryConfirmation
+  ): Promise<void>;
 }
