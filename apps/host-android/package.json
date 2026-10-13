@@ -6,6 +6,7 @@
     "start": "react-native start"
   },
   "dependencies": {
+    "auth-flow": "^1.0.0",
     "react": "19.1.4",
     "react-native": "0.82.1",
     "ui-components": "^1.0.0"
