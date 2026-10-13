@@ -125,7 +125,13 @@ Signing in to an account that was never confirmed rejects with `user-not-confirm
 
 ## Session persistence
 
-The example and the tests use an in-memory storage (in `src/testing/`, not exported): the session is lost when the app closes. A production host must supply a `SessionStorage` adapter backed by the platform secure storage (Keychain on iOS, Keystore on Android).
+The example and the tests use an in-memory storage (in `src/testing/`, not exported): the session is lost when the app closes. A production host persists the session with `SecureSessionStorage`, which saves it as JSON in a `KeyValueStore` under the key `auth.session`. The host supplies a store backed by the platform secure storage (Keychain on iOS, Keystore on Android), for example the `secureStorage` of the `secure-storage` module:
+
+```ts
+new AuthService(provider, new SecureSessionStorage(secureStorage));
+```
+
+A stored value that cannot be read or is not a session makes `load` throw; `AuthService` treats that as no session, clears it and the user signs in again.
 
 ## Mock backend
 

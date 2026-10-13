@@ -28,6 +28,8 @@ modules/
     ui-animation/        Animation components that consume the ui-components tokens
   auth/                  Authentication modules (one package each, own example app)
     auth-flow/           Login flow, session state and backend contract (mock + swappable provider)
+  platform/              Device capabilities exposed to React Native (native code inside)
+    secure-storage/      Encrypted key-value storage (Android Keystore, iOS Keychain later)
   feature/               Business features
     feature-home-flutter/  Flutter module for Home (empty for now)
 metro.config.js        Monorepo Metro config (projectRoot = apps/host-android)
@@ -51,6 +53,16 @@ Authentication module in React Native + TypeScript, built with `react-native-bui
 - The shared mock (`MockAuthProvider`, `InMemorySessionStorage`) lives in `src/testing/`: it is not exported nor built, and the example and the tests import it by relative path. Demo credentials are in `DEFAULT_MOCK_USERS`. Unit tests: `npm test` inside the module.
 - `example/` is an Expo showcase running against the mock. Build: `npm run build` inside the module.
 - Architecture rule: `.claude/rules/auth-module-architecture.md`; scaffold new auth modules with the `create-auth-module` skill.
+
+### `modules/platform/secure-storage`
+
+React Native TurboModule with native code inside (`android/` in Kotlin; `ios/` will be added with the iOS host). It exposes `secureStorage` with `getItem`, `setItem` and `removeItem`: values are encrypted with an AES-GCM key that never leaves the Android Keystore and kept in private SharedPreferences. It is generic and does not depend on `auth-flow`.
+
+- `src/NativeSecureStorage.ts` is the contract: codegen turns it into the native base class that the Kotlin module extends. `src/index.ts` exports `secureStorage` and the `SecureStorage` type.
+- The host links it by depending on it (autolinking registers the package); it needs no Gradle change.
+- Keys are shared by every module that uses the store, so they carry a module prefix (`auth.session`).
+- `auth-flow` does not import it: it declares a `KeyValueStore` port, and the host passes `secureStorage` to `new SecureSessionStorage(...)`.
+- Build: `npm run build` inside the module.
 
 ### `apps/host-android`
 
