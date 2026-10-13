@@ -3,8 +3,10 @@ export * from './domain/errors';
 export * from './domain/validation';
 export type { AuthProvider } from './domain/AuthProvider';
 export type { SessionStorage } from './domain/SessionStorage';
+export type { KeyValueStore } from './domain/KeyValueStore';
 
 export * from './data/RemoteAuthProvider';
+export { SecureSessionStorage } from './data/SecureSessionStorage';
 
 export { AuthService } from './application/AuthService';
 export { AuthSessionProvider } from './application/AuthSessionProvider';

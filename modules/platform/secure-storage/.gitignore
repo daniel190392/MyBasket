@@ -1,0 +1,6 @@
+node_modules/
+lib/
+
+# Gradle output when the library is built on its own
+android/build/
+android/.gradle/

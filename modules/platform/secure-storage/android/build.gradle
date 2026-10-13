@@ -1,0 +1,26 @@
+// The host root project already puts the Android and Kotlin Gradle plugins on the classpath, so this
+// library only applies them. A buildscript block here would pull a second, possibly different, version.
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+apply plugin: "com.facebook.react"
+
+android {
+  namespace "com.mybasket.securestorage"
+
+  compileSdk 36
+
+  defaultConfig {
+    // Keep in line with the host: the Keystore AES-GCM API used here needs API 23 or higher.
+    minSdk 24
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+  }
+}
+
+dependencies {
+  // The React Native Gradle plugin sets the version from node_modules/react-native/package.json
+  implementation "com.facebook.react:react-android"
+}

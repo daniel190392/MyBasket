@@ -13,11 +13,11 @@ import {
   LoginScreen,
   PasswordRecoveryFlow,
   RemoteAuthProvider,
+  SecureSessionStorage,
   SignUpFlow,
   useAuth,
 } from 'auth-flow';
-
-import { NoopSessionStorage } from './NoopSessionStorage';
+import { secureStorage } from 'secure-storage';
 
 type AuthScreen = 'login' | 'signUp' | 'recovery';
 
@@ -108,7 +108,7 @@ export function AuthView({ clientId, endpoint }: AuthViewProps) {
     if (!clientId || !endpoint) return null;
     return new AuthService(
       new RemoteAuthProvider({ clientId, endpoint }),
-      new NoopSessionStorage()
+      new SecureSessionStorage(secureStorage)
     );
   }, [clientId, endpoint]);
 
