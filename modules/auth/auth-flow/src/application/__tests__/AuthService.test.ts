@@ -5,6 +5,7 @@ import {
   MockAuthProvider,
 } from '../../testing/MockAuthProvider';
 import { AuthError } from '../../domain/errors';
+import { RENEWAL_MARGIN_MS } from '../../domain/sessionExpiry';
 import { AuthService } from '../AuthService';
 
 import type { AuthProvider } from '../../domain/AuthProvider';
@@ -172,11 +173,15 @@ describe('AuthService restoring an expired session', () => {
     user: { id: '1', email: demoUser.email, displayName: 'Demo' },
     accessToken: 'stored-token',
     refreshToken: 'refresh-token',
-    accessTokenExpiresAt: NOW_MS + 1,
+    accessTokenExpiresAt: NOW_MS + RENEWAL_MARGIN_MS + 1,
   };
   const expiredSession: Session = {
     ...storedSession,
     accessTokenExpiresAt: NOW_MS,
+  };
+  const expiringSession: Session = {
+    ...storedSession,
+    accessTokenExpiresAt: NOW_MS + RENEWAL_MARGIN_MS,
   };
   const renewedSession: Session = {
     ...storedSession,
@@ -204,12 +209,20 @@ describe('AuthService restoring an expired session', () => {
     return { service, sessionStorage };
   };
 
-  it('does not renew a session whose access token is still valid', async () => {
+  it('does not renew a session with more than the margin left', async () => {
     const refreshSession = jest.fn();
     const { service } = await setUp(storedSession, refreshSession);
 
     expect(await service.restoreSession()).toEqual(storedSession);
     expect(refreshSession).not.toHaveBeenCalled();
+  });
+
+  it('renews a session that is about to expire', async () => {
+    const refreshSession = jest.fn().mockResolvedValue(renewedSession);
+    const { service } = await setUp(expiringSession, refreshSession);
+
+    expect(await service.restoreSession()).toEqual(renewedSession);
+    expect(refreshSession).toHaveBeenCalledWith(expiringSession);
   });
 
   it('renews an expired session and stores the renewed one', async () => {

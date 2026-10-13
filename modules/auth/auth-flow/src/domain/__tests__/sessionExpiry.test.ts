@@ -1,8 +1,9 @@
-import { isAccessTokenExpired } from '../sessionExpiry';
+import { RENEWAL_MARGIN_MS, shouldRenewAccessToken } from '../sessionExpiry';
 
 import type { Session } from '../types';
 
 const EXPIRES_AT = 1_000_000;
+const RENEWAL_STARTS_AT = EXPIRES_AT - RENEWAL_MARGIN_MS;
 
 const session: Session = {
   user: { id: 'user-1', email: 'ana@example.com', displayName: 'Ana' },
@@ -11,16 +12,20 @@ const session: Session = {
   accessTokenExpiresAt: EXPIRES_AT,
 };
 
-describe('isAccessTokenExpired', () => {
-  it('is not expired before the expiry instant', () => {
-    expect(isAccessTokenExpired(session, EXPIRES_AT - 1)).toBe(false);
+describe('shouldRenewAccessToken', () => {
+  it('does not renew while more than the margin is left', () => {
+    expect(shouldRenewAccessToken(session, RENEWAL_STARTS_AT - 1)).toBe(false);
   });
 
-  it('is expired at the expiry instant', () => {
-    expect(isAccessTokenExpired(session, EXPIRES_AT)).toBe(true);
+  it('renews when exactly the margin is left', () => {
+    expect(shouldRenewAccessToken(session, RENEWAL_STARTS_AT)).toBe(true);
   });
 
-  it('is expired after the expiry instant', () => {
-    expect(isAccessTokenExpired(session, EXPIRES_AT + 1)).toBe(true);
+  it('renews when less than the margin is left', () => {
+    expect(shouldRenewAccessToken(session, EXPIRES_AT - 1)).toBe(true);
+  });
+
+  it('renews once the access token has expired', () => {
+    expect(shouldRenewAccessToken(session, EXPIRES_AT + 1)).toBe(true);
   });
 });

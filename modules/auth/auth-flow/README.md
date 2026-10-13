@@ -138,7 +138,7 @@ A stored value that cannot be read or is not a session makes `load` throw; `Auth
 
 A `Session` holds the access token, the refresh token and `accessTokenExpiresAt`, the instant (milliseconds since the epoch) the access token stops being valid. The adapter computes it when it receives the token, so `Session` does not depend on how a backend reports lifetimes.
 
-When the app starts, `AuthService.restoreSession` loads the stored session and, if its access token has expired, asks the provider to renew it with `refreshSession`, then stores the renewed session. The split is deliberate: the provider knows how to renew, the service decides when to.
+When the app starts, `AuthService.restoreSession` loads the stored session and, if its access token has expired or has less than a minute left (`RENEWAL_MARGIN_MS`), asks the provider to renew it with `refreshSession`, then stores the renewed session. The margin is there because a request that starts with seconds to spare can reach the server already expired, and it also absorbs small differences between the device clock and the server's. The split is deliberate: the provider knows how to renew, the service decides when to.
 
 | The renewal...                                                                           | `restoreSession`                                                                                                                       |
 | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |

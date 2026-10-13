@@ -1,5 +1,5 @@
 import { isAuthError } from '../domain/errors';
-import { isAccessTokenExpired } from '../domain/sessionExpiry';
+import { shouldRenewAccessToken } from '../domain/sessionExpiry';
 
 import type { AuthProvider } from '../domain/AuthProvider';
 import type { SessionStorage } from '../domain/SessionStorage';
@@ -25,7 +25,7 @@ export class AuthService {
 
   async restoreSession(): Promise<Session | null> {
     const session = await this.loadStoredSession();
-    if (!session || !isAccessTokenExpired(session, this.now())) {
+    if (!session || !shouldRenewAccessToken(session, this.now())) {
       return session;
     }
     return this.renewSession(session);
