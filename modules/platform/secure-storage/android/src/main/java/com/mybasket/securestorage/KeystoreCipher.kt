@@ -3,6 +3,7 @@ package com.mybasket.securestorage
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import java.security.GeneralSecurityException
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -24,8 +25,12 @@ internal class KeystoreCipher {
         return Base64.encodeToString(cipher.iv + encrypted, Base64.NO_WRAP)
     }
 
+    /**
+     * @throws GeneralSecurityException for any value that cannot be decrypted, including one that is not
+     * well formed, so callers handle a single failure type.
+     */
     fun decrypt(encoded: String): String {
-        val payload = Base64.decode(encoded, Base64.NO_WRAP)
+        val payload = decode(encoded)
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(
             Cipher.DECRYPT_MODE,
@@ -38,6 +43,18 @@ internal class KeystoreCipher {
             payload.size - INITIALIZATION_VECTOR_SIZE_BYTES
         )
         return String(decrypted, Charsets.UTF_8)
+    }
+
+    private fun decode(encoded: String): ByteArray {
+        val payload = try {
+            Base64.decode(encoded, Base64.NO_WRAP)
+        } catch (error: IllegalArgumentException) {
+            throw GeneralSecurityException("The stored value is not valid Base64", error)
+        }
+        if (payload.size <= INITIALIZATION_VECTOR_SIZE_BYTES) {
+            throw GeneralSecurityException("The stored value is too short to hold an IV and data")
+        }
+        return payload
     }
 
     private fun getOrCreateKey(): SecretKey {
