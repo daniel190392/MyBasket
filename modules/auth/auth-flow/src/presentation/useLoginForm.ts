@@ -7,7 +7,10 @@ import { validateCredentials } from '../domain/validation';
 import type { AuthErrorCode } from '../domain/errors';
 import type { CredentialsFieldErrors } from '../domain/validation';
 
-export const useLoginForm = (initialEmail = '') => {
+export const useLoginForm = (
+  onConfirmationRequired: (email: string) => void,
+  initialEmail = ''
+) => {
   const { signIn } = useAuth();
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
@@ -27,6 +30,10 @@ export const useLoginForm = (initialEmail = '') => {
     try {
       await signIn({ email: email.trim(), password });
     } catch (error) {
+      if (isAuthError(error) && error.code === 'user-not-confirmed') {
+        onConfirmationRequired(email.trim());
+        return;
+      }
       setSubmitErrorCode(isAuthError(error) ? error.code : 'unknown');
     } finally {
       setIsSubmitting(false);

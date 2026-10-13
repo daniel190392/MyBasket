@@ -191,6 +191,14 @@ describe('RemoteAuthProvider password recovery', () => {
     });
   });
 
+  it('does not hide a failure other than the unconfirmed account', async () => {
+    const error = await buildProvider(errorFetch('LimitExceededException'))
+      .requestPasswordRecovery(CREDENTIALS.email)
+      .catch((caught) => caught);
+
+    expect(isAuthError(error) && error.code).toBe('too-many-requests');
+  });
+
   it('sends the code and the new password to the backend', async () => {
     const fetchMock = jest.fn().mockReturnValue(jsonResponse({}));
 
@@ -231,6 +239,8 @@ describe('RemoteAuthProvider error mapping', () => {
   it.each([
     ['NotAuthorizedException', 'invalid-credentials'],
     ['UserNotFoundException', 'invalid-credentials'],
+    ['UserNotConfirmedException', 'user-not-confirmed'],
+    ['InvalidParameterException', 'invalid-request'],
     ['UsernameExistsException', 'email-already-in-use'],
     ['InvalidPasswordException', 'weak-password'],
     ['CodeMismatchException', 'invalid-code'],
