@@ -10,6 +10,7 @@ import type {
 const submitErrors = {
   'invalid-credentials': 'Email o contraseña incorrectos',
   'user-not-confirmed': 'Tu cuenta aún no está confirmada',
+  'session-expired': 'Tu sesión caducó. Inicia sesión de nuevo',
   'invalid-request': 'No pudimos procesar la solicitud. Inténtalo de nuevo',
   'email-already-in-use': 'Ya existe una cuenta con este email',
   'weak-password':

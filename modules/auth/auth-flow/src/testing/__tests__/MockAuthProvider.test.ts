@@ -60,7 +60,10 @@ describe('MockAuthProvider options and isolation', () => {
       password: registration.password,
     });
 
-    expect(result).toEqual({ status: 'signedIn', session });
+    expect(result).toMatchObject({
+      status: 'signedIn',
+      session: { user: session.user },
+    });
   });
 
   it('does not share registered users between instances', async () => {

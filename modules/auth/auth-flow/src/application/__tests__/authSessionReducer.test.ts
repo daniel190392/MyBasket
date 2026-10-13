@@ -8,6 +8,8 @@ import type { Session } from '../../domain/types';
 const session: Session = {
   user: { id: '1', email: 'user@example.com', displayName: 'User' },
   accessToken: 'token',
+  refreshToken: 'refresh-token',
+  accessTokenExpiresAt: 1_000_000,
 };
 
 describe('authSessionReducer', () => {

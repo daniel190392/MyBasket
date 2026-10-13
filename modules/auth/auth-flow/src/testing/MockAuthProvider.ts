@@ -25,9 +25,12 @@ export type MockAuthProviderOptions = {
   failWith?: AuthErrorCode;
   /** Makes sign up return `confirmationRequired`, like the real backend. */
   requireConfirmation?: boolean;
+  /** Clock used to compute when an access token expires. */
+  now?: () => number;
 };
 
 export const DEFAULT_MOCK_LATENCY_MS = 600;
+export const MOCK_ACCESS_TOKEN_LIFETIME_MS = 60 * 60 * 1000;
 export const MOCK_CONFIRMATION_CODE = '123456';
 export const MOCK_EXPIRED_CONFIRMATION_CODE = '000000';
 
@@ -49,19 +52,25 @@ export class MockAuthProvider implements AuthProvider {
   private readonly latencyMs: number;
   private readonly failWith?: AuthErrorCode;
   private readonly requireConfirmation: boolean;
+  private readonly now: () => number;
   private readonly pendingUsers: MockUser[] = [];
+  // Like the real backend, signing out revokes the refresh tokens of the user.
+  private readonly activeRefreshTokens = new Set<string>();
+  private issuedAccessTokens = 0;
 
   constructor({
     users = DEFAULT_MOCK_USERS,
     latencyMs = DEFAULT_MOCK_LATENCY_MS,
     failWith,
     requireConfirmation = false,
+    now = Date.now,
   }: MockAuthProviderOptions = {}) {
     // Copied so sign ups never leak into the shared default users list.
     this.users = [...users];
     this.latencyMs = latencyMs;
     this.failWith = failWith;
     this.requireConfirmation = requireConfirmation;
+    this.now = now;
   }
 
   async signIn({ email, password }: Credentials): Promise<Session> {
@@ -86,6 +95,20 @@ export class MockAuthProvider implements AuthProvider {
     }
 
     return this.createSession(userIndex);
+  }
+
+  async refreshSession(session: Session): Promise<Session> {
+    await this.simulateRequest();
+
+    if (!this.activeRefreshTokens.has(session.refreshToken)) {
+      throw new AuthError('session-expired');
+    }
+    // A renewal keeps the refresh token, as the real backend does.
+    return {
+      ...session,
+      accessToken: this.nextAccessToken(),
+      accessTokenExpiresAt: this.now() + MOCK_ACCESS_TOKEN_LIFETIME_MS,
+    };
   }
 
   async signUp({
@@ -137,8 +160,9 @@ export class MockAuthProvider implements AuthProvider {
     await this.simulateRequest();
   }
 
-  async signOut(): Promise<void> {
+  async signOut(session: Session): Promise<void> {
     await wait(this.latencyMs);
+    this.activeRefreshTokens.delete(session.refreshToken);
   }
 
   // Resolves the same way for unknown emails so the response never reveals
@@ -194,9 +218,18 @@ export class MockAuthProvider implements AuthProvider {
 
   private createSession(userIndex: number): Session {
     const { email, displayName } = this.users[userIndex];
+    const refreshToken = `mock-refresh-token-${userIndex}`;
+    this.activeRefreshTokens.add(refreshToken);
     return {
       user: { id: `mock-user-${userIndex}`, email, displayName },
-      accessToken: `mock-access-token-${userIndex}`,
+      accessToken: this.nextAccessToken(),
+      refreshToken,
+      accessTokenExpiresAt: this.now() + MOCK_ACCESS_TOKEN_LIFETIME_MS,
     };
+  }
+
+  private nextAccessToken(): string {
+    this.issuedAccessTokens += 1;
+    return `mock-access-token-${this.issuedAccessTokens}`;
   }
 }

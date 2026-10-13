@@ -13,6 +13,12 @@ import type {
  */
 export interface AuthProvider {
   signIn(credentials: Credentials): Promise<Session>;
+  /**
+   * Exchanges the refresh token for a session with a new access token.
+   * Rejects with `session-expired` when the backend no longer accepts the
+   * refresh token (it expired or the session was signed out).
+   */
+  refreshSession(session: Session): Promise<Session>;
   signUp(registration: Registration): Promise<SignUpResult>;
   signOut(session: Session): Promise<void>;
   confirmSignUp(confirmation: SignUpConfirmation): Promise<void>;

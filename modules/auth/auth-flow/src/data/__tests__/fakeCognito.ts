@@ -24,6 +24,8 @@ const OK_STATUS = 200;
 const BAD_REQUEST_STATUS = 400;
 const TARGET_HEADER = 'X-Amz-Target';
 const MIN_PASSWORD_LENGTH = 8;
+const REFRESH_TOKEN_AUTH_FLOW = 'REFRESH_TOKEN_AUTH';
+const ACCESS_TOKEN_LIFETIME_SECONDS = 3600;
 
 const encodeSegment = (value: object) =>
   Buffer.from(JSON.stringify(value)).toString('base64url');
@@ -56,12 +58,17 @@ const CODE_DELIVERY = {
 /**
  * In-memory stand-in for the Cognito endpoint. It only reproduces behaviors
  * that are documented or that the backend verified against the real pool:
- * unknown emails never reveal themselves on sign in, resend and recovery.
- * Anything it does not know is a request the adapter should not send.
+ * unknown emails never reveal themselves on sign in, resend and recovery, a
+ * renewal returns no new refresh token, and signing out revokes the refresh
+ * tokens of the user. Anything it does not know is a request the adapter
+ * should not send.
  */
 export class FakeCognito {
   private readonly users = new Map<string, StoredUser>();
-  private readonly accessTokens = new Set<string>();
+  // Token -> id of the user it was issued to.
+  private readonly accessTokens = new Map<string, string>();
+  private readonly refreshTokens = new Map<string, string>();
+  private issuedTokens = 0;
 
   constructor(private readonly options: FakeCognitoOptions) {
     options.users.forEach((user, index) =>
@@ -87,7 +94,9 @@ export class FakeCognito {
   private handle(operation: string, body: Record<string, unknown>): Response {
     switch (operation) {
       case 'InitiateAuth':
-        return this.initiateAuth(body.AuthParameters as Record<string, string>);
+        return body.AuthFlow === REFRESH_TOKEN_AUTH_FLOW
+          ? this.renewSession(body.AuthParameters as Record<string, string>)
+          : this.initiateAuth(body.AuthParameters as Record<string, string>);
       case 'SignUp':
         return this.signUp(body);
       case 'ConfirmSignUp':
@@ -117,12 +126,33 @@ export class FakeCognito {
       return failure('UserNotConfirmedException');
     }
 
-    const accessToken = `fake-access-${user.id}-${this.accessTokens.size}`;
-    this.accessTokens.add(accessToken);
+    const refreshToken = `fake-refresh-${user.id}-${this.nextTokenNumber()}`;
+    this.refreshTokens.set(refreshToken, user.id);
     return json({
       AuthenticationResult: {
-        AccessToken: accessToken,
+        AccessToken: this.issueAccessToken(user),
         IdToken: buildIdToken(user),
+        ExpiresIn: ACCESS_TOKEN_LIFETIME_SECONDS,
+        RefreshToken: refreshToken,
+      },
+    });
+  }
+
+  // A renewal answers with new access and ID tokens but no refresh token.
+  private renewSession({
+    REFRESH_TOKEN: refreshToken,
+  }: Record<string, string>): Response {
+    const userId = this.refreshTokens.get(refreshToken);
+    const user = [...this.users.values()].find(({ id }) => id === userId);
+    if (!user) {
+      return failure('NotAuthorizedException');
+    }
+
+    return json({
+      AuthenticationResult: {
+        AccessToken: this.issueAccessToken(user),
+        IdToken: buildIdToken(user),
+        ExpiresIn: ACCESS_TOKEN_LIFETIME_SECONDS,
       },
     });
   }
@@ -184,12 +214,30 @@ export class FakeCognito {
     return json({});
   }
 
+  // Signing out invalidates every token of the user, refresh tokens included.
   private globalSignOut(body: Record<string, unknown>): Response {
-    const accessToken = String(body.AccessToken);
-    if (!this.accessTokens.delete(accessToken)) {
+    const userId = this.accessTokens.get(String(body.AccessToken));
+    if (!userId) {
       return failure('NotAuthorizedException');
     }
+
+    [this.accessTokens, this.refreshTokens].forEach((tokens) =>
+      tokens.forEach((owner, token) => {
+        if (owner === userId) tokens.delete(token);
+      })
+    );
     return json({});
+  }
+
+  private issueAccessToken({ id }: StoredUser): string {
+    const accessToken = `fake-access-${id}-${this.nextTokenNumber()}`;
+    this.accessTokens.set(accessToken, id);
+    return accessToken;
+  }
+
+  private nextTokenNumber(): number {
+    this.issuedTokens += 1;
+    return this.issuedTokens;
   }
 
   private checkCode(code: string): Response | null {

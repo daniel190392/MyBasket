@@ -1,5 +1,5 @@
 import type { AuthProvider } from '../domain/AuthProvider';
-import type { Credentials } from '../domain/types';
+import type { Credentials, Session } from '../domain/types';
 
 export type ContractSubject = {
   provider: AuthProvider;
@@ -29,6 +29,14 @@ const registration = {
   displayName: DISPLAY_NAME,
 };
 
+// Never issued by a backend: used where the call fails before the session matters.
+const unissuedSession: Session = {
+  user: { id: 'user-1', email: NEW_EMAIL, displayName: DISPLAY_NAME },
+  accessToken: 'unissued-access-token',
+  refreshToken: 'unissued-refresh-token',
+  accessTokenExpiresAt: 0,
+};
+
 /**
  * Behaviors every AuthProvider must honor, run against the mock and the real
  * adapter so the mock cannot drift from what the backend does.
@@ -49,6 +57,15 @@ export const describeAuthProviderContract = (
         expect(session.accessToken).toBeTruthy();
       });
 
+      it('returns a refresh token and an access token that is still valid', async () => {
+        const { provider, knownUser } = createSubject();
+
+        const session = await provider.signIn(knownUser);
+
+        expect(session.refreshToken).toBeTruthy();
+        expect(session.accessTokenExpiresAt).toBeGreaterThan(Date.now());
+      });
+
       it('rejects a wrong password with invalid-credentials', async () => {
         const { provider, knownUser } = createSubject();
 
@@ -66,6 +83,39 @@ export const describeAuthProviderContract = (
             password: knownUser.password,
           })
         ).rejects.toMatchObject({ code: 'invalid-credentials' });
+      });
+    });
+
+    describe('refreshSession', () => {
+      it('returns a new access token for the same user and keeps the refresh token', async () => {
+        const { provider, knownUser } = createSubject();
+        const session = await provider.signIn(knownUser);
+
+        const renewed = await provider.refreshSession(session);
+
+        expect(renewed.user).toEqual(session.user);
+        expect(renewed.accessToken).not.toBe(session.accessToken);
+        expect(renewed.refreshToken).toBe(session.refreshToken);
+        expect(renewed.accessTokenExpiresAt).toBeGreaterThan(Date.now());
+      });
+
+      it('rejects a refresh token the backend does not know with session-expired', async () => {
+        const { provider, knownUser } = createSubject();
+        const session = await provider.signIn(knownUser);
+
+        await expect(
+          provider.refreshSession({ ...session, refreshToken: 'invented' })
+        ).rejects.toMatchObject({ code: 'session-expired' });
+      });
+
+      it('rejects the refresh token once the session was signed out', async () => {
+        const { provider, knownUser } = createSubject();
+        const session = await provider.signIn(knownUser);
+        await provider.signOut(session);
+
+        await expect(provider.refreshSession(session)).rejects.toMatchObject({
+          code: 'session-expired',
+        });
       });
     });
 
@@ -274,6 +324,11 @@ export const describeAuthProviderContract = (
           'signIn',
           (subject: ContractSubject) =>
             subject.provider.signIn(subject.knownUser),
+        ],
+        [
+          'refreshSession',
+          (subject: ContractSubject) =>
+            subject.provider.refreshSession(unissuedSession),
         ],
         [
           'signUp',

@@ -13,6 +13,8 @@ const isSession = (value: unknown): value is Session => {
   const { user } = value;
   return (
     typeof value.accessToken === 'string' &&
+    typeof value.refreshToken === 'string' &&
+    typeof value.accessTokenExpiresAt === 'number' &&
     typeof user.id === 'string' &&
     typeof user.email === 'string' &&
     typeof user.displayName === 'string'
