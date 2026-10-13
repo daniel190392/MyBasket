@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppRegistry, View, StyleSheet, Text } from 'react-native';
 
-// import { PButton, PCard, PBadge, PInput, colors, spacing } from 'ui-components';
+import { AuthView } from './src/auth/AuthView';
 
 const MainUIModule = () => {
   return (
@@ -31,3 +31,4 @@ const styles = StyleSheet.create({
 });
 
 AppRegistry.registerComponent('UIComponentsView', () => MainUIModule);
+AppRegistry.registerComponent('AuthView', () => AuthView);

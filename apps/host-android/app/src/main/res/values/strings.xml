@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">AndroidHostApp</string>
+    <string name="open_auth">Abrir Autenticación</string>
+    <string name="auth_screen_label">Autenticación</string>
 </resources>

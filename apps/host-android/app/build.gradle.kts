@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,13 +7,25 @@ plugins {
     id("com.facebook.react")
 }
 
-// The plugin defaults assume node_modules next to the app; here it is hoisted to the monorepo root.
+// The plugin defaults assume the React Native project root is one level above the Android project and
+// node_modules sits next to it. Here the Android project is the root and node_modules is hoisted to the monorepo root.
 react {
+    root.set(rootDir)
     reactNativeDir.set(rootDir.resolve("../../node_modules/react-native"))
     codegenDir.set(rootDir.resolve("../../node_modules/@react-native/codegen"))
     cliFile.set(rootDir.resolve("../../node_modules/react-native/cli.js"))
+    hermesCommand.set(rootDir.resolve("../../node_modules/react-native/sdks/hermesc/%OS-BIN%/hermesc").path)
     autolinkLibrariesWithApp()
 }
+
+// Auth backend settings come from the git-ignored local.properties (see local.properties.example).
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+
+fun buildConfigString(propertyName: String): String =
+    "\"${localProperties.getProperty(propertyName, "")}\""
 
 android {
     namespace = "com.example.androidhostapp"
@@ -25,7 +39,10 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "AUTH_CLIENT_ID", buildConfigString("auth.clientId"))
+        buildConfigField("String", "AUTH_ENDPOINT", buildConfigString("auth.endpoint"))
+
+        testInstrumentationRunner ="androidx.test.runner.AndroidJUnitRunner"
         ndk {
             abiFilters.addAll(providers.gradleProperty("reactNativeArchitectures").get().split(","))
         }

@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/daniel190392/MyBasket#readme",
   "dependencies": {
-    "react": "19.1.4",
+    "react": "19.1.1",
     "react-native": "0.82.1"
   },
   "devDependencies": {

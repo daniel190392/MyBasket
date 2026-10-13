@@ -9,6 +9,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,12 +19,19 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Button(onClick = {
-                    // Apuntamos a RNModuleActivity
-                    val intent = Intent(this@MainActivity, RNModuleActivity::class.java)
-                    startActivity(intent)
-                }) {
-                    Text("Abrir Componente React Native")
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Button(onClick = {
+                        // Apuntamos a RNModuleActivity
+                        val intent = Intent(this@MainActivity, RNModuleActivity::class.java)
+                        startActivity(intent)
+                    }) {
+                        Text("Abrir Componente React Native")
+                    }
+                    Button(onClick = {
+                        startActivity(Intent(this@MainActivity, AuthActivity::class.java))
+                    }) {
+                        Text(stringResource(R.string.open_auth))
+                    }
                 }
             }
         }

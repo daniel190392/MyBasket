@@ -14,8 +14,8 @@
   },
   "type": "commonjs",
   "peerDependencies": {
-    "react": "*",
-    "react-native": "*",
+    "react": ">=19.1.0",
+    "react-native": ">=0.81.0",
     "ui-components": "^1.0.0"
   },
   "devDependencies": {
@@ -23,7 +23,7 @@
     "@types/jest": "^29.5.0",
     "@types/react": "^19.1.4",
     "jest": "^29.7.0",
-    "react": "19.1.4",
+    "react": "19.1.1",
     "react-native": "0.82.1",
     "react-native-builder-bob": "^0.43.0",
     "typescript": "^5.0.0",
