@@ -33,6 +33,12 @@
             android:label="React Native Module"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
+        <activity
+            android:name=".AuthActivity"
+            android:label="@string/auth_screen_label"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- Activity requerida para el menú de desarrollo de React Native (Shake para recargar, etc.) -->
         <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
     </application>

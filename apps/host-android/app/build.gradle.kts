@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -16,6 +18,15 @@ react {
     autolinkLibrariesWithApp()
 }
 
+// Auth backend settings come from the git-ignored local.properties (see local.properties.example).
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+
+fun buildConfigString(propertyName: String): String =
+    "\"${localProperties.getProperty(propertyName, "")}\""
+
 android {
     namespace = "com.example.androidhostapp"
     compileSdk = 36
@@ -28,7 +39,10 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "AUTH_CLIENT_ID", buildConfigString("auth.clientId"))
+        buildConfigField("String", "AUTH_ENDPOINT", buildConfigString("auth.endpoint"))
+
+        testInstrumentationRunner ="androidx.test.runner.AndroidJUnitRunner"
         ndk {
             abiFilters.addAll(providers.gradleProperty("reactNativeArchitectures").get().split(","))
         }
