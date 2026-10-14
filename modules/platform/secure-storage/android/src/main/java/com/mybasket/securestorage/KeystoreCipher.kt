@@ -5,6 +5,7 @@ import android.security.keystore.KeyProperties
 import android.util.Base64
 import java.security.GeneralSecurityException
 import java.security.KeyStore
+import java.security.ProviderException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -18,18 +19,19 @@ import javax.crypto.spec.GCMParameterSpec
  */
 internal class KeystoreCipher {
 
-    fun encrypt(plainText: String): String {
+    /** @throws GeneralSecurityException when the Keystore cannot encrypt, so callers handle a single failure type. */
+    fun encrypt(plainText: String): String = asSecurityFailure {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
         val encrypted = cipher.doFinal(plainText.toByteArray(Charsets.UTF_8))
-        return Base64.encodeToString(cipher.iv + encrypted, Base64.NO_WRAP)
+        Base64.encodeToString(cipher.iv + encrypted, Base64.NO_WRAP)
     }
 
     /**
      * @throws GeneralSecurityException for any value that cannot be decrypted, including one that is not
      * well formed, so callers handle a single failure type.
      */
-    fun decrypt(encoded: String): String {
+    fun decrypt(encoded: String): String = asSecurityFailure {
         val payload = decode(encoded)
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(
@@ -42,8 +44,17 @@ internal class KeystoreCipher {
             INITIALIZATION_VECTOR_SIZE_BYTES,
             payload.size - INITIALIZATION_VECTOR_SIZE_BYTES
         )
-        return String(decrypted, Charsets.UTF_8)
+        String(decrypted, Charsets.UTF_8)
     }
+
+    // The Keystore reports its own failures as an unchecked ProviderException, which would skip the callers'
+    // GeneralSecurityException handling and crash the app instead of rejecting the promise.
+    private inline fun <T> asSecurityFailure(block: () -> T): T =
+        try {
+            block()
+        } catch (error: ProviderException) {
+            throw GeneralSecurityException("The Android Keystore failed", error)
+        }
 
     private fun decode(encoded: String): ByteArray {
         val payload = try {
