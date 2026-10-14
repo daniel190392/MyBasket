@@ -31,7 +31,7 @@ modules/
   platform/              Device capabilities exposed to React Native (native code inside)
     secure-storage/      Encrypted key-value storage (Android Keystore, iOS Keychain later)
   feature/               Business features
-    feature-home-flutter/  Flutter module for Home (empty for now)
+    feature-home/        Home feature in React Native: product list, favorites, add product (own navigation)
 metro.config.js        Monorepo Metro config (projectRoot = apps/host-android)
 ```
 
@@ -64,6 +64,14 @@ React Native TurboModule with native code inside (`android/` in Kotlin; `ios/` w
 - `auth-flow` does not import it: it declares a `KeyValueStore` port, and the host passes `secureStorage` to `new SecureSessionStorage(...)`.
 - Build: `npm run build` inside the module.
 
+### `modules/feature/feature-home`
+
+Home feature in React Native + TypeScript, built with `react-native-builder-bob` like the other modules. The app is a brownfield migration, so a feature is one embeddable entry point for the native host: `HomeNavigator` owns its internal navigation (React Navigation, `native-stack` + `bottom-tabs`, in its own `NavigationContainer` inside a `NavigationIndependentTree`) and the host does not know the routes. Screens (products, favorites, add product) are placeholders for now and will follow the designs. The native dependencies of navigation are peer dependencies that the host installs.
+
+- `example/` is an Expo showcase that renders `HomeNavigator` without the host.
+- Architecture rule: `.claude/rules/feature-module-architecture.md`.
+- Build: `npm run build` inside the module.
+
 ### `apps/host-android`
 
 Native Android app that loads React Native. It has a single activity, `MainActivity`, which is the launcher and hosts the `AppRoot` component registered in `index.js`. `AppRoot` builds the `AuthService` and decides what to show from `useAuth().status`: a spinner while restoring, the auth flow when signed out, and the home (a placeholder until the home module exists) when signed in. Native code does not know the session state; if it ever needs to (Flutter, push notifications), the root would report `status` through a host-owned native module. The host consumes `ui-components`, `auth-flow` and `secure-storage` (dependency `^1.0.0`, linked by the npm workspace). Metro is started with `npm start` in that folder.
@@ -75,7 +83,6 @@ The host applies the React Native Gradle plugin, so `react-android` and `hermes-
 - React 19.1 + React Native 0.82 across the root, the host and the modules (`upgrade-react-native` skill to bump them). The Expo example apps pin their own, older versions and set the minimum the `peerDependencies` declare.
 - TypeScript
 - Android: Gradle (Kotlin DSL)
-- Flutter planned for `feature-home-flutter`
 
 ## Conventions
 
