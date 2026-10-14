@@ -18,21 +18,20 @@ Read the rules that apply before reviewing, and do not duplicate them in your an
 
 - `.claude/rules/kotlin-android.md`
 - `.claude/rules/clean-code.md`
-- `.claude/rules/security.md`
 
 ## What to look for
 
 - Lifecycle and component correctness: activities, intents, launch modes, manifest `exported` flags, intent filters, back stack, configuration changes.
 - Interop between native code and React Native: `ReactActivity` delegates, launch options, host/`ReactHost` setup, lifecycle of the React instance.
 - Threading: nothing blocking the main thread; coroutines with structured concurrency.
-- Security and privacy: exported components, backup rules, cleartext traffic, secrets in code or Gradle files.
-- Gradle: Kotlin DSL, centralized versions, no hardcoded secrets.
+- Gradle: Kotlin DSL, centralized versions.
 - Idiomatic Kotlin: null safety, immutability, visibility, resources instead of hardcoded strings, dimensions and colors.
 
 ## Constraints
 
 - Do not suggest adding a library (navigation, DI, state) without saying it needs the user's approval first, and present the no-library option alongside it.
 - Stay inside the change you were asked about. Do not propose unrelated refactors.
+- Security is out of your scope: if you notice something suspicious, mention it in one line and point to the `security-reviewer` agent instead of analysing it.
 - Verify before claiming: read the actual files instead of assuming what they contain, and say when something is a guess.
 
 ## How to answer
