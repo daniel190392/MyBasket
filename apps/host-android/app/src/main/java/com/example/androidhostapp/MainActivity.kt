@@ -1,39 +1,31 @@
 package com.example.androidhostapp
 
-import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import com.facebook.react.ReactActivity
+import com.facebook.react.ReactActivityDelegate
+import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint
+import com.facebook.react.defaults.DefaultReactActivityDelegate
 
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Button(onClick = {
-                        // Apuntamos a RNModuleActivity
-                        val intent = Intent(this@MainActivity, RNModuleActivity::class.java)
-                        startActivity(intent)
-                    }) {
-                        Text("Abrir Componente React Native")
-                    }
-                    Button(onClick = {
-                        startActivity(Intent(this@MainActivity, AuthActivity::class.java))
-                    }) {
-                        Text(stringResource(R.string.open_auth))
-                    }
-                }
+// The only activity of the app: it hosts the React Native root, which decides what to show from the session state.
+class MainActivity : ReactActivity() {
+
+    override fun getMainComponentName(): String = "AppRoot"
+
+    // The host owns the backend settings; the root only receives them as initial props.
+    override fun createReactActivityDelegate(): ReactActivityDelegate =
+        object : DefaultReactActivityDelegate(
+            this,
+            mainComponentName!!,
+            DefaultNewArchitectureEntryPoint.fabricEnabled
+        ) {
+            override fun getLaunchOptions(): Bundle = Bundle().apply {
+                putString(AUTH_CLIENT_ID_PROP, BuildConfig.AUTH_CLIENT_ID)
+                putString(AUTH_ENDPOINT_PROP, BuildConfig.AUTH_ENDPOINT)
             }
         }
+
+    private companion object {
+        const val AUTH_CLIENT_ID_PROP = "clientId"
+        const val AUTH_ENDPOINT_PROP = "endpoint"
     }
 }
