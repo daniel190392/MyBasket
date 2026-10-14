@@ -25,6 +25,15 @@ extensions.configure<com.facebook.react.ReactSettingsExtension> {
         lockFiles = layout.rootDirectory.files("../../package-lock.json", "package.json", "react-native.config.js")
     )
 }
+// React Native libraries (react-native-screens, ...) read their SDK levels from the root project and fall back
+// to older defaults of their own when these are missing, which breaks against React Native's native libraries.
+// The app reads the same values. They are set here, not in the root build file, because the React Native root
+// plugin evaluates :app before that file runs.
+gradle.rootProject {
+    extra["compileSdkVersion"] = 36
+    extra["targetSdkVersion"] = 36
+    extra["minSdkVersion"] = 24
+}
 dependencyResolutionManagement {
     // The React Native plugin declares project repositories of its own, which FAIL_ON_PROJECT_REPOS would reject.
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)

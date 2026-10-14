@@ -57,7 +57,7 @@ A typed TypeScript contract feeds React Native codegen, which generates the nati
 Theme tokens (colors, spacing, typography, borders, shadows) and `P`-prefixed components (`PButton`, `PCard`, `PBadge`, `PInput`, `PLink`), built with `react-native-builder-bob` for ESM and CommonJS with generated types, and documented by an Expo showcase app.
 
 **`host-android`: native host, single React Native root.**
-One launcher activity hosts the React Native root, which decides what to show from the session status (restoring, signed out, signed in). Native code does not know about the session state, so the same boundary can later serve Flutter or push notifications.
+The native host owns navigation: `AuthActivity` shows the React Native login and, when the session opens, the coordinator moves to `HomeActivity`, which shows `feature-home`. The React Native roots report `signedIn` and `signedOut` to native through a host-owned TurboModule; a native profile screen can be added later as another destination.
 
 ## Tech stack
 

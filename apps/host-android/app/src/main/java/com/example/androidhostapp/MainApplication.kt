@@ -17,7 +17,8 @@ class MainApplication : Application(), ReactApplication {
     override val reactNativeHost: ReactNativeHost =
         object : DefaultReactNativeHost(this@MainApplication) {
 
-            override fun getPackages(): List<ReactPackage> = PackageList(this).packages
+            // Autolinking registers the libraries; the module the host owns is added by hand.
+            override fun getPackages(): List<ReactPackage> = PackageList(this).packages + HostEventsPackage()
 
             override fun getJSMainModuleName(): String = "index"
 

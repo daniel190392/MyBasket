@@ -20,7 +20,7 @@
     "react": ">=19.1.0",
     "react-native": ">=0.81.0",
     "react-native-safe-area-context": ">=5.0.0",
-    "react-native-screens": ">=4.0.0",
+    "react-native-screens": ">=4.19.0",
     "ui-components": "^1.0.0"
   },
   "devDependencies": {
@@ -35,7 +35,7 @@
     "react-native": "0.82.1",
     "react-native-builder-bob": "^0.43.0",
     "react-native-safe-area-context": "^5.10.1",
-    "react-native-screens": "^4.30.0",
+    "react-native-screens": "~4.25.2",
     "typescript": "^5.0.0",
     "ui-components": "^1.0.0"
   },

@@ -74,13 +74,14 @@ Home feature in React Native + TypeScript, built with `react-native-builder-bob`
 
 ### `apps/host-android`
 
-Native Android app that loads React Native. It has a single activity, `MainActivity`, which is the launcher and hosts the `AppRoot` component registered in `index.js`. `AppRoot` builds the `AuthService` and decides what to show from `useAuth().status`: a spinner while restoring, the auth flow when signed out, and the home (a placeholder until the home module exists) when signed in. Native code does not know the session state; if it ever needs to (Flutter, push notifications), the root would report `status` through a host-owned native module. The host consumes `ui-components`, `auth-flow` and `secure-storage` (dependency `^1.0.0`, linked by the npm workspace). Metro is started with `npm start` in that folder.
+Native Android app organized as a brownfield host: native destinations that each show one React Native root, registered by name in `index.js`. `AuthActivity` is the launcher and shows `AuthRoot` (the auth flow, which restores the session first). When the session is open it reports `signedIn` and the `NavigationCoordinator` starts `HomeActivity`, which shows `HomeRoot` (`feature-home`), and finishes the previous activity, so back from the home leaves the app. `HomeRoot` reports `signedOut` when the session ends and the coordinator returns to the login. Roots report to native through `HostEvents`, a TurboModule the host owns (`report(event)`; the events are defined in `HostEvent.kt` and `src/native/hostEvents.ts` and must change together). Every root is a separate React tree, so they share one `AuthService` instance built in `src/auth/sharedAuthService.ts`. `HomeRoot` shows a temporary sign-out bar until the native profile screen exists. The host consumes `ui-components`, `auth-flow`, `secure-storage` and `feature-home` (dependency `^1.0.0`, linked by the npm workspace). Metro is started with `npm start` in that folder.
 
 The host applies the React Native Gradle plugin, so `react-android` and `hermes-android` take their version from `package.json`, and it runs on the New Architecture. The plugin needs a JDK 17 installed (for example in `~/.jdks`); the toolchain is Gradle 9.0.0 and AGP 8.12.0.
 
 ## Stack
 
 - React 19.1 + React Native 0.82 across the root, the host and the modules (`upgrade-react-native` skill to bump them). The Expo example apps pin their own, older versions and set the minimum the `peerDependencies` declare.
+- `react-native-screens` is pinned to 4.25.x by `overrides` in the root `package.json`: 4.26+ needs React Native 0.84.
 - TypeScript
 - Android: Gradle (Kotlin DSL)
 
