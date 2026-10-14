@@ -71,6 +71,18 @@ const buildProvider = (fetchImplementation: jest.Mock) =>
     now: () => NOW_MS,
   });
 
+describe('RemoteAuthProvider', () => {
+  it('rejects an endpoint that is not https', () => {
+    expect(
+      () =>
+        new RemoteAuthProvider({
+          ...OPTIONS,
+          endpoint: 'http://auth.mybasket.test/',
+        })
+    ).toThrow('https');
+  });
+});
+
 describe('RemoteAuthProvider.signIn', () => {
   it('sends a USER_PASSWORD_AUTH request to the backend', async () => {
     const fetchMock = successFetch({ sub: USER_ID, email: CREDENTIALS.email });
