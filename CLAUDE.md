@@ -66,7 +66,7 @@ React Native TurboModule with native code inside (`android/` in Kotlin; `ios/` w
 
 ### `apps/host-android`
 
-Native Android app that loads React Native. `index.js` registers the `UIComponentsView` component, which consumes `ui-components` (dependency `^1.0.0`, linked by the npm workspace). Metro is started with `npm start` in that folder.
+Native Android app that loads React Native. It has a single activity, `MainActivity`, which is the launcher and hosts the `AppRoot` component registered in `index.js`. `AppRoot` builds the `AuthService` and decides what to show from `useAuth().status`: a spinner while restoring, the auth flow when signed out, and the home (a placeholder until the home module exists) when signed in. Native code does not know the session state; if it ever needs to (Flutter, push notifications), the root would report `status` through a host-owned native module. The host consumes `ui-components`, `auth-flow` and `secure-storage` (dependency `^1.0.0`, linked by the npm workspace). Metro is started with `npm start` in that folder.
 
 The host applies the React Native Gradle plugin, so `react-android` and `hermes-android` take their version from `package.json`, and it runs on the New Architecture. The plugin needs a JDK 17 installed (for example in `~/.jdks`); the toolchain is Gradle 9.0.0 and AGP 8.12.0.
 
