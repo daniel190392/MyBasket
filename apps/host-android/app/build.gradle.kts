@@ -29,13 +29,13 @@ fun buildConfigString(propertyName: String): String =
 
 android {
     namespace = "com.example.androidhostapp"
-    compileSdk = 36
+    compileSdk = rootProject.extra["compileSdkVersion"] as Int
     ndkVersion = "27.1.12297006"
 
     defaultConfig {
         applicationId = "com.example.androidhostapp"
-        minSdk = 24
-        targetSdk = 36
+        minSdk = rootProject.extra["minSdkVersion"] as Int
+        targetSdk = rootProject.extra["targetSdkVersion"] as Int
         versionCode = 1
         versionName = "1.0"
 
