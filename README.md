@@ -21,11 +21,11 @@ MyBasket is a **personal engineering project** built to explore how a mobile pro
 - **Iteration 1** (in progress): product inventory with expiration date tracking, behind an authentication flow.
 - **Iteration 2** (planned): a kitchen feature that suggests dishes to cook with the available products, prioritizing those closest to expiring.
 
-Today the app implements the full authentication journey (sign in, sign up with email confirmation, password recovery and reset), session persistence and renewal, and the native host that wires everything together.
+Today the app implements the full authentication journey (sign in, sign up with email confirmation, password recovery and reset), session persistence and renewal, and the native host that opens the login and, once signed in, the home feature (its navigation is in place; its screens are still placeholders).
 
 ## Architecture
 
-The repository is an npm-workspaces monorepo. React Native screens and components are built as **reusable modules** that a **native host app** embeds. This mirrors how large companies add React Native to an existing native app, rather than building a pure React Native app.
+The repository is an npm-workspaces monorepo. React Native screens and components are built as **reusable modules** that a **native host app** embeds. This is a **brownfield** setup: the native host owns the app and its navigation between screens, and React Native features are embedded one at a time, as happens when a company migrates an existing native app gradually instead of building a pure React Native app.
 
 ```
 apps/
@@ -40,7 +40,7 @@ modules/
   platform/
     secure-storage/      TurboModule: encrypted key-value storage (Kotlin native code)
   feature/
-    feature-home/        Home feature: product list, favorites, add product (planned)
+    feature-home/        Home feature: tabs and add product with its own navigation (screens are placeholders)
 ```
 
 Each folder under `modules/` is a **family** that is meant to become its own repository later, and so is each host. To keep that split cheap, packages depend on each other **by name and semver range** (never `file:` or relative paths across families), and nothing imports across families through relative paths.
@@ -56,17 +56,21 @@ A typed TypeScript contract feeds React Native codegen, which generates the nati
 **`ui-components`: a design system as a library.**
 Theme tokens (colors, spacing, typography, borders, shadows) and `P`-prefixed components (`PButton`, `PCard`, `PBadge`, `PInput`, `PLink`), built with `react-native-builder-bob` for ESM and CommonJS with generated types, and documented by an Expo showcase app.
 
-**`host-android`: native host, single React Native root.**
-The native host owns navigation: `AuthActivity` shows the React Native login and, when the session opens, the coordinator moves to `HomeActivity`, which shows `feature-home`. The React Native roots report `signedIn` and `signedOut` to native through a host-owned TurboModule; a native profile screen can be added later as another destination.
+**`feature-home`: an embeddable feature with its own navigation.**
+One entry point (`HomeNavigator`) that owns a stack with tabs in its own React Navigation container, so the host does not know its routes. It does not depend on `auth-flow` or on other features; initial data comes in as props and leaving the feature is an event. The architecture rule behind it records the references it is based on (React Native brownfield guidance, React Navigation docs and real feature-based apps) and the gaps no reference covered.
+
+**`host-android`: a native host that opens React Native features.**
+The native host owns navigation: `AuthActivity` shows the React Native login and, when the session opens, the coordinator moves to `HomeActivity`, which shows `feature-home`. Each destination is its own React Native root, registered by name, and they share one `AuthService` instance. The roots report `signedIn` and `signedOut` to native through a host-owned TurboModule; a native profile screen can be added later as another destination.
 
 ## Tech stack
 
 - **TypeScript**, **React 19**, **React Native 0.82** (New Architecture, Hermes)
 - **Kotlin**, Gradle (Kotlin DSL), Android Gradle Plugin 8.12, JDK 17
 - **Jest** for unit and contract tests, **Expo** for the component showcase apps
+- **React Navigation** (`native-stack`, `bottom-tabs`) for the navigation inside a feature
 - **react-native-builder-bob** to build the libraries, **Metro** configured for the monorepo
 - **Android Keystore** for encryption at rest
-- Planned: Swift/iOS host, Flutter module
+- Planned: Swift/iOS host
 
 ## Engineering practices
 
@@ -81,7 +85,7 @@ The native host owns navigation: `AuthActivity` shows the React Native login and
 AI is treated as a team member that has to follow the project's engineering standards, not as an autocomplete. The setup is versioned in `.claude/`, so anyone cloning the repository gets the same behavior.
 
 - **Project instructions** (`CLAUDE.md`): the product, the structure, the stack and the conventions the assistant must respect.
-- **Architecture and quality rules** (`.claude/rules/`): clean code, auth-module architecture, design-system architecture, Kotlin/Android, React Native/TypeScript, Swift/iOS, security and git. Rules are scoped to the paths they apply to, so each one only loads when relevant.
+- **Architecture and quality rules** (`.claude/rules/`): clean code, auth-module architecture, feature-module architecture, design-system architecture, Kotlin/Android, React Native/TypeScript, Swift/iOS, security and git. Rules are scoped to the paths they apply to, so each one only loads when relevant.
 - **Reusable skills** (`.claude/skills/`): repeatable workflows packaged as instructions.
   - `create-auth-module` scaffolds a new auth module that follows the architecture.
   - `create-design-system-module` scaffolds a new UI library.
@@ -114,7 +118,8 @@ Copy `apps/host-android/local.properties.example` to `local.properties` and adju
 
 ## Roadmap
 
-- Inventory module: products and expiration dates.
+- Home feature screens and the product domain (products and expiration dates), built from the designs.
+- Native profile screen as a third destination; signing out moves there and replaces the temporary bar in the home.
 - Shared API client that attaches the token and retries on 401, wired to `auth-flow` by the host.
 - iOS host with Keychain-backed secure storage.
 - Kitchen feature that suggests dishes from the products closest to expiring.
