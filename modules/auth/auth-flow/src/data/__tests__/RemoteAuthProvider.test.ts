@@ -81,6 +81,16 @@ describe('RemoteAuthProvider', () => {
         })
     ).toThrow('https');
   });
+
+  it('accepts an https scheme written in uppercase', () => {
+    expect(
+      () =>
+        new RemoteAuthProvider({
+          ...OPTIONS,
+          endpoint: 'HTTPS://auth.mybasket.test/',
+        })
+    ).not.toThrow();
+  });
 });
 
 describe('RemoteAuthProvider.signIn', () => {
