@@ -50,6 +50,7 @@ export const registerStrings = {
   logoLabel: 'PantryHub',
   fieldErrors: {
     ...loginStrings.fieldErrors,
+    'weak-password': submitErrors['weak-password'],
     'passwords-mismatch': 'Las contraseñas no coinciden',
   } satisfies Record<RegistrationFieldError, string>,
   submitErrors,

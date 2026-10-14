@@ -51,6 +51,7 @@ const MILLISECONDS_PER_SECOND = 1000;
 const JWT_PAYLOAD_PART_INDEX = 1;
 
 const NAME_ATTRIBUTE = 'name';
+const HTTPS_PATTERN = /^https:\/\//i;
 
 const ERROR_CODES = new Map<string, AuthErrorCode>([
   ['NotAuthorizedException', 'invalid-credentials'],
@@ -108,6 +109,11 @@ export class RemoteAuthProvider implements AuthProvider {
   private readonly now: () => number;
 
   constructor(private readonly options: RemoteAuthProviderOptions) {
+    // Credentials and tokens travel in these requests, so a plain http
+    // endpoint must fail at startup instead of leaking them on the network.
+    if (!HTTPS_PATTERN.test(options.endpoint)) {
+      throw new Error('RemoteAuthProvider requires an https endpoint');
+    }
     this.fetchImplementation = options.fetchImplementation ?? fetch;
     this.now = options.now ?? Date.now;
   }

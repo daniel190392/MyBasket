@@ -3,3 +3,12 @@ apps/host-android/.idea/
 
 # Personal study notes and diagrams, not shared
 docs/diagrams-local/
+
+# Credentials and signing material must never be versioned (see .claude/rules/security.md)
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+google-services.json
+GoogleService-Info.plist

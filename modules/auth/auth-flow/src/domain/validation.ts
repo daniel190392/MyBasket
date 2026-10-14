@@ -36,7 +36,7 @@ export const validateCredentials = ({
 export type RegistrationInput = Registration & { confirmPassword: string };
 
 export type RegistrationFieldError =
-  CredentialsFieldError | 'passwords-mismatch';
+  CredentialsFieldError | 'weak-password' | 'passwords-mismatch';
 
 export type RegistrationFieldErrors = Partial<
   Record<keyof RegistrationInput, RegistrationFieldError>
@@ -52,6 +52,10 @@ export const validateRegistration = ({
     email,
     password,
   });
+
+  if (password && !isStrongPassword(password)) {
+    errors.password = 'weak-password';
+  }
 
   if (!confirmPassword) {
     errors.confirmPassword = 'required';
