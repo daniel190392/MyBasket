@@ -42,8 +42,8 @@ describe('validateCredentials', () => {
 describe('validateRegistration', () => {
   const validRegistration = {
     email: 'user@example.com',
-    password: 'secret',
-    confirmPassword: 'secret',
+    password: 'Secret123',
+    confirmPassword: 'Secret123',
     displayName: 'Ada',
   };
 
@@ -71,6 +71,16 @@ describe('validateRegistration', () => {
     expect(
       validateRegistration({ ...validRegistration, email: 'not-an-email' })
     ).toEqual({ email: 'invalid-email' });
+  });
+
+  it('rejects a password that does not meet the policy', () => {
+    expect(
+      validateRegistration({
+        ...validRegistration,
+        password: 'secret',
+        confirmPassword: 'secret',
+      })
+    ).toEqual({ password: 'weak-password' });
   });
 
   it('rejects a confirmation that differs from the password', () => {
