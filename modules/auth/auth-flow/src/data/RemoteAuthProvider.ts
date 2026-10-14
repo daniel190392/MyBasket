@@ -15,11 +15,17 @@ export type RemoteAuthProviderOptions = {
   clientId: string;
   endpoint: string;
   fetchImplementation?: typeof fetch;
+  /** Clock used to compute when an access token expires. */
+  now?: () => number;
 };
 
 type CognitoAuthenticationResult = {
   AccessToken: string;
   IdToken: string;
+  /** Lifetime of the access token, in seconds. */
+  ExpiresIn: number;
+  /** Absent when the result comes from a token renewal. */
+  RefreshToken?: string;
 };
 
 type CognitoResponseBody = {
@@ -40,6 +46,8 @@ declare const atob: (encoded: string) => string;
 const AMZ_JSON_CONTENT_TYPE = 'application/x-amz-json-1.1';
 const TARGET_PREFIX = 'AWSCognitoIdentityProviderService';
 const USER_PASSWORD_AUTH_FLOW = 'USER_PASSWORD_AUTH';
+const REFRESH_TOKEN_AUTH_FLOW = 'REFRESH_TOKEN_AUTH';
+const MILLISECONDS_PER_SECOND = 1000;
 const JWT_PAYLOAD_PART_INDEX = 1;
 
 const NAME_ATTRIBUTE = 'name';
@@ -78,10 +86,11 @@ const readIdTokenClaims = (idToken: string): IdTokenClaims => {
   return JSON.parse(decodeBase64Url(payload)) as IdTokenClaims;
 };
 
-const toSession = ({
-  AccessToken,
-  IdToken,
-}: CognitoAuthenticationResult): Session => {
+const toSession = (
+  { AccessToken, IdToken, ExpiresIn }: CognitoAuthenticationResult,
+  refreshToken: string,
+  now: number
+): Session => {
   const { sub, email, name } = readIdTokenClaims(IdToken);
   if (!sub || !email) {
     throw new AuthError('unknown', 'ID token without required claims');
@@ -89,14 +98,18 @@ const toSession = ({
   return {
     user: { id: sub, email, displayName: name ?? email },
     accessToken: AccessToken,
+    refreshToken,
+    accessTokenExpiresAt: now + ExpiresIn * MILLISECONDS_PER_SECOND,
   };
 };
 
 export class RemoteAuthProvider implements AuthProvider {
   private readonly fetchImplementation: typeof fetch;
+  private readonly now: () => number;
 
   constructor(private readonly options: RemoteAuthProviderOptions) {
     this.fetchImplementation = options.fetchImplementation ?? fetch;
+    this.now = options.now ?? Date.now;
   }
 
   async signIn({ email, password }: Credentials): Promise<Session> {
@@ -110,7 +123,37 @@ export class RemoteAuthProvider implements AuthProvider {
       // A challenge (MFA, new password) is not supported by this client.
       throw new AuthError('unknown', 'Unsupported authentication challenge');
     }
-    return toSession(AuthenticationResult);
+    const { RefreshToken } = AuthenticationResult;
+    if (!RefreshToken) {
+      throw new AuthError(
+        'unknown',
+        'Authentication result without refresh token'
+      );
+    }
+    return toSession(AuthenticationResult, RefreshToken, this.now());
+  }
+
+  async refreshSession(session: Session): Promise<Session> {
+    try {
+      const { AuthenticationResult } = await this.call('InitiateAuth', {
+        ClientId: this.options.clientId,
+        AuthFlow: REFRESH_TOKEN_AUTH_FLOW,
+        AuthParameters: { REFRESH_TOKEN: session.refreshToken },
+      });
+
+      if (!AuthenticationResult) {
+        throw new AuthError('unknown', 'Renewal without authentication result');
+      }
+      // A renewal does not issue a new refresh token, so the current one stays.
+      return toSession(AuthenticationResult, session.refreshToken, this.now());
+    } catch (error) {
+      // The backend answers a refresh token it no longer accepts the same way
+      // as wrong credentials; for a renewal that means the session is over.
+      if (isAuthError(error) && error.code === 'invalid-credentials') {
+        throw new AuthError('session-expired');
+      }
+      throw error;
+    }
   }
 
   async signUp({

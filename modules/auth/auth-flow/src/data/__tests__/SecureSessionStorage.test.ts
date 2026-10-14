@@ -8,6 +8,8 @@ const SESSION_KEY = 'auth.session';
 const session: Session = {
   user: { id: 'user-1', email: 'ana@example.com', displayName: 'Ana' },
   accessToken: 'access-token',
+  refreshToken: 'refresh-token',
+  accessTokenExpiresAt: 1_000_000,
 };
 
 class FakeKeyValueStore implements KeyValueStore {
@@ -67,6 +69,13 @@ describe('SecureSessionStorage', () => {
 
   it('rejects a stored value that is not a session', async () => {
     store.entries.set(SESSION_KEY, JSON.stringify({ accessToken: 'token' }));
+
+    await expect(storage.load()).rejects.toThrow('malformed');
+  });
+
+  it('rejects a session saved before the refresh token was kept', async () => {
+    const legacySession = { user: session.user, accessToken: 'access-token' };
+    store.entries.set(SESSION_KEY, JSON.stringify(legacySession));
 
     await expect(storage.load()).rejects.toThrow('malformed');
   });

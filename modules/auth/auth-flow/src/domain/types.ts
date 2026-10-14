@@ -18,6 +18,10 @@ export type AuthUser = {
 export type Session = {
   user: AuthUser;
   accessToken: string;
+  /** Long-lived credential used only to obtain a new access token. */
+  refreshToken: string;
+  /** Instant the access token stops being valid, in milliseconds since the epoch. */
+  accessTokenExpiresAt: number;
 };
 
 export type SignUpConfirmation = {

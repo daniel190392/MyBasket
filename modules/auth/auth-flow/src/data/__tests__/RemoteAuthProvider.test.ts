@@ -16,6 +16,11 @@ const OPTIONS = {
 };
 const CREDENTIALS = { email: 'user@mybasket.test', password: 'fake-password' };
 const FAKE_ACCESS_TOKEN = 'fake-access';
+const FAKE_REFRESH_TOKEN = 'fake-refresh';
+const RENEWED_ACCESS_TOKEN = 'renewed-access';
+const EXPIRES_IN_SECONDS = 3600;
+const NOW_MS = 1_700_000_000_000;
+const EXPECTED_EXPIRES_AT = NOW_MS + EXPIRES_IN_SECONDS * 1000;
 const USER_ID = 'id-1';
 const DISPLAY_NAME = 'Núñez Ñandú';
 const OK_STATUS = 200;
@@ -36,6 +41,20 @@ const successFetch = (claims: object) =>
       AuthenticationResult: {
         AccessToken: FAKE_ACCESS_TOKEN,
         IdToken: buildIdToken(claims),
+        ExpiresIn: EXPIRES_IN_SECONDS,
+        RefreshToken: FAKE_REFRESH_TOKEN,
+      },
+    })
+  );
+
+// A renewal answers without a refresh token.
+const renewalFetch = (claims: object) =>
+  jest.fn().mockReturnValue(
+    jsonResponse({
+      AuthenticationResult: {
+        AccessToken: RENEWED_ACCESS_TOKEN,
+        IdToken: buildIdToken(claims),
+        ExpiresIn: EXPIRES_IN_SECONDS,
       },
     })
   );
@@ -46,7 +65,11 @@ const errorFetch = (errorType: string) =>
     .mockReturnValue(jsonResponse({ __type: errorType }, BAD_REQUEST_STATUS));
 
 const buildProvider = (fetchImplementation: jest.Mock) =>
-  new RemoteAuthProvider({ ...OPTIONS, fetchImplementation });
+  new RemoteAuthProvider({
+    ...OPTIONS,
+    fetchImplementation,
+    now: () => NOW_MS,
+  });
 
 describe('RemoteAuthProvider.signIn', () => {
   it('sends a USER_PASSWORD_AUTH request to the backend', async () => {
@@ -85,7 +108,81 @@ describe('RemoteAuthProvider.signIn', () => {
         displayName: DISPLAY_NAME,
       },
       accessToken: FAKE_ACCESS_TOKEN,
+      refreshToken: FAKE_REFRESH_TOKEN,
+      accessTokenExpiresAt: EXPECTED_EXPIRES_AT,
     });
+  });
+
+  it('fails when the backend does not return a refresh token', async () => {
+    const fetchMock = renewalFetch({
+      sub: USER_ID,
+      email: CREDENTIALS.email,
+    });
+
+    const error = await buildProvider(fetchMock)
+      .signIn(CREDENTIALS)
+      .catch((caught) => caught);
+
+    expect(isAuthError(error) && error.code).toBe('unknown');
+  });
+});
+
+describe('RemoteAuthProvider.refreshSession', () => {
+  const session = {
+    user: { id: USER_ID, email: CREDENTIALS.email, displayName: DISPLAY_NAME },
+    accessToken: FAKE_ACCESS_TOKEN,
+    refreshToken: FAKE_REFRESH_TOKEN,
+    accessTokenExpiresAt: 0,
+  };
+  const claims = {
+    sub: USER_ID,
+    email: CREDENTIALS.email,
+    name: DISPLAY_NAME,
+  };
+
+  it('sends a REFRESH_TOKEN_AUTH request with the refresh token', async () => {
+    const fetchMock = renewalFetch(claims);
+
+    await buildProvider(fetchMock).refreshSession(session);
+
+    const [, init] = fetchMock.mock.calls[0];
+    expect(init.headers['X-Amz-Target']).toBe(
+      'AWSCognitoIdentityProviderService.InitiateAuth'
+    );
+    expect(JSON.parse(init.body)).toEqual({
+      ClientId: OPTIONS.clientId,
+      AuthFlow: 'REFRESH_TOKEN_AUTH',
+      AuthParameters: { REFRESH_TOKEN: FAKE_REFRESH_TOKEN },
+    });
+  });
+
+  it('returns a new access token and keeps the refresh token', async () => {
+    const renewed = await buildProvider(renewalFetch(claims)).refreshSession(
+      session
+    );
+
+    expect(renewed).toEqual({
+      user: session.user,
+      accessToken: RENEWED_ACCESS_TOKEN,
+      refreshToken: FAKE_REFRESH_TOKEN,
+      accessTokenExpiresAt: EXPECTED_EXPIRES_AT,
+    });
+  });
+
+  it('reports a refresh token the backend rejects as session-expired', async () => {
+    const error = await buildProvider(errorFetch('NotAuthorizedException'))
+      .refreshSession(session)
+      .catch((caught) => caught);
+
+    expect(isAuthError(error) && error.code).toBe('session-expired');
+  });
+
+  it('does not report another failure as session-expired', async () => {
+    const error = await buildProvider(errorFetch('LimitExceededException'))
+      .refreshSession(session)
+      .catch((caught) => caught);
+
+    expect(isAuthError(error) && error.code).toBe('too-many-requests');
   });
 });
 
@@ -120,6 +217,8 @@ describe('RemoteAuthProvider.signUp', () => {
           AuthenticationResult: {
             AccessToken: FAKE_ACCESS_TOKEN,
             IdToken: buildIdToken({ sub: USER_ID, email: CREDENTIALS.email }),
+            ExpiresIn: EXPIRES_IN_SECONDS,
+            RefreshToken: FAKE_REFRESH_TOKEN,
           },
         })
       );
@@ -154,6 +253,8 @@ describe('RemoteAuthProvider.signOut', () => {
   const session = {
     user: { id: USER_ID, email: CREDENTIALS.email, displayName: DISPLAY_NAME },
     accessToken: FAKE_ACCESS_TOKEN,
+    refreshToken: FAKE_REFRESH_TOKEN,
+    accessTokenExpiresAt: EXPECTED_EXPIRES_AT,
   };
 
   it('revokes the session in the backend with the access token', async () => {

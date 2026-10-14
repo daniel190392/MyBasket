@@ -5,6 +5,7 @@ import {
   MockAuthProvider,
 } from '../../testing/MockAuthProvider';
 import { AuthError } from '../../domain/errors';
+import { RENEWAL_MARGIN_MS } from '../../domain/sessionExpiry';
 import { AuthService } from '../AuthService';
 
 import type { AuthProvider } from '../../domain/AuthProvider';
@@ -62,6 +63,7 @@ describe('AuthService', () => {
   it('does not persist anything when the sign up needs confirmation', async () => {
     const provider: AuthProvider = {
       signIn: jest.fn(),
+      refreshSession: jest.fn(),
       signUp: jest.fn().mockResolvedValue({
         status: 'confirmationRequired',
         email: 'new@mybasket.test',
@@ -139,6 +141,7 @@ describe('AuthService', () => {
   it('clears the stored session even when the provider fails on sign out', async () => {
     const failingProvider: AuthProvider = {
       signIn: jest.fn(),
+      refreshSession: jest.fn(),
       signUp: jest.fn(),
       signOut: jest.fn().mockRejectedValue(new AuthError('network')),
       confirmSignUp: jest.fn(),
@@ -150,6 +153,8 @@ describe('AuthService', () => {
     const session: Session = {
       user: { id: '1', email: demoUser.email, displayName: 'Demo' },
       accessToken: 'token',
+      refreshToken: 'refresh-token',
+      accessTokenExpiresAt: 0,
     };
     await sessionStorage.save(session);
 
@@ -158,6 +163,115 @@ describe('AuthService', () => {
     });
 
     expect(await sessionStorage.load()).toBeNull();
+  });
+});
+
+describe('AuthService restoring an expired session', () => {
+  const NOW_MS = 2_000_000;
+  const HOUR_MS = 3_600_000;
+  const storedSession: Session = {
+    user: { id: '1', email: demoUser.email, displayName: 'Demo' },
+    accessToken: 'stored-token',
+    refreshToken: 'refresh-token',
+    accessTokenExpiresAt: NOW_MS + RENEWAL_MARGIN_MS + 1,
+  };
+  const expiredSession: Session = {
+    ...storedSession,
+    accessTokenExpiresAt: NOW_MS,
+  };
+  const expiringSession: Session = {
+    ...storedSession,
+    accessTokenExpiresAt: NOW_MS + RENEWAL_MARGIN_MS,
+  };
+  const renewedSession: Session = {
+    ...storedSession,
+    accessToken: 'renewed-token',
+    accessTokenExpiresAt: NOW_MS + HOUR_MS,
+  };
+
+  const setUp = async (
+    stored: Session,
+    refreshSession: AuthProvider['refreshSession']
+  ) => {
+    const provider: AuthProvider = {
+      signIn: jest.fn(),
+      refreshSession,
+      signUp: jest.fn(),
+      signOut: jest.fn(),
+      confirmSignUp: jest.fn(),
+      resendConfirmationCode: jest.fn(),
+      requestPasswordRecovery: jest.fn(),
+      confirmPasswordRecovery: jest.fn(),
+    };
+    const sessionStorage = new InMemorySessionStorage();
+    await sessionStorage.save(stored);
+    const service = new AuthService(provider, sessionStorage, () => NOW_MS);
+    return { service, sessionStorage };
+  };
+
+  it('does not renew a session with more than the margin left', async () => {
+    const refreshSession = jest.fn();
+    const { service } = await setUp(storedSession, refreshSession);
+
+    expect(await service.restoreSession()).toEqual(storedSession);
+    expect(refreshSession).not.toHaveBeenCalled();
+  });
+
+  it('renews a session that is about to expire', async () => {
+    const refreshSession = jest.fn().mockResolvedValue(renewedSession);
+    const { service } = await setUp(expiringSession, refreshSession);
+
+    expect(await service.restoreSession()).toEqual(renewedSession);
+    expect(refreshSession).toHaveBeenCalledWith(expiringSession);
+  });
+
+  it('renews an expired session and stores the renewed one', async () => {
+    const refreshSession = jest.fn().mockResolvedValue(renewedSession);
+    const { service, sessionStorage } = await setUp(
+      expiredSession,
+      refreshSession
+    );
+
+    expect(await service.restoreSession()).toEqual(renewedSession);
+    expect(refreshSession).toHaveBeenCalledWith(expiredSession);
+    expect(await sessionStorage.load()).toEqual(renewedSession);
+  });
+
+  it('signs the user out when the backend rejects the refresh token', async () => {
+    const refreshSession = jest
+      .fn()
+      .mockRejectedValue(new AuthError('session-expired'));
+    const { service, sessionStorage } = await setUp(
+      expiredSession,
+      refreshSession
+    );
+
+    expect(await service.restoreSession()).toBeNull();
+    expect(await sessionStorage.load()).toBeNull();
+  });
+
+  it('keeps the stored session when the renewal fails without a connection', async () => {
+    const refreshSession = jest
+      .fn()
+      .mockRejectedValue(new AuthError('network'));
+    const { service, sessionStorage } = await setUp(
+      expiredSession,
+      refreshSession
+    );
+
+    expect(await service.restoreSession()).toEqual(expiredSession);
+    expect(await sessionStorage.load()).toEqual(expiredSession);
+  });
+
+  it('keeps the stored session when the renewal fails unexpectedly', async () => {
+    const refreshSession = jest.fn().mockRejectedValue(new Error('crashed'));
+    const { service, sessionStorage } = await setUp(
+      expiredSession,
+      refreshSession
+    );
+
+    expect(await service.restoreSession()).toEqual(expiredSession);
+    expect(await sessionStorage.load()).toEqual(expiredSession);
   });
 });
 

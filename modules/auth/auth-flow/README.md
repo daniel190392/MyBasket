@@ -108,6 +108,7 @@ The module does not navigate: the screen exposes callbacks and the host decides 
 ```ts
 interface AuthProvider {
   signIn(credentials: Credentials): Promise<Session>;
+  refreshSession(session: Session): Promise<Session>;
   signUp(registration: Registration): Promise<SignUpResult>;
   signOut(session: Session): Promise<void>;
   confirmSignUp(confirmation: SignUpConfirmation): Promise<void>;
@@ -131,7 +132,25 @@ The example and the tests use an in-memory storage (in `src/testing/`, not expor
 new AuthService(provider, new SecureSessionStorage(secureStorage));
 ```
 
-A stored value that cannot be read or is not a session makes `load` throw; `AuthService` treats that as no session, clears it and the user signs in again.
+A stored value that cannot be read or is not a session makes `load` throw; `AuthService` treats that as no session, clears it and the user signs in again. That includes a session stored before the refresh token was kept: the user signs in once more.
+
+## Session renewal
+
+A `Session` holds the access token, the refresh token and `accessTokenExpiresAt`, the instant (milliseconds since the epoch) the access token stops being valid. The adapter computes it when it receives the token, so `Session` does not depend on how a backend reports lifetimes.
+
+When the app starts, `AuthService.restoreSession` loads the stored session and, if its access token has expired or has less than a minute left (`RENEWAL_MARGIN_MS`), asks the provider to renew it with `refreshSession`, then stores the renewed session. The margin is there because a request that starts with seconds to spare can reach the server already expired, and it also absorbs small differences between the device clock and the server's. The split is deliberate: the provider knows how to renew, the service decides when to.
+
+| The renewal...                                                                           | `restoreSession`                                                                                                                       |
+| ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| succeeds                                                                                 | returns and stores the renewed session                                                                                                 |
+| is rejected (`session-expired`: the refresh token expired or the session was signed out) | clears the storage and returns `null`, so the user signs in again                                                                      |
+| fails for any other reason (no connection, a backend error)                              | keeps and returns the stored session: that says nothing about the session, so the user is not signed out for something they did not do |
+
+`RemoteAuthProvider` renews with Cognito's `REFRESH_TOKEN_AUTH` flow. Cognito does not issue a new refresh token on a renewal, so the session keeps the current one. Signing out revokes the refresh token in the backend but not an access token already issued, which stays valid until it expires.
+
+The refresh token is as sensitive as a password for as long as it lives: it only goes to the `SessionStorage`, and it is never logged.
+
+Renewal happens only on restore. An access token that expires while the app is open is not renewed yet; that needs a way to read a valid token from outside React and will be added with the first consumer of the access token. `AuthService` takes an optional clock (`now`, `Date.now` by default) so the expiry is testable.
 
 ## Mock backend
 

@@ -1,6 +1,7 @@
 export type AuthErrorCode =
   | 'invalid-credentials'
   | 'user-not-confirmed'
+  | 'session-expired'
   | 'email-already-in-use'
   | 'weak-password'
   | 'invalid-request'
