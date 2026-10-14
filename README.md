@@ -40,7 +40,7 @@ modules/
   platform/
     secure-storage/      TurboModule: encrypted key-value storage (Kotlin native code)
   feature/
-    feature-home-flutter/  Flutter module for Home (planned)
+    feature-home/        Home feature: product list, favorites, add product (planned)
 ```
 
 Each folder under `modules/` is a **family** that is meant to become its own repository later, and so is each host. To keep that split cheap, packages depend on each other **by name and semver range** (never `file:` or relative paths across families), and nothing imports across families through relative paths.
@@ -117,5 +117,4 @@ Copy `apps/host-android/local.properties.example` to `local.properties` and adju
 - Inventory module: products and expiration dates.
 - Shared API client that attaches the token and retries on 401, wired to `auth-flow` by the host.
 - iOS host with Keychain-backed secure storage.
-- Flutter module for Home, to test cross-framework integration.
 - Kitchen feature that suggests dishes from the products closest to expiring.

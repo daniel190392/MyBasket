@@ -12,11 +12,10 @@ flowchart TD
 
     subgraph Modules["Módulos"]
         UI["ui-components<br/>React Native + TS"]
-        Home["feature-home-flutter<br/>Flutter"]:::planned
+        Home["feature-home<br/>React Native + TS"]:::planned
     end
 
     RN(["React Native"])
-    Flutter(["Flutter"]):::planned
 
     Android --> UI
     Android -.-> Home
@@ -24,7 +23,7 @@ flowchart TD
     iOS -.-> Home
 
     UI --> RN
-    Home -.-> Flutter
+    Home -.-> RN
 
     classDef planned fill:#eee,stroke:#999,stroke-dasharray: 4 3,color:#555
 ```
