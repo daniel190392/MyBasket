@@ -9,8 +9,11 @@ import { CenteredMessage } from '../components/CenteredMessage';
 import { CenteredSpinner } from '../components/CenteredSpinner';
 import { useReportHostEvent } from '../native/useReportHostEvent';
 import { TemporarySignOutBar } from './TemporarySignOutBar';
+import { createTemporaryProductRepository } from './temporaryProductRepository';
 
 import type { AuthConfig } from '../auth/sharedAuthService';
+
+const productRepository = createTemporaryProductRepository();
 
 // The home does not know about the session; this root watches it so the native
 // host takes the user back to the login when it ends (signing out or expiring).
@@ -35,7 +38,7 @@ function HomeGate() {
   return (
     <View style={styles.flex}>
       <TemporarySignOutBar onSignOutPress={auth.signOut} />
-      <HomeNavigator />
+      <HomeNavigator productRepository={productRepository} />
     </View>
   );
 }
