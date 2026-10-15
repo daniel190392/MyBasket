@@ -36,4 +36,11 @@ export const CATALOG_ITEMS = [
     description: 'Text that redirects to another view or URL.',
     status: 'Ready',
   },
+  {
+    id: 'icon',
+    screenName: 'IconScreen',
+    title: 'PIcon',
+    description: 'Vector icons that take size and color from the theme.',
+    status: 'Ready',
+  },
 ] as const;

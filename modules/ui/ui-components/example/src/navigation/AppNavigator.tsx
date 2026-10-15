@@ -10,6 +10,7 @@ import {
   CardScreen,
   InputScreen,
   LinkScreen,
+  IconScreen,
 } from '../screens';
 
 // Learning note: the catalog is data-driven. Each CATALOG_ITEMS entry stores a
@@ -22,6 +23,7 @@ const SCREEN_COMPONENTS: Record<CatalogScreenName, React.ComponentType> = {
   BadgeScreen,
   CardScreen,
   LinkScreen,
+  IconScreen,
 };
 
 const Stack = createStackNavigator<RootStackParamList>();

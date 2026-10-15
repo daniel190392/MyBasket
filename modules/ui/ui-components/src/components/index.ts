@@ -8,3 +8,6 @@ export { PInput } from './PInput';
 export type { PInputProps } from './PInput';
 export { PLink } from './PLink';
 export type { PLinkProps } from './PLink';
+export { PIcon } from './PIcon';
+export type { PIconProps } from './PIcon';
+export type { IconName } from './iconShapes';
