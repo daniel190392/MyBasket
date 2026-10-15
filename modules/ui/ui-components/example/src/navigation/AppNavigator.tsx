@@ -11,6 +11,7 @@ import {
   InputScreen,
   LinkScreen,
   IconScreen,
+  ChipScreen,
 } from '../screens';
 
 // Learning note: the catalog is data-driven. Each CATALOG_ITEMS entry stores a
@@ -24,6 +25,7 @@ const SCREEN_COMPONENTS: Record<CatalogScreenName, React.ComponentType> = {
   CardScreen,
   LinkScreen,
   IconScreen,
+  ChipScreen,
 };
 
 const Stack = createStackNavigator<RootStackParamList>();

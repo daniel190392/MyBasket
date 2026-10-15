@@ -11,3 +11,5 @@ export type { PLinkProps } from './PLink';
 export { PIcon } from './PIcon';
 export type { PIconProps } from './PIcon';
 export type { IconName } from './iconShapes';
+export { PChip } from './PChip';
+export type { PChipProps } from './PChip';

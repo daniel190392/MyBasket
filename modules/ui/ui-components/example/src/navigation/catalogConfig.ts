@@ -43,4 +43,12 @@ export const CATALOG_ITEMS = [
     description: 'Vector icons that take size and color from the theme.',
     status: 'Ready',
   },
+  {
+    id: 'chip',
+    screenName: 'ChipScreen',
+    title: 'PChip',
+    description:
+      'Selectable pills for filtering, with selected and disabled states.',
+    status: 'Ready',
+  },
 ] as const;
