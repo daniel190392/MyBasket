@@ -8,9 +8,13 @@ Architecture rule: `.claude/rules/feature-module-architecture.md`.
 
 ```
 src/
-  index.ts          public API: HomeNavigator
+  index.ts          public API: HomeNavigator and the ProductRepository port
   navigation/       HomeNavigator (container, stack, tabs) and typed param lists
-  screens/          the three screens and their strings
+  screens/          the three screens, their strings and the label helpers
+  components/       ProductRow, shared by the list screens
+  state/            ProductsProvider and useProducts (products shared by the tabs)
+  domain/           Product, expiration status, filtering, grouping and the port
+  testing/          in-memory repository (not exported, not built)
 ```
 
 ## Navigation
@@ -31,10 +35,18 @@ The native dependencies of navigation (`react-native-screens`, `react-native-saf
 ```tsx
 import { HomeNavigator } from 'feature-home';
 
-<HomeNavigator />;
+<HomeNavigator productRepository={productRepository} />;
 ```
 
-The props the host passes in and the events the feature sends out appear when the feature has any (see the rule).
+`productRepository` implements the `ProductRepository` port (`list`, `setFavorite`). The host provides the adapter; switching the data source never touches a screen. The events the feature sends out appear when the feature has any (see the rule).
+
+## Domain
+
+Pure functions in `src/domain`, tested with Jest (`npm test`). Anything that depends on the current date receives it as an argument.
+
+- `expirationStatus(product, now)`: `expired`, `soon` (7 days or less), `upcoming` (under 30 days) or `safe`, from calendar days, so the time of day does not matter.
+- `filterProducts`: by category and by name, ignoring case and accents.
+- `groupByExpiration`: "expiring soon" (including expired) and the rest, each sorted by date.
 
 ## Example
 
@@ -48,7 +60,7 @@ npm start
 
 ## Status
 
-Skeleton: the structure and the navigator are in place and the three screens are placeholders that will be built from the designs.
+The products screen follows the design: search, category chips, products grouped by expiration, favorite star and the add button. The filter button in the header is disabled until its behavior is decided. The product icon is the initial of its name until there are category illustrations. Favorites and add product are still placeholders.
 
 ## Build
 
