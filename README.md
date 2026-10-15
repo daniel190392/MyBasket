@@ -40,7 +40,7 @@ modules/
   platform/
     secure-storage/      TurboModule: encrypted key-value storage (Kotlin native code)
   feature/
-    feature-home/        Home feature: tabs and add product with its own navigation (screens are placeholders)
+    feature-home/        Home feature: product list, tabs and add product with its own navigation
 ```
 
 Each folder under `modules/` is a **family** that is meant to become its own repository later, and so is each host. To keep that split cheap, packages depend on each other **by name and semver range** (never `file:` or relative paths across families), and nothing imports across families through relative paths.
@@ -54,7 +54,7 @@ Layers are `domain` (types, typed `AuthError`, the `AuthProvider` and `SessionSt
 A typed TypeScript contract feeds React Native codegen, which generates the native base class that the Kotlin module extends. Values are encrypted with an AES-GCM key that never leaves the Android Keystore. It is generic and does not depend on `auth-flow`: the host injects it into the auth module through a `KeyValueStore` port.
 
 **`ui-components`: a design system as a library.**
-Theme tokens (colors, spacing, typography, borders, shadows) and `P`-prefixed components (`PButton`, `PCard`, `PBadge`, `PInput`, `PLink`), built with `react-native-builder-bob` for ESM and CommonJS with generated types, and documented by an Expo showcase app.
+Theme tokens (colors, spacing, typography, borders, shadows) and `P`-prefixed components (`PButton`, `PCard`, `PBadge`, `PInput`, `PLink`, `PIcon`, `PChip`, `PFab`, `PIconButton`), built with `react-native-builder-bob` for ESM and CommonJS with generated types, and documented by an Expo showcase app.
 
 **`feature-home`: an embeddable feature with its own navigation.**
 One entry point (`HomeNavigator`) that owns a stack with tabs in its own React Navigation container, so the host does not know its routes. It does not depend on `auth-flow` or on other features; initial data comes in as props and leaving the feature is an event. The architecture rule behind it records the references it is based on (React Native brownfield guidance, React Navigation docs and real feature-based apps) and the gaps no reference covered.

@@ -39,7 +39,7 @@ The folders under `modules/` are **families**. The first version is a monorepo, 
 
 ### `modules/ui/ui-components`
 
-UI library with the `P` prefix (`PButton`, `PCard`, `PBadge`, `PInput`, `PLink`) and a theme (`colors`, `spacing`, typography, borders, shadows, `textPresets`). Built with `react-native-builder-bob` (`module` and `commonjs` targets, types via `tsc`) into `lib/`.
+UI library with the `P` prefix (`PButton`, `PCard`, `PBadge`, `PInput`, `PLink`, `PIcon`, `PChip`, `PFab`, `PIconButton`) and a theme (`colors`, `spacing`, typography, borders, shadows, `textPresets`). Built with `react-native-builder-bob` (`module` and `commonjs` targets, types via `tsc`) into `lib/`.
 
 - Source code: `src/components` and `src/theme`; everything is exported from `src/index.ts`.
 - `example/` is an Expo showcase app with one screen per component.
@@ -66,7 +66,7 @@ React Native TurboModule with native code inside (`android/` in Kotlin; `ios/` w
 
 ### `modules/feature/feature-home`
 
-Home feature in React Native + TypeScript, built with `react-native-builder-bob` like the other modules. The app is a brownfield migration, so a feature is one embeddable entry point for the native host: `HomeNavigator` owns its internal navigation (React Navigation, `native-stack` + `bottom-tabs`, in its own `NavigationContainer` inside a `NavigationIndependentTree`) and the host does not know the routes. Screens (products, favorites, add product) are placeholders for now and will follow the designs. The native dependencies of navigation are peer dependencies that the host installs.
+Home feature in React Native + TypeScript, built with `react-native-builder-bob` like the other modules. The app is a brownfield migration, so a feature is one embeddable entry point for the native host: `HomeNavigator` owns its internal navigation (React Navigation, `native-stack` + `bottom-tabs`, in its own `NavigationContainer` inside a `NavigationIndependentTree`) and the host does not know the routes. The products screen is built from the design (search, category chips, products grouped into "Por caducar" and the rest, favorite star, add button); favorites and add product are placeholders. The data comes through a `ProductRepository` port (in `domain/`) that the host passes to `HomeNavigator` as a prop; the in-memory mock lives in `src/testing/` and the host uses a temporary adapter in `src/home/`. Expiration status, filtering and grouping are pure functions in `domain/` with Jest tests (`npm test` inside the module). The native dependencies of navigation are peer dependencies that the host installs.
 
 - `example/` is an Expo showcase that renders `HomeNavigator` without the host.
 - Architecture rule: `.claude/rules/feature-module-architecture.md`.

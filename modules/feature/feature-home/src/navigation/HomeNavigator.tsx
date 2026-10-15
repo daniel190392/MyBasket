@@ -5,12 +5,14 @@ import {
   NavigationIndependentTree,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { colors, textPresets } from 'ui-components';
+import { PIcon, colors, iconSize, textPresets } from 'ui-components';
 
 import { AddProductScreen } from '../screens/AddProductScreen';
 import { FavoritesScreen } from '../screens/FavoritesScreen';
 import { ProductsScreen } from '../screens/ProductsScreen';
 import { homeStrings } from '../screens/strings';
+import { ProductsProvider } from '../state/ProductsProvider';
+import type { ProductRepository } from '../domain/ProductRepository';
 import type { HomeStackParamList, HomeTabParamList } from './types';
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
@@ -27,43 +29,74 @@ function HomeTabs() {
     >
       <Tab.Screen
         name="Products"
-        component={ProductsScreen}
-        options={{ title: homeStrings.productsTab }}
-      />
+        options={{
+          title: homeStrings.productsTab,
+          tabBarIcon: ({ color }) => (
+            <PIcon name="store" size={iconSize.lg} color={color} />
+          ),
+        }}
+      >
+        {({ navigation }) => (
+          <ProductsScreen
+            onAddProductPress={() =>
+              navigation.getParent()?.navigate('AddProduct')
+            }
+          />
+        )}
+      </Tab.Screen>
       <Tab.Screen
         name="Favorites"
         component={FavoritesScreen}
-        options={{ title: homeStrings.favoritesTab }}
+        options={{
+          title: homeStrings.favoritesTab,
+          tabBarIcon: ({ color, focused }) => (
+            <PIcon
+              name="star"
+              size={iconSize.lg}
+              color={color}
+              filled={focused}
+            />
+          ),
+        }}
       />
     </Tab.Navigator>
   );
 }
 
+export type HomeNavigatorProps = {
+  productRepository: ProductRepository;
+};
+
 // The tree is independent of the host and of any other embedded feature: this
 // is the "app inside a larger app" case React Navigation documents.
-export function HomeNavigator() {
+export function HomeNavigator({ productRepository }: HomeNavigatorProps) {
   return (
-    <NavigationIndependentTree>
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerTintColor: colors.primary,
-            headerTitleStyle: { ...textPresets.title, color: colors.primary },
-            headerShadowVisible: false,
-          }}
-        >
-          <Stack.Screen
-            name="Tabs"
-            component={HomeTabs}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="AddProduct"
-            component={AddProductScreen}
-            options={{ title: homeStrings.addProductTitle }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </NavigationIndependentTree>
+    <ProductsProvider repository={productRepository}>
+      <NavigationIndependentTree>
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{
+              headerTintColor: colors.primary,
+              headerTitleStyle: {
+                ...textPresets.title,
+                color: colors.primary,
+              },
+              headerShadowVisible: false,
+            }}
+          >
+            <Stack.Screen
+              name="Tabs"
+              component={HomeTabs}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="AddProduct"
+              component={AddProductScreen}
+              options={{ title: homeStrings.addProductTitle }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </NavigationIndependentTree>
+    </ProductsProvider>
   );
 }

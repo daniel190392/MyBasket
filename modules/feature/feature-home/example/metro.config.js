@@ -8,6 +8,7 @@ const SINGLETON_PACKAGES = [
   'react-native',
   'react-native-screens',
   'react-native-safe-area-context',
+  'react-native-svg',
 ];
 
 const config = getDefaultConfig(projectRoot);
