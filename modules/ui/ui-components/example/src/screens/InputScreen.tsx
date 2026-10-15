@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
 import { ScrollView, Text, Pressable } from 'react-native';
 
-import { PInput, PButton, typography } from '../../../src';
+import {
+  PInput,
+  PButton,
+  PIcon,
+  colors,
+  iconSize,
+  typography,
+} from '../../../src';
 
-import { SearchIcon } from './SearchIcon';
 import { ShowcaseSection } from './ShowcaseSection';
 import { showcaseStyles as styles } from './showcaseStyles';
 
@@ -51,7 +57,9 @@ export const InputScreen = () => {
           placeholder="Search by name, category, or SKU..."
           value={searchValue}
           onChangeText={setSearchValue}
-          leftIcon={<SearchIcon />}
+          leftIcon={
+            <PIcon name="search" size={iconSize.md} color={colors.textMuted} />
+          }
         />
         <PInput
           label="Password"
