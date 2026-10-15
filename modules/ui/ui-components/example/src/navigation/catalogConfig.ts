@@ -58,4 +58,11 @@ export const CATALOG_ITEMS = [
     description: 'Floating action button with an icon and a label.',
     status: 'Ready',
   },
+  {
+    id: 'iconButton',
+    screenName: 'IconButtonScreen',
+    title: 'PIconButton',
+    description: 'Square button that shows only an icon.',
+    status: 'Ready',
+  },
 ] as const;

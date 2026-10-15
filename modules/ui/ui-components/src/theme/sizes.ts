@@ -8,3 +8,5 @@ export const iconSize = {
   md: 20,
   lg: 24,
 } as const;
+
+export const iconButtonSize = 44;

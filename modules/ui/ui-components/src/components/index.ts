@@ -15,3 +15,5 @@ export { PChip } from './PChip';
 export type { PChipProps } from './PChip';
 export { PFab } from './PFab';
 export type { PFabProps } from './PFab';
+export { PIconButton } from './PIconButton';
+export type { PIconButtonProps } from './PIconButton';
