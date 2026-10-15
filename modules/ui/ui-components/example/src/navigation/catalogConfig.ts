@@ -36,4 +36,33 @@ export const CATALOG_ITEMS = [
     description: 'Text that redirects to another view or URL.',
     status: 'Ready',
   },
+  {
+    id: 'icon',
+    screenName: 'IconScreen',
+    title: 'PIcon',
+    description: 'Vector icons that take size and color from the theme.',
+    status: 'Ready',
+  },
+  {
+    id: 'chip',
+    screenName: 'ChipScreen',
+    title: 'PChip',
+    description:
+      'Selectable pills for filtering, with selected and disabled states.',
+    status: 'Ready',
+  },
+  {
+    id: 'fab',
+    screenName: 'FabScreen',
+    title: 'PFab',
+    description: 'Floating action button with an icon and a label.',
+    status: 'Ready',
+  },
+  {
+    id: 'iconButton',
+    screenName: 'IconButtonScreen',
+    title: 'PIconButton',
+    description: 'Square button that shows only an icon.',
+    status: 'Ready',
+  },
 ] as const;

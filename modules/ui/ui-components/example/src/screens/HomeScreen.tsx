@@ -5,17 +5,17 @@ import {
   PBadge,
   BadgeVariant,
   PCard,
+  PIcon,
   PInput,
   borderWidth,
   textPresets,
   colors,
+  iconSize,
   spacing,
 } from '../../../src';
 
 import { CATALOG_ITEMS } from '../navigation/catalogConfig';
 import { HomeScreenProps } from '../navigation/types';
-
-import { SearchIcon } from './SearchIcon';
 
 type CatalogItem = (typeof CATALOG_ITEMS)[number];
 
@@ -59,7 +59,9 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
           value={searchQuery}
           onChangeText={setSearchQuery}
           clearButtonMode="while-editing"
-          leftIcon={<SearchIcon />}
+          leftIcon={
+            <PIcon name="search" size={iconSize.md} color={colors.textMuted} />
+          }
         />
       </View>
 

@@ -4,3 +4,7 @@ export { BadgeScreen } from './BadgeScreen';
 export { CardScreen } from './CardScreen';
 export { InputScreen } from './InputScreen';
 export { LinkScreen } from './LinkScreen';
+export { IconScreen } from './IconScreen';
+export { ChipScreen } from './ChipScreen';
+export { FabScreen } from './FabScreen';
+export { IconButtonScreen } from './IconButtonScreen';
