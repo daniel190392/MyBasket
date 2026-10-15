@@ -6,3 +6,4 @@ export { InputScreen } from './InputScreen';
 export { LinkScreen } from './LinkScreen';
 export { IconScreen } from './IconScreen';
 export { ChipScreen } from './ChipScreen';
+export { FabScreen } from './FabScreen';

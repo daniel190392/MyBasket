@@ -13,3 +13,5 @@ export type { PIconProps } from './PIcon';
 export type { IconName } from './iconShapes';
 export { PChip } from './PChip';
 export type { PChipProps } from './PChip';
+export { PFab } from './PFab';
+export type { PFabProps } from './PFab';

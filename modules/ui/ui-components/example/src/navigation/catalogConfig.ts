@@ -51,4 +51,11 @@ export const CATALOG_ITEMS = [
       'Selectable pills for filtering, with selected and disabled states.',
     status: 'Ready',
   },
+  {
+    id: 'fab',
+    screenName: 'FabScreen',
+    title: 'PFab',
+    description: 'Floating action button with an icon and a label.',
+    status: 'Ready',
+  },
 ] as const;
