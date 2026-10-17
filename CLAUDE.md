@@ -30,6 +30,7 @@ modules/
     auth-flow/           Login flow, session state and backend contract (mock + swappable provider)
   platform/              Device capabilities exposed to React Native (native code inside)
     secure-storage/      Encrypted key-value storage (Android Keystore, iOS Keychain later)
+    api-client/          HTTP client for the backend: Bearer token, typed errors (TypeScript only)
   feature/               Business features
     feature-home/        Home feature in React Native: product list, favorites, add product (own navigation)
 metro.config.js        Monorepo Metro config (projectRoot = apps/host-android)
@@ -63,6 +64,12 @@ React Native TurboModule with native code inside (`android/` in Kotlin; `ios/` w
 - Keys are shared by every module that uses the store, so they carry a module prefix (`auth.session`).
 - `auth-flow` does not import it: it declares a `KeyValueStore` port, and the host passes `secureStorage` to `new SecureSessionStorage(...)`.
 - Build: `npm run build` inside the module.
+
+### `modules/platform/api-client`
+
+Single `fetch` wrapper that every feature uses to reach the backend: `createApiClient({ baseUrl, getAccessToken })` returns `request<T>(path, { method, body })`. It sends the access token as Bearer, parses JSON and maps every failure to an `ApiError` with a stable `code` (it reads both backend error shapes, `error` and `message`). It does not depend on `auth-flow`: the host passes `() => authService.getAccessToken()`. The 401 retry and the backoff on 5xx are not built yet (see its README).
+
+- Tests: `npm test` inside the module. Build: `npm run build`.
 
 ### `modules/feature/feature-home`
 
