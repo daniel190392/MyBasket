@@ -7,6 +7,7 @@ import {
   colors,
   spacing,
   textPresets,
+  typography,
 } from 'ui-components';
 
 import {
@@ -159,6 +160,8 @@ const styles = StyleSheet.create({
   },
   requiredFieldsNote: {
     ...textPresets.caption,
+    fontSize: typography.sizes.xs,
+    color: colors.textMuted,
     textAlign: 'center',
   },
   submitError: {
