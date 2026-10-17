@@ -41,6 +41,7 @@ modules/
     secure-storage/      TurboModule: encrypted key-value storage (Kotlin native code)
   feature/
     feature-home/        Home feature: product list, tabs and add product with its own navigation
+    feature-side-menu/   Side menu with the user and sign out; the options will grow
 ```
 
 Each folder under `modules/` is a **family** that is meant to become its own repository later, and so is each host. To keep that split cheap, packages depend on each other **by name and semver range** (never `file:` or relative paths across families), and nothing imports across families through relative paths.

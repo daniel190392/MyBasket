@@ -11,7 +11,7 @@ export const homeStrings = {
   placeholderCaption: 'Screen under construction',
   productsTitle: 'Mi Despensa',
   searchPlaceholder: 'Buscar producto',
-  filterButtonLabel: 'Filtrar',
+  menuButtonLabel: 'Abrir menú',
   allCategories: 'Todos',
   expiringSoonSection: 'Por caducar',
   restSection: 'Resto de la despensa',
