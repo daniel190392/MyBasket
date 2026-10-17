@@ -1,8 +1,10 @@
 import { useState } from 'react';
 
 import { validateProductForm } from '../domain/productForm';
+import { productErrorCode } from '../domain/ProductRepositoryError';
 import { useProducts } from '../state/ProductsProvider';
 
+import type { ProductErrorCode } from '../domain/ProductRepositoryError';
 import type {
   ProductFormErrors,
   ProductFormValues,
@@ -23,7 +25,8 @@ export function useAddProductForm(onProductAdded: () => void) {
   const [values, setValues] = useState(INITIAL_VALUES);
   const [errors, setErrors] = useState<ProductFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasSubmitFailed, setHasSubmitFailed] = useState(false);
+  const [submitErrorCode, setSubmitErrorCode] =
+    useState<ProductErrorCode | null>(null);
 
   const setValue = <Field extends keyof ProductFormValues>(
     field: Field,
@@ -38,16 +41,16 @@ export function useAddProductForm(onProductAdded: () => void) {
     }
 
     setErrors({});
-    setHasSubmitFailed(false);
+    setSubmitErrorCode(null);
     setIsSubmitting(true);
     try {
       await addProduct(result.draft);
       onProductAdded();
-    } catch {
-      setHasSubmitFailed(true);
+    } catch (error) {
+      setSubmitErrorCode(productErrorCode(error));
       setIsSubmitting(false);
     }
   };
 
-  return { values, errors, isSubmitting, hasSubmitFailed, setValue, submit };
+  return { values, errors, isSubmitting, submitErrorCode, setValue, submit };
 }

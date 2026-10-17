@@ -7,8 +7,11 @@ import React, {
   useState,
 } from 'react';
 
+import { productErrorCode } from '../domain/ProductRepositoryError';
+
 import type { Product, ProductDraft } from '../domain/product';
 import type { ProductRepository } from '../domain/ProductRepository';
+import type { ProductErrorCode } from '../domain/ProductRepositoryError';
 
 import type { ReactNode } from 'react';
 
@@ -16,8 +19,14 @@ export type ProductsStatus = 'loading' | 'ready' | 'error';
 
 interface ProductsContextValue {
   status: ProductsStatus;
+  // Why the first load failed; only meaningful while the status is 'error'.
+  errorCode: ProductErrorCode;
   products: Product[];
   reload: () => void;
+  // Pull to refresh: keeps showing the list while it loads again.
+  refresh: () => Promise<void>;
+  isRefreshing: boolean;
+  hasRefreshFailed: boolean;
   addProduct: (draft: ProductDraft) => Promise<void>;
   toggleFavorite: (productId: string) => void;
 }
@@ -34,6 +43,9 @@ export function ProductsProvider({
   children,
 }: ProductsProviderProps) {
   const [status, setStatus] = useState<ProductsStatus>('loading');
+  const [errorCode, setErrorCode] = useState<ProductErrorCode>('unknown');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasRefreshFailed, setHasRefreshFailed] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [reloadCount, setReloadCount] = useState(0);
 
@@ -47,8 +59,9 @@ export function ProductsProvider({
         setProducts(loadedProducts);
         setStatus('ready');
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         if (isCancelled) return;
+        setErrorCode(productErrorCode(error));
         setStatus('error');
       });
 
@@ -61,6 +74,18 @@ export function ProductsProvider({
     setStatus('loading');
     setReloadCount((count) => count + 1);
   }, []);
+
+  const refresh = useCallback(async () => {
+    setIsRefreshing(true);
+    setHasRefreshFailed(false);
+    try {
+      setProducts(await repository.list());
+    } catch {
+      setHasRefreshFailed(true);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [repository]);
 
   // Rejects when the repository does, so the form can tell the user.
   const addProduct = useCallback(
@@ -90,8 +115,28 @@ export function ProductsProvider({
   );
 
   const value = useMemo(
-    () => ({ status, products, reload, addProduct, toggleFavorite }),
-    [status, products, reload, addProduct, toggleFavorite]
+    () => ({
+      status,
+      errorCode,
+      products,
+      reload,
+      refresh,
+      isRefreshing,
+      hasRefreshFailed,
+      addProduct,
+      toggleFavorite,
+    }),
+    [
+      status,
+      errorCode,
+      products,
+      reload,
+      refresh,
+      isRefreshing,
+      hasRefreshFailed,
+      addProduct,
+      toggleFavorite,
+    ]
   );
 
   return (

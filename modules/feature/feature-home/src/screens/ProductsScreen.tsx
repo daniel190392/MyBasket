@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   SectionList,
   StyleSheet,
@@ -31,7 +32,12 @@ import {
   expirationLabel,
   quantityLabel,
 } from './productLabels';
-import { categoryLabels, homeStrings, productCountLabel } from './strings';
+import {
+  categoryLabels,
+  homeStrings,
+  loadErrorMessage,
+  productCountLabel,
+} from './strings';
 
 import type { Product, ProductCategory } from '../domain/product';
 
@@ -54,7 +60,16 @@ export function ProductsScreen({
   onAddProductPress,
   onMenuPress,
 }: ProductsScreenProps) {
-  const { status, products, reload, toggleFavorite } = useProducts();
+  const {
+    status,
+    errorCode,
+    products,
+    reload,
+    refresh,
+    isRefreshing,
+    hasRefreshFailed,
+    toggleFavorite,
+  } = useProducts();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<ProductCategory | null>(null);
 
@@ -127,7 +142,7 @@ export function ProductsScreen({
 
       {status === 'error' && (
         <View style={styles.centered}>
-          <Text style={styles.message}>{homeStrings.loadError}</Text>
+          <Text style={styles.message}>{loadErrorMessage(errorCode)}</Text>
           <PButton
             title={homeStrings.retry}
             variant="secondary"
@@ -142,8 +157,39 @@ export function ProductsScreen({
           keyExtractor={(product) => product.id}
           contentContainerStyle={styles.list}
           ItemSeparatorComponent={ItemSeparator}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={refresh}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
+            />
+          }
+          ListHeaderComponent={
+            hasRefreshFailed ? (
+              <Text style={styles.refreshError}>
+                {homeStrings.refreshError}
+              </Text>
+            ) : null
+          }
           ListEmptyComponent={
-            <Text style={styles.message}>{homeStrings.noResults}</Text>
+            products.length === 0 ? (
+              <View style={styles.emptyPantry}>
+                <Text style={styles.emptyTitle}>
+                  {homeStrings.emptyPantryTitle}
+                </Text>
+                <Text style={styles.message}>
+                  {homeStrings.emptyPantryCaption}
+                </Text>
+                <PButton
+                  title={homeStrings.addFirstProductButton}
+                  icon="plus"
+                  onPress={onAddProductPress}
+                />
+              </View>
+            ) : (
+              <Text style={styles.message}>{homeStrings.noResults}</Text>
+            )
           }
           stickySectionHeadersEnabled={false}
           renderSectionHeader={({ section }) => (
@@ -248,6 +294,20 @@ const styles = StyleSheet.create({
   message: {
     ...textPresets.caption,
     textAlign: 'center',
+  },
+  refreshError: {
+    ...textPresets.caption,
+    color: colors.error,
+    textAlign: 'center',
+    paddingBottom: spacing.sm,
+  },
+  emptyPantry: {
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingTop: spacing.xxl,
+  },
+  emptyTitle: {
+    ...textPresets.title,
   },
   fab: {
     position: 'absolute',
