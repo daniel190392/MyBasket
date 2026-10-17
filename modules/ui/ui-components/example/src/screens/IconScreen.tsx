@@ -13,7 +13,15 @@ import {
 import { ShowcaseSection } from './ShowcaseSection';
 import { showcaseStyles as styles } from './showcaseStyles';
 
-const ICON_NAMES: IconName[] = ['search', 'filter', 'plus', 'star', 'store'];
+const ICON_NAMES: IconName[] = [
+  'search',
+  'filter',
+  'plus',
+  'menu',
+  'logout',
+  'star',
+  'store',
+];
 
 export const IconScreen = () => (
   <ScrollView style={styles.container} contentContainerStyle={styles.content}>

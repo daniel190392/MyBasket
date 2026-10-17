@@ -16,6 +16,14 @@ export const ButtonScreen = () => (
     <ShowcaseSection title="Secondary Button">
       <PButton title="Cancel" variant="secondary" onPress={ignorePress} />
     </ShowcaseSection>
+    <ShowcaseSection title="Button with Icon">
+      <PButton
+        title="Log out"
+        icon="logout"
+        variant="secondary"
+        onPress={ignorePress}
+      />
+    </ShowcaseSection>
     <ShowcaseSection title="Loading Button">
       <PButton title="Ok" onPress={ignorePress} isLoading />
     </ShowcaseSection>

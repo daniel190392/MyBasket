@@ -6,6 +6,7 @@ import {
   StyleSheet,
   GestureResponderEvent,
   ActivityIndicator,
+  View,
 } from 'react-native';
 
 import {
@@ -15,8 +16,11 @@ import {
   borderRadius,
   borderWidth,
   controlHeight,
+  iconSize,
   opacity,
 } from '../theme';
+import { IconName } from './iconShapes';
+import { PIcon } from './PIcon';
 
 export interface PButtonProps extends Omit<
   TouchableOpacityProps,
@@ -25,14 +29,22 @@ export interface PButtonProps extends Omit<
   title: string;
   onPress: (event: GestureResponderEvent) => void;
   variant?: 'primary' | 'secondary';
+  /** Shown before the title, in the same color as the text. */
+  icon?: IconName;
   isLoading?: boolean;
   isDisabled?: boolean;
+}
+
+function getTextColor(isPrimary: boolean, isDisabled: boolean): string {
+  if (isDisabled) return colors.textDisabled;
+  return isPrimary ? colors.white : colors.primary;
 }
 
 export function PButton({
   title,
   onPress,
   variant = 'primary',
+  icon,
   isLoading = false,
   isDisabled = false,
   style,
@@ -40,6 +52,7 @@ export function PButton({
 }: PButtonProps) {
   const isPrimary = variant === 'primary';
   const isInteractive = !isDisabled && !isLoading;
+  const textColor = getTextColor(isPrimary, isDisabled);
 
   return (
     <TouchableOpacity
@@ -57,15 +70,10 @@ export function PButton({
       {isLoading ? (
         <ActivityIndicator color={isPrimary ? colors.white : colors.primary} />
       ) : (
-        <Text
-          style={[
-            styles.text,
-            isPrimary ? styles.primaryText : styles.secondaryText,
-            isDisabled && styles.disabledText,
-          ]}
-        >
-          {title}
-        </Text>
+        <View style={styles.content}>
+          {icon && <PIcon name={icon} size={iconSize.md} color={textColor} />}
+          <Text style={[styles.text, { color: textColor }]}>{title}</Text>
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -96,17 +104,13 @@ const styles = StyleSheet.create({
     borderColor: colors.borderDisabled,
     opacity: opacity.disabled,
   },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   text: {
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.medium,
-  },
-  primaryText: {
-    color: colors.white,
-  },
-  secondaryText: {
-    color: colors.primary,
-  },
-  disabledText: {
-    color: colors.textDisabled,
   },
 });
