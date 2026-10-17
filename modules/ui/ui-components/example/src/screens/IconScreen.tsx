@@ -19,6 +19,10 @@ const ICON_NAMES: IconName[] = [
   'plus',
   'menu',
   'logout',
+  'minus',
+  'more',
+  'edit',
+  'trash',
   'star',
   'store',
 ];

@@ -6,6 +6,24 @@ export const ICON_SHAPES = {
   // Same strokes as `filter` on purpose: the menu button wears the look the
   // header had on the right, so the app keeps one icon language.
   menu: ['M3 6h18', 'M7 12h10', 'M10 18h4'],
+  minus: ['M5 12h14'],
+  // Three small circles; the stroke fills them into dots.
+  more: [
+    'M11 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0',
+    'M18 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0',
+    'M4 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0',
+  ],
+  edit: [
+    'M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z',
+    'M15 5l4 4',
+  ],
+  trash: [
+    'M3 6h18',
+    'M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6',
+    'M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2',
+    'M10 11v6',
+    'M14 11v6',
+  ],
   logout: [
     'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4',
     'M16 17l5-5-5-5',

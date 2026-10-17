@@ -8,3 +8,4 @@ export { IconScreen } from './IconScreen';
 export { ChipScreen } from './ChipScreen';
 export { FabScreen } from './FabScreen';
 export { IconButtonScreen } from './IconButtonScreen';
+export { MenuScreen } from './MenuScreen';
