@@ -11,6 +11,7 @@ import {
 } from 'ui-components';
 
 import {
+  addErrorMessage,
   addProductStrings,
   categoryLabels,
   contentUnitLabels,
@@ -35,7 +36,7 @@ const CONTENT_UNITS = Object.keys(contentUnitLabels) as MeasureUnit[];
 const BOTTOM_CLEARANCE = spacing.xxl * 2;
 
 export function AddProductScreen({ onProductAdded }: AddProductScreenProps) {
-  const { values, errors, isSubmitting, hasSubmitFailed, setValue, submit } =
+  const { values, errors, isSubmitting, submitErrorCode, setValue, submit } =
     useAddProductForm(onProductAdded);
 
   return (
@@ -124,8 +125,10 @@ export function AddProductScreen({ onProductAdded }: AddProductScreenProps) {
         }
       />
 
-      {hasSubmitFailed && (
-        <Text style={styles.submitError}>{addProductStrings.submitError}</Text>
+      {submitErrorCode && (
+        <Text style={styles.submitError}>
+          {addErrorMessage(submitErrorCode)}
+        </Text>
       )}
 
       <PButton

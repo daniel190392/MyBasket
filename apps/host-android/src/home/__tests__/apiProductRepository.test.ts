@@ -1,6 +1,10 @@
+import { ApiError } from 'api-client';
+
 import { createApiProductRepository } from '../apiProductRepository';
 
 import type { ApiClient } from 'api-client';
+
+const errorWithCode = (code: string) => expect.objectContaining({ code });
 
 const createApiClientReturning = (response: unknown) => {
   const request = jest.fn().mockResolvedValue(response);
@@ -81,13 +85,47 @@ describe('createApiProductRepository', () => {
     );
   });
 
-  it('rejects when the request fails', async () => {
+  it.each([
+    ['network', 'offline'],
+    ['unauthorized', 'unauthorized'],
+    ['server', 'server'],
+    ['validation', 'unknown'],
+    ['not-found', 'unknown'],
+  ] as const)(
+    'reports the api error %s as %s when listing',
+    async (apiCode, expected) => {
+      const apiClient = {
+        request: jest.fn().mockRejectedValue(new ApiError(apiCode)),
+      } as unknown as ApiClient;
+
+      await expect(
+        createApiProductRepository(apiClient).list()
+      ).rejects.toEqual(errorWithCode(expected));
+    }
+  );
+
+  it('reports the api error when creating too', async () => {
     const apiClient = {
-      request: jest.fn().mockRejectedValue(new Error('offline')),
+      request: jest.fn().mockRejectedValue(new ApiError('network')),
     } as unknown as ApiClient;
 
-    await expect(createApiProductRepository(apiClient).list()).rejects.toThrow(
-      'offline'
+    await expect(
+      createApiProductRepository(apiClient).create({
+        name: 'Rice',
+        category: 'food',
+        quantity: { count: 1 },
+        expirationDate: '2027-01-31',
+      })
+    ).rejects.toEqual(errorWithCode('offline'));
+  });
+
+  it('reports an unexpected failure as unknown', async () => {
+    const apiClient = {
+      request: jest.fn().mockRejectedValue(new Error('crashed')),
+    } as unknown as ApiClient;
+
+    await expect(createApiProductRepository(apiClient).list()).rejects.toEqual(
+      errorWithCode('unknown')
     );
   });
 

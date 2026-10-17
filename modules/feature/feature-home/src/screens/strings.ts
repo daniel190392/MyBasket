@@ -3,6 +3,7 @@ import type {
   Packaging,
   ProductCategory,
 } from '../domain/product';
+import type { ProductErrorCode } from '../domain/ProductRepositoryError';
 
 export const homeStrings = {
   productsTab: 'Productos',
@@ -19,6 +20,10 @@ export const homeStrings = {
   addFavoriteLabel: 'Marcar como favorito',
   removeFavoriteLabel: 'Quitar de favoritos',
   noResults: 'No hay productos que coincidan',
+  emptyPantryTitle: 'Tu despensa está vacía',
+  emptyPantryCaption: 'Añade tu primer producto para controlar su caducidad',
+  addFirstProductButton: 'Añadir producto',
+  refreshError: 'No se pudo actualizar. Desliza hacia abajo para reintentar.',
   loadError: 'No se pudieron cargar los productos',
   retry: 'Reintentar',
 } as const;
@@ -42,6 +47,28 @@ export const addProductStrings = {
   requiredFieldsNote: 'Campos obligatorios marcados con *',
   submitError: 'No se pudo añadir el producto. Inténtalo de nuevo.',
 } as const;
+
+// What the user can do about each cause is the same whatever failed.
+const connectionErrorMessages: Record<
+  Exclude<ProductErrorCode, 'unknown'>,
+  string
+> = {
+  offline: 'Sin conexión. Revisa tu internet e inténtalo de nuevo.',
+  server: 'El servidor no responde. Inténtalo de nuevo en unos minutos.',
+  unauthorized: 'Tu sesión ya no es válida. Cierra sesión y vuelve a entrar.',
+};
+
+export function loadErrorMessage(code: ProductErrorCode): string {
+  return code === 'unknown'
+    ? homeStrings.loadError
+    : connectionErrorMessages[code];
+}
+
+export function addErrorMessage(code: ProductErrorCode): string {
+  return code === 'unknown'
+    ? addProductStrings.submitError
+    : connectionErrorMessages[code];
+}
 
 export const contentUnitLabels: Record<MeasureUnit, string> = {
   g: 'g',
