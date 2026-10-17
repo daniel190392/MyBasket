@@ -16,3 +16,7 @@ export interface Product {
   expirationDate: string;
   isFavorite: boolean;
 }
+
+// What the user enters to add a product: the repository assigns the id and a
+// new product is never a favorite.
+export type ProductDraft = Omit<Product, 'id' | 'isFavorite'>;

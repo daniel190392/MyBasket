@@ -1,4 +1,4 @@
-import type { Product } from '../domain/product';
+import type { Product, ProductDraft } from '../domain/product';
 import type { ProductRepository } from '../domain/ProductRepository';
 
 const SAMPLE_DELAY_MS = 300;
@@ -62,6 +62,7 @@ interface InMemoryProductRepositoryOptions {
 export class InMemoryProductRepository implements ProductRepository {
   private products: Product[];
   private readonly delayMs: number;
+  private createdCount = 0;
 
   constructor({
     products = createSampleProducts(new Date()),
@@ -74,6 +75,18 @@ export class InMemoryProductRepository implements ProductRepository {
   async list(): Promise<Product[]> {
     await this.simulateLatency();
     return this.products;
+  }
+
+  async create(draft: ProductDraft): Promise<Product> {
+    await this.simulateLatency();
+    this.createdCount += 1;
+    const product: Product = {
+      ...draft,
+      id: `created-${this.createdCount}`,
+      isFavorite: false,
+    };
+    this.products = [...this.products, product];
+    return product;
   }
 
   async setFavorite(productId: string, isFavorite: boolean): Promise<void> {

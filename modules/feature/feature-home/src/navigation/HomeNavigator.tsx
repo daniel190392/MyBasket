@@ -91,9 +91,12 @@ export function HomeNavigator({ productRepository }: HomeNavigatorProps) {
             />
             <Stack.Screen
               name="AddProduct"
-              component={AddProductScreen}
               options={{ title: homeStrings.addProductTitle }}
-            />
+            >
+              {({ navigation }) => (
+                <AddProductScreen onProductAdded={navigation.goBack} />
+              )}
+            </Stack.Screen>
           </Stack.Navigator>
         </NavigationContainer>
       </NavigationIndependentTree>

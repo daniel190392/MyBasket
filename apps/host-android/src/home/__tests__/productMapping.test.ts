@@ -1,4 +1,4 @@
-import { toProduct } from '../productMapping';
+import { toBackendDraft, toProduct } from '../productMapping';
 
 import type { BackendProduct } from '../productMapping';
 
@@ -56,4 +56,33 @@ describe('toProduct', () => {
       expect(toProduct({ ...backendProduct, category }).category).toBe('food');
     }
   );
+});
+
+describe('toBackendDraft', () => {
+  const draft = {
+    name: 'Milk',
+    category: 'dairy' as const,
+    expirationDate: '2026-12-01',
+  };
+
+  it('sends a count as the quantity with the unit "units"', () => {
+    expect(
+      toBackendDraft({ ...draft, quantity: { kind: 'units', count: 3 } })
+    ).toEqual({
+      name: 'Milk',
+      category: 'dairy',
+      expirationDate: '2026-12-01',
+      quantity: 3,
+      unit: 'units',
+    });
+  });
+
+  it('sends a measure as the amount with its unit', () => {
+    expect(
+      toBackendDraft({
+        ...draft,
+        quantity: { kind: 'measure', amount: 1.5, unit: 'l' },
+      })
+    ).toEqual(expect.objectContaining({ quantity: 1.5, unit: 'l' }));
+  });
 });

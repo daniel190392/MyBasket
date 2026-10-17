@@ -1,4 +1,5 @@
 import type { MeasureUnit, ProductCategory } from '../domain/product';
+import type { QuantityUnitOption } from '../domain/productForm';
 
 const MEASURE_UNIT_LABELS: Record<
   MeasureUnit,
@@ -28,6 +29,30 @@ export const homeStrings = {
   loadError: 'No se pudieron cargar los productos',
   retry: 'Reintentar',
 } as const;
+
+export const addProductStrings = {
+  categoryLabel: 'Categoría',
+  nameLabel: 'Nombre del producto',
+  namePlaceholder: 'Ej. Arroz integral',
+  nameError: 'Escribe el nombre del producto',
+  quantityLabel: 'Cantidad',
+  quantityPlaceholder: 'Ej. 2',
+  quantityError: 'Escribe un número mayor o igual que 0',
+  unitLabel: 'Unidad',
+  expirationLabel: 'Fecha de caducidad',
+  expirationPlaceholder: 'DD/MM/AAAA',
+  expirationError: 'Escribe una fecha válida',
+  submit: 'Añadir a la despensa',
+  submitError: 'No se pudo añadir el producto. Inténtalo de nuevo.',
+} as const;
+
+export const quantityUnitLabels: Record<QuantityUnitOption, string> = {
+  units: 'Unidades',
+  g: 'g',
+  kg: 'kg',
+  ml: 'ml',
+  l: 'l',
+};
 
 export const categoryLabels: Record<ProductCategory, string> = {
   food: 'Alimentos',
