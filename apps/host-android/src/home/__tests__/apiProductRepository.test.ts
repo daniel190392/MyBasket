@@ -119,6 +119,73 @@ describe('createApiProductRepository', () => {
     ).rejects.toEqual(errorWithCode('offline'));
   });
 
+  it('updates the counts with one PATCH, sending them as the quantity', async () => {
+    const { apiClient, request } = createApiClientReturning(undefined);
+
+    await createApiProductRepository(apiClient).updateQuantities([
+      { productId: 'a1', count: 5 },
+      { productId: 'b2', count: 0 },
+    ]);
+
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request).toHaveBeenCalledWith('/products', {
+      method: 'PATCH',
+      body: {
+        products: [
+          { productId: 'a1', quantity: 5 },
+          { productId: 'b2', quantity: 0 },
+        ],
+      },
+    });
+  });
+
+  it('removes the products with one batch delete', async () => {
+    const { apiClient, request } = createApiClientReturning(undefined);
+
+    await createApiProductRepository(apiClient).remove(['a1', 'b2']);
+
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request).toHaveBeenCalledWith('/products/batch-delete', {
+      method: 'POST',
+      body: { productIds: ['a1', 'b2'] },
+    });
+  });
+
+  it('splits more than 25 entries into several calls', async () => {
+    const { apiClient, request } = createApiClientReturning(undefined);
+    const productIds = Array.from({ length: 26 }, (_, index) => `id-${index}`);
+
+    await createApiProductRepository(apiClient).remove(productIds);
+
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(request.mock.calls[0][1].body.productIds).toHaveLength(25);
+    expect(request.mock.calls[1][1].body.productIds).toEqual(['id-25']);
+  });
+
+  it('sends nothing when there is nothing to change', async () => {
+    const { apiClient, request } = createApiClientReturning(undefined);
+    const repository = createApiProductRepository(apiClient);
+
+    await repository.updateQuantities([]);
+    await repository.remove([]);
+
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it('reports a failed bulk call by its cause', async () => {
+    const apiClient = {
+      request: jest.fn().mockRejectedValue(new ApiError('server')),
+    } as unknown as ApiClient;
+    const repository = createApiProductRepository(apiClient);
+
+    await expect(
+      repository.updateQuantities([{ productId: 'a1', count: 1 }])
+    ).rejects.toEqual(errorWithCode('server'));
+    await expect(repository.remove(['a1'])).rejects.toEqual(
+      errorWithCode('server')
+    );
+  });
+
   it('reports an unexpected failure as unknown', async () => {
     const apiClient = {
       request: jest.fn().mockRejectedValue(new Error('crashed')),

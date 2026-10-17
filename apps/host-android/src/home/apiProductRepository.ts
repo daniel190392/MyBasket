@@ -11,6 +11,9 @@ import type {
 import type { BackendProduct } from './productMapping';
 
 const PRODUCTS_PATH = '/products';
+const BATCH_DELETE_PATH = '/products/batch-delete';
+// The most entries the backend takes in one bulk call.
+const BULK_LIMIT = 25;
 
 type ProductsResponse = {
   products: BackendProduct[];
@@ -22,6 +25,14 @@ const ERROR_CODES: Partial<Record<ApiErrorCode, ProductErrorCode>> = {
   unauthorized: 'unauthorized',
   server: 'server',
 };
+
+function inGroups<Item>(items: Item[], size: number): Item[][] {
+  const groups: Item[][] = [];
+  for (let start = 0; start < items.length; start += size) {
+    groups.push(items.slice(start, start + size));
+  }
+  return groups;
+}
 
 function toRepositoryError(error: unknown): ProductRepositoryError {
   const code = (isApiError(error) && ERROR_CODES[error.code]) || 'unknown';
@@ -55,6 +66,30 @@ export function createApiProductRepository(
           { method: 'POST', body: toBackendDraft(draft) }
         );
         return toProduct(backendProduct);
+      }),
+    // Each bulk call is all-or-nothing; only more than 25 entries need several.
+    updateQuantities: (updates) =>
+      translatingErrors(async () => {
+        for (const group of inGroups(updates, BULK_LIMIT)) {
+          await apiClient.request(PRODUCTS_PATH, {
+            method: 'PATCH',
+            body: {
+              products: group.map(({ productId, count }) => ({
+                productId,
+                quantity: count,
+              })),
+            },
+          });
+        }
+      }),
+    remove: (productIds) =>
+      translatingErrors(async () => {
+        for (const group of inGroups(productIds, BULK_LIMIT)) {
+          await apiClient.request(BATCH_DELETE_PATH, {
+            method: 'POST',
+            body: { productIds: group },
+          });
+        }
       }),
     // Rejecting makes the home put the star back: the backend cannot store it.
     setFavorite: async () => {

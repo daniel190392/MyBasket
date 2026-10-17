@@ -1,5 +1,10 @@
 import type { Product, ProductDraft } from '../domain/product';
-import type { ProductRepository } from '../domain/ProductRepository';
+import { withUpdatedCounts, withoutProducts } from '../domain/editChanges';
+
+import type {
+  ProductRepository,
+  QuantityUpdate,
+} from '../domain/ProductRepository';
 
 const SAMPLE_DELAY_MS = 300;
 
@@ -95,6 +100,16 @@ export class InMemoryProductRepository implements ProductRepository {
     };
     this.products = [...this.products, product];
     return product;
+  }
+
+  async updateQuantities(updates: QuantityUpdate[]): Promise<void> {
+    await this.simulateLatency();
+    this.products = withUpdatedCounts(this.products, updates);
+  }
+
+  async remove(productIds: string[]): Promise<void> {
+    await this.simulateLatency();
+    this.products = withoutProducts(this.products, productIds);
   }
 
   async setFavorite(productId: string, isFavorite: boolean): Promise<void> {

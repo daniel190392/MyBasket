@@ -8,9 +8,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { PIcon, colors, iconSize, textPresets } from 'ui-components';
 
 import { AddProductScreen } from '../screens/AddProductScreen';
+import { EditProductsScreen } from '../screens/EditProductsScreen';
 import { FavoritesScreen } from '../screens/FavoritesScreen';
 import { ProductsScreen } from '../screens/ProductsScreen';
-import { homeStrings } from '../screens/strings';
+import { editProductsStrings, homeStrings } from '../screens/strings';
 import { ProductsProvider } from '../state/ProductsProvider';
 import type { ProductRepository } from '../domain/ProductRepository';
 import type { HomeStackParamList, HomeTabParamList } from './types';
@@ -40,6 +41,9 @@ function HomeTabs({ onMenuPress }: Pick<HomeNavigatorProps, 'onMenuPress'>) {
           <ProductsScreen
             onAddProductPress={() =>
               navigation.getParent()?.navigate('AddProduct')
+            }
+            onEditProductsPress={() =>
+              navigation.getParent()?.navigate('EditProducts')
             }
             onMenuPress={onMenuPress}
           />
@@ -99,6 +103,14 @@ export function HomeNavigator({
             >
               {({ navigation }) => (
                 <AddProductScreen onProductAdded={navigation.goBack} />
+              )}
+            </Stack.Screen>
+            <Stack.Screen
+              name="EditProducts"
+              options={{ title: editProductsStrings.title }}
+            >
+              {({ navigation }) => (
+                <EditProductsScreen onSaved={navigation.goBack} />
               )}
             </Stack.Screen>
           </Stack.Navigator>

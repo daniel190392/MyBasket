@@ -1,5 +1,5 @@
 import { expirationStatus } from '../domain/expiration';
-import { expirationLabels, packagingCountLabel, unitsLabel } from './strings';
+import { expirationLabels, packagingWord, unitsWord } from './strings';
 
 import type { ExpirationLevel } from '../domain/expiration';
 import type { Product, Quantity } from '../domain/product';
@@ -15,14 +15,19 @@ const BADGE_VARIANTS: Record<ExpirationLevel, BadgeVariant> = {
   safe: 'important',
 };
 
+// "botellas · 1 l": what the count counts and, when known, what each holds.
+// The count is a parameter because the edit mode shows it before saving.
+export function quantityUnitLabel(
+  { packaging, content }: Quantity,
+  count: number
+): string {
+  const word = packaging ? packagingWord(count, packaging) : unitsWord(count);
+  return content ? `${word} · ${content.size} ${content.unit}` : word;
+}
+
 // "2 botellas · 1 l": how many packages and, when known, what each holds.
-export function quantityLabel({ count, packaging, content }: Quantity): string {
-  const countLabel = packaging
-    ? packagingCountLabel(count, packaging)
-    : unitsLabel(count);
-  return content
-    ? `${countLabel} · ${content.size} ${content.unit}`
-    : countLabel;
+export function quantityLabel(quantity: Quantity): string {
+  return `${quantity.count} ${quantityUnitLabel(quantity, quantity.count)}`;
 }
 
 export function expirationLabel(product: Product, now: Date): string {

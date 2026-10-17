@@ -70,6 +70,29 @@ export function addErrorMessage(code: ProductErrorCode): string {
     : connectionErrorMessages[code];
 }
 
+export const editProductsStrings = {
+  moreOptionsLabel: 'Más opciones',
+  editMenuItem: 'Editar despensa',
+  title: 'Editar despensa',
+  undoRemoval: 'Deshacer',
+  willBeRemoved: 'Se eliminará al guardar',
+  discardTitle: '¿Descartar los cambios?',
+  discardMessage: 'Los cambios sin guardar se perderán.',
+  keepEditing: 'Seguir editando',
+  discard: 'Descartar',
+  saveError: 'No se pudieron guardar los cambios. Inténtalo de nuevo.',
+  save: (changeCount: number) => `Guardar cambios (${changeCount})`,
+  decreaseLabel: (name: string) => `Disminuir la cantidad de ${name}`,
+  increaseLabel: (name: string) => `Aumentar la cantidad de ${name}`,
+  removeLabel: (name: string) => `Eliminar ${name}`,
+};
+
+export function saveErrorMessage(code: ProductErrorCode): string {
+  return code === 'unknown'
+    ? editProductsStrings.saveError
+    : connectionErrorMessages[code];
+}
+
 export const contentUnitLabels: Record<MeasureUnit, string> = {
   g: 'g',
   kg: 'kg',
@@ -98,16 +121,13 @@ export function productCountLabel(count: number): string {
   return count === 1 ? '1 producto' : `${count} productos`;
 }
 
-export function unitsLabel(count: number): string {
-  return count === 1 ? '1 unidad' : `${count} unidades`;
+export function unitsWord(count: number): string {
+  return count === 1 ? 'unidad' : 'unidades';
 }
 
-export function packagingCountLabel(
-  count: number,
-  packaging: Packaging
-): string {
+export function packagingWord(count: number, packaging: Packaging): string {
   const labels = packagingLabels[packaging];
-  return `${count} ${count === 1 ? labels.singular : labels.plural}`;
+  return count === 1 ? labels.singular : labels.plural;
 }
 
 export const expirationLabels = {
