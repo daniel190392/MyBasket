@@ -7,14 +7,18 @@ import type { BackendProduct } from './productMapping';
 
 const PRODUCTS_PATH = '/products';
 
+type ProductsResponse = {
+  products: BackendProduct[];
+};
+
 export function createApiProductRepository(
   apiClient: ApiClient
 ): ProductRepository {
   return {
     list: async () => {
-      const backendProducts =
-        await apiClient.request<BackendProduct[]>(PRODUCTS_PATH);
-      return backendProducts.map(toProduct);
+      const { products } =
+        await apiClient.request<ProductsResponse>(PRODUCTS_PATH);
+      return products.map(toProduct);
     },
     // Rejecting makes the home put the star back: the backend cannot store it.
     setFavorite: async () => {
