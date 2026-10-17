@@ -1,15 +1,8 @@
-import type { MeasureUnit, ProductCategory } from '../domain/product';
-import type { QuantityUnitOption } from '../domain/productForm';
-
-const MEASURE_UNIT_LABELS: Record<
+import type {
   MeasureUnit,
-  { singular: string; plural: string }
-> = {
-  g: { singular: 'g', plural: 'g' },
-  kg: { singular: 'kg', plural: 'kg' },
-  ml: { singular: 'ml', plural: 'ml' },
-  l: { singular: 'litro', plural: 'litros' },
-};
+  Packaging,
+  ProductCategory,
+} from '../domain/product';
 
 export const homeStrings = {
   productsTab: 'Productos',
@@ -35,10 +28,13 @@ export const addProductStrings = {
   nameLabel: 'Nombre del producto',
   namePlaceholder: 'Ej. Arroz integral',
   nameError: 'Escribe el nombre del producto',
-  quantityLabel: 'Cantidad',
-  quantityPlaceholder: 'Ej. 2',
-  quantityError: 'Escribe un número mayor o igual que 0',
-  unitLabel: 'Unidad',
+  countLabel: 'Cantidad',
+  countPlaceholder: 'Ej. 2',
+  countError: 'Escribe un número entero mayor o igual que 0',
+  packagingLabel: 'Envase (opcional)',
+  contentLabel: 'Contenido de cada envase (opcional)',
+  contentPlaceholder: 'Ej. 1',
+  contentError: 'Indica el contenido y su unidad, o deja ambos vacíos',
   expirationLabel: 'Fecha de caducidad',
   expirationPlaceholder: 'DD/MM/AAAA',
   expirationError: 'Escribe una fecha válida',
@@ -46,12 +42,22 @@ export const addProductStrings = {
   submitError: 'No se pudo añadir el producto. Inténtalo de nuevo.',
 } as const;
 
-export const quantityUnitLabels: Record<QuantityUnitOption, string> = {
-  units: 'Unidades',
+export const contentUnitLabels: Record<MeasureUnit, string> = {
   g: 'g',
   kg: 'kg',
   ml: 'ml',
   l: 'l',
+};
+
+export const packagingLabels: Record<
+  Packaging,
+  { chip: string; singular: string; plural: string }
+> = {
+  bottle: { chip: 'Botella', singular: 'botella', plural: 'botellas' },
+  box: { chip: 'Caja', singular: 'caja', plural: 'cajas' },
+  can: { chip: 'Lata', singular: 'lata', plural: 'latas' },
+  bag: { chip: 'Bolsa', singular: 'bolsa', plural: 'bolsas' },
+  pack: { chip: 'Paquete', singular: 'paquete', plural: 'paquetes' },
 };
 
 export const categoryLabels: Record<ProductCategory, string> = {
@@ -68,9 +74,12 @@ export function unitsLabel(count: number): string {
   return count === 1 ? '1 unidad' : `${count} unidades`;
 }
 
-export function measureLabel(amount: number, unit: MeasureUnit): string {
-  const labels = MEASURE_UNIT_LABELS[unit];
-  return `${amount} ${amount === 1 ? labels.singular : labels.plural}`;
+export function packagingCountLabel(
+  count: number,
+  packaging: Packaging
+): string {
+  const labels = packagingLabels[packaging];
+  return `${count} ${count === 1 ? labels.singular : labels.plural}`;
 }
 
 export const expirationLabels = {

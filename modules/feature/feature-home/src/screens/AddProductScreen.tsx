@@ -12,19 +12,24 @@ import {
 import {
   addProductStrings,
   categoryLabels,
-  quantityUnitLabels,
+  contentUnitLabels,
+  packagingLabels,
 } from './strings';
 import { useAddProductForm } from './useAddProductForm';
 
-import type { ProductCategory } from '../domain/product';
-import type { QuantityUnitOption } from '../domain/productForm';
+import type {
+  MeasureUnit,
+  Packaging,
+  ProductCategory,
+} from '../domain/product';
 
 type AddProductScreenProps = {
   onProductAdded: () => void;
 };
 
 const CATEGORIES = Object.keys(categoryLabels) as ProductCategory[];
-const QUANTITY_UNITS = Object.keys(quantityUnitLabels) as QuantityUnitOption[];
+const PACKAGINGS = Object.keys(packagingLabels) as Packaging[];
+const CONTENT_UNITS = Object.keys(contentUnitLabels) as MeasureUnit[];
 
 export function AddProductScreen({ onProductAdded }: AddProductScreenProps) {
   const { values, errors, isSubmitting, hasSubmitFailed, setValue, submit } =
@@ -57,22 +62,50 @@ export function AddProductScreen({ onProductAdded }: AddProductScreenProps) {
       />
 
       <PInput
-        label={addProductStrings.quantityLabel}
-        placeholder={addProductStrings.quantityPlaceholder}
-        keyboardType="decimal-pad"
-        value={values.quantityText}
-        onChangeText={(text) => setValue('quantityText', text)}
-        error={errors.quantity ? addProductStrings.quantityError : undefined}
+        label={addProductStrings.countLabel}
+        placeholder={addProductStrings.countPlaceholder}
+        keyboardType="number-pad"
+        value={values.countText}
+        onChangeText={(text) => setValue('countText', text)}
+        error={errors.count ? addProductStrings.countError : undefined}
       />
 
-      <Text style={styles.sectionLabel}>{addProductStrings.unitLabel}</Text>
+      <Text style={styles.sectionLabel}>
+        {addProductStrings.packagingLabel}
+      </Text>
       <View style={styles.chips}>
-        {QUANTITY_UNITS.map((unit) => (
+        {PACKAGINGS.map((packaging) => (
+          <PChip
+            key={packaging}
+            label={packagingLabels[packaging].chip}
+            isSelected={values.packaging === packaging}
+            onPress={() =>
+              setValue(
+                'packaging',
+                values.packaging === packaging ? null : packaging
+              )
+            }
+          />
+        ))}
+      </View>
+
+      <PInput
+        label={addProductStrings.contentLabel}
+        placeholder={addProductStrings.contentPlaceholder}
+        keyboardType="decimal-pad"
+        value={values.contentSizeText}
+        onChangeText={(text) => setValue('contentSizeText', text)}
+        error={errors.content ? addProductStrings.contentError : undefined}
+      />
+      <View style={styles.chips}>
+        {CONTENT_UNITS.map((unit) => (
           <PChip
             key={unit}
-            label={quantityUnitLabels[unit]}
-            isSelected={values.quantityUnit === unit}
-            onPress={() => setValue('quantityUnit', unit)}
+            label={contentUnitLabels[unit]}
+            isSelected={values.contentUnit === unit}
+            onPress={() =>
+              setValue('contentUnit', values.contentUnit === unit ? null : unit)
+            }
           />
         ))}
       </View>

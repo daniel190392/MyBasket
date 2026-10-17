@@ -60,7 +60,7 @@ npm start
 
 ## Status
 
-The products screen follows the design: search, category chips, products grouped by expiration, favorite star and the add button. The filter button in the header is disabled until its behavior is decided. The product icon is the initial of its name until there are category illustrations. The add product screen is a form (category, name, quantity with its unit, expiration date as DD/MM/YYYY) validated by pure functions in `domain/productForm.ts`; the photo of the design waits for the camera module. Favorites is still a placeholder.
+The products screen follows the design: search, category chips, products grouped by expiration, favorite star and the add button. The filter button in the header is disabled until its behavior is decided. The product icon is the initial of its name until there are category illustrations. The add product screen is a form (category, name, number of packages, optional packaging and optional content of each package as a size with its unit, expiration date as DD/MM/YYYY) validated by pure functions in `domain/productForm.ts`; the photo of the design waits for the camera module. Favorites is still a placeholder.
 
 ## Build
 

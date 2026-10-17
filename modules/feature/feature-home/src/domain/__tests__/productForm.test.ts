@@ -1,6 +1,7 @@
 import {
   parseExpirationDate,
-  parseQuantity,
+  parseContentSize,
+  parseCount,
   validateProductForm,
 } from '../productForm';
 
@@ -9,8 +10,10 @@ import type { ProductFormValues } from '../productForm';
 const validValues: ProductFormValues = {
   name: 'Arroz integral',
   category: 'food',
-  quantityText: '2',
-  quantityUnit: 'units',
+  countText: '2',
+  packaging: null,
+  contentSizeText: '',
+  contentUnit: null,
   expirationText: '01/12/2026',
 };
 
@@ -40,46 +43,82 @@ describe('parseExpirationDate', () => {
   });
 });
 
-describe('parseQuantity', () => {
+describe('parseCount', () => {
   it.each([
     ['2', 2],
     ['0', 0],
-    ['1.5', 1.5],
-    ['1,5', 1.5],
     [' 3 ', 3],
   ])('reads %s as %d', (text, expected) => {
-    expect(parseQuantity(text)).toBe(expected);
+    expect(parseCount(text)).toBe(expected);
   });
 
-  it.each([[''], ['-1'], ['abc'], ['1,2,3'], ['1e3']])('rejects %s', (text) => {
-    expect(parseQuantity(text)).toBeNull();
+  it.each([[''], ['-1'], ['1.5'], ['1,5'], ['abc'], ['1e3']])(
+    'rejects %s',
+    (text) => {
+      expect(parseCount(text)).toBeNull();
+    }
+  );
+});
+
+describe('parseContentSize', () => {
+  it.each([
+    ['1', 1],
+    ['1.5', 1.5],
+    ['1,5', 1.5],
+    [' 500 ', 500],
+  ])('reads %s as %d', (text, expected) => {
+    expect(parseContentSize(text)).toBe(expected);
+  });
+
+  it.each([[''], ['0'], ['-1'], ['abc'], ['1,2,3']])('rejects %s', (text) => {
+    expect(parseContentSize(text)).toBeNull();
   });
 });
 
 describe('validateProductForm', () => {
-  it('builds a draft with units from valid values', () => {
+  it('builds a draft with only a count when nothing else is chosen', () => {
     expect(validateProductForm(validValues)).toEqual({
       isValid: true,
       draft: {
         name: 'Arroz integral',
         category: 'food',
-        quantity: { kind: 'units', count: 2 },
+        quantity: { count: 2 },
         expirationDate: '2026-12-01',
       },
     });
   });
 
-  it('builds a measure when a unit is chosen', () => {
+  it('adds the packaging when one is chosen', () => {
     const result = validateProductForm({
       ...validValues,
-      quantityText: '1,5',
-      quantityUnit: 'kg',
+      packaging: 'bottle',
     });
 
     expect(result).toEqual(
       expect.objectContaining({
         draft: expect.objectContaining({
-          quantity: { kind: 'measure', amount: 1.5, unit: 'kg' },
+          quantity: { count: 2, packaging: 'bottle' },
+        }),
+      })
+    );
+  });
+
+  it('adds the content of each package when size and unit are given', () => {
+    const result = validateProductForm({
+      ...validValues,
+      packaging: 'bottle',
+      contentSizeText: '1,5',
+      contentUnit: 'l',
+    });
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        draft: expect.objectContaining({
+          quantity: {
+            count: 2,
+            packaging: 'bottle',
+            content: { size: 1.5, unit: 'l' },
+          },
         }),
       })
     );
@@ -95,14 +134,28 @@ describe('validateProductForm', () => {
     );
   });
 
-  it('accepts a zero quantity and a date in the past', () => {
+  it('accepts a zero count and a date in the past', () => {
     expect(
       validateProductForm({
         ...validValues,
-        quantityText: '0',
+        countText: '0',
         expirationText: '01/01/2020',
       }).isValid
     ).toBe(true);
+  });
+
+  it.each([
+    ['a size without a unit', { contentSizeText: '1', contentUnit: null }],
+    [
+      'a unit without a size',
+      { contentSizeText: '', contentUnit: 'l' as const },
+    ],
+    ['a zero size', { contentSizeText: '0', contentUnit: 'l' as const }],
+  ])('rejects %s', (_label, content) => {
+    expect(validateProductForm({ ...validValues, ...content })).toEqual({
+      isValid: false,
+      errors: { content: true },
+    });
   });
 
   it('reports every invalid field at once', () => {
@@ -110,18 +163,25 @@ describe('validateProductForm', () => {
       validateProductForm({
         ...validValues,
         name: '   ',
-        quantityText: '',
+        countText: '',
+        contentSizeText: '1',
         expirationText: '31/02/2026',
       })
     ).toEqual({
       isValid: false,
-      errors: { name: true, quantity: true, expirationDate: true },
+      errors: {
+        name: true,
+        count: true,
+        content: true,
+        expirationDate: true,
+      },
     });
   });
 
   it('reports only the invalid field', () => {
-    expect(validateProductForm({ ...validValues, quantityText: '-2' })).toEqual(
-      { isValid: false, errors: { quantity: true } }
-    );
+    expect(validateProductForm({ ...validValues, countText: '1,5' })).toEqual({
+      isValid: false,
+      errors: { count: true },
+    });
   });
 });

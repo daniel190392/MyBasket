@@ -11,8 +11,10 @@ import type {
 const INITIAL_VALUES: ProductFormValues = {
   name: '',
   category: 'food',
-  quantityText: '',
-  quantityUnit: 'units',
+  countText: '',
+  packaging: null,
+  contentSizeText: '',
+  contentUnit: null,
   expirationText: '',
 };
 

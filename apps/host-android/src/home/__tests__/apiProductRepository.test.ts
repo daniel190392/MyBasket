@@ -15,7 +15,9 @@ describe('createApiProductRepository', () => {
           productId: 'a1',
           name: 'Milk',
           quantity: 2,
-          unit: 'L',
+          packaging: 'bottle',
+          size: 1,
+          sizeUnit: 'L',
           category: 'dairy',
           expirationDate: '2026-12-01',
         },
@@ -30,7 +32,11 @@ describe('createApiProductRepository', () => {
         id: 'a1',
         name: 'Milk',
         category: 'dairy',
-        quantity: { kind: 'measure', amount: 2, unit: 'l' },
+        quantity: {
+          count: 2,
+          packaging: 'bottle',
+          content: { size: 1, unit: 'l' },
+        },
         expirationDate: '2026-12-01',
         isFavorite: false,
       },
@@ -48,7 +54,7 @@ describe('createApiProductRepository', () => {
       productId: 'b2',
       name: 'Rice',
       quantity: 2,
-      unit: 'units',
+      packaging: 'box',
       category: 'food',
       expirationDate: '2027-01-31',
     });
@@ -56,7 +62,7 @@ describe('createApiProductRepository', () => {
     const product = await createApiProductRepository(apiClient).create({
       name: 'Rice',
       category: 'food',
-      quantity: { kind: 'units', count: 2 },
+      quantity: { count: 2, packaging: 'box' },
       expirationDate: '2027-01-31',
     });
 
@@ -67,7 +73,7 @@ describe('createApiProductRepository', () => {
         category: 'food',
         expirationDate: '2027-01-31',
         quantity: 2,
-        unit: 'units',
+        packaging: 'box',
       },
     });
     expect(product).toEqual(

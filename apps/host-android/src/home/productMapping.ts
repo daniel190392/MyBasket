@@ -1,53 +1,81 @@
 import type { Product, ProductDraft } from 'feature-home';
 
-// The product as the backend sends it. `unit` and `category` are free text
-// there, while the home works with closed sets.
+// The product as the backend sends it. `packaging`, `category` and
+// `sizeUnit` are free text there, while the home works with closed sets.
 export type BackendProduct = {
   productId: string;
   name: string;
   quantity: number;
   expirationDate: string;
-  unit?: string;
+  packaging?: string;
+  size?: number;
+  sizeUnit?: string;
   category?: string;
 };
 
 type Category = Product['category'];
 type Quantity = Product['quantity'];
-type MeasureUnit = Extract<Quantity, { kind: 'measure' }>['unit'];
+type Packaging = NonNullable<Quantity['packaging']>;
+type Content = NonNullable<Quantity['content']>;
 
 const CATEGORIES: readonly Category[] = ['food', 'drinks', 'dairy'];
-const MEASURE_UNITS: readonly MeasureUnit[] = ['g', 'kg', 'ml', 'l'];
+const PACKAGINGS: readonly Packaging[] = [
+  'bottle',
+  'box',
+  'can',
+  'bag',
+  'pack',
+];
+const CONTENT_UNITS: readonly Content['unit'][] = ['g', 'kg', 'ml', 'l'];
 const FALLBACK_CATEGORY: Category = 'food';
 
+function normalize(text: string | undefined): string | undefined {
+  return text?.trim().toLowerCase();
+}
+
 function toCategory(category: string | undefined): Category {
-  const normalized = category?.trim().toLowerCase();
+  const normalized = normalize(category);
   return CATEGORIES.find((known) => known === normalized) ?? FALLBACK_CATEGORY;
 }
 
-// Any unit that is not a measure ("units", "box", none) is a plain count.
-function toQuantity(amount: number, unit: string | undefined): Quantity {
-  const normalized = unit?.trim().toLowerCase();
-  const measureUnit = MEASURE_UNITS.find((known) => known === normalized);
-  return measureUnit
-    ? { kind: 'measure', amount, unit: measureUnit }
-    : { kind: 'units', count: amount };
+function toPackaging(packaging: string | undefined): Packaging | undefined {
+  const normalized = normalize(packaging);
+  return PACKAGINGS.find((known) => known === normalized);
 }
 
-// What the backend takes to create a product: the quantity is one number and
-// a count travels with the unit "units".
+// The size and its unit only make sense together: if the unit is not one the
+// home knows, the size is dropped too instead of showing a wrong measure.
+function toContent(
+  size: number | undefined,
+  sizeUnit: string | undefined
+): Content | undefined {
+  const normalized = normalize(sizeUnit);
+  const unit = CONTENT_UNITS.find((known) => known === normalized);
+  return size !== undefined && unit ? { size, unit } : undefined;
+}
+
+function toQuantity(backendProduct: BackendProduct): Quantity {
+  const packaging = toPackaging(backendProduct.packaging);
+  const content = toContent(backendProduct.size, backendProduct.sizeUnit);
+  return {
+    count: backendProduct.quantity,
+    ...(packaging && { packaging }),
+    ...(content && { content }),
+  };
+}
+
+// What the backend takes to create a product.
 export type BackendProductDraft = Omit<BackendProduct, 'productId'>;
 
-const UNITS_UNIT = 'units';
-
 export function toBackendDraft(draft: ProductDraft): BackendProductDraft {
-  const { quantity } = draft;
+  const { count, packaging, content } = draft.quantity;
   return {
     name: draft.name,
     category: draft.category,
     expirationDate: draft.expirationDate,
-    ...(quantity.kind === 'units'
-      ? { quantity: quantity.count, unit: UNITS_UNIT }
-      : { quantity: quantity.amount, unit: quantity.unit }),
+    quantity: count,
+    ...(packaging && { packaging }),
+    ...(content && { size: content.size, sizeUnit: content.unit }),
   };
 }
 
@@ -57,7 +85,7 @@ export function toProduct(backendProduct: BackendProduct): Product {
     id: backendProduct.productId,
     name: backendProduct.name,
     category: toCategory(backendProduct.category),
-    quantity: toQuantity(backendProduct.quantity, backendProduct.unit),
+    quantity: toQuantity(backendProduct),
     expirationDate: backendProduct.expirationDate,
     isFavorite: false,
   };
