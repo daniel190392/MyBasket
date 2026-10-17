@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAuth } from 'auth-flow';
@@ -9,15 +9,16 @@ import { CenteredMessage } from '../components/CenteredMessage';
 import { CenteredSpinner } from '../components/CenteredSpinner';
 import { useReportHostEvent } from '../native/useReportHostEvent';
 import { TemporarySignOutBar } from './TemporarySignOutBar';
-import { createTemporaryProductRepository } from './temporaryProductRepository';
+import { getProductRepositorySetup } from './sharedProductRepository';
 
-import type { AuthConfig } from '../auth/sharedAuthService';
-
-const productRepository = createTemporaryProductRepository();
+import type {
+  HomeConfig,
+  ProductRepositorySetup,
+} from './sharedProductRepository';
 
 // The home does not know about the session; this root watches it so the native
 // host takes the user back to the login when it ends (signing out or expiring).
-function HomeGate() {
+function HomeGate({ setup }: { setup: ProductRepositorySetup }) {
   const auth = useAuth();
   const hasFailed = useReportHostEvent(
     'signedOut',
@@ -35,19 +36,34 @@ function HomeGate() {
 
   if (auth.status !== 'signedIn') return <CenteredSpinner />;
 
+  if (!('repository' in setup)) {
+    return (
+      <CenteredMessage
+        title="Products are not configured"
+        caption={setup.problem}
+      />
+    );
+  }
+
   return (
     <View style={styles.flex}>
       <TemporarySignOutBar onSignOutPress={auth.signOut} />
-      <HomeNavigator productRepository={productRepository} />
+      <HomeNavigator productRepository={setup.repository} />
     </View>
   );
 }
 
-export function HomeRoot(props: AuthConfig) {
+export function HomeRoot({ apiBaseUrl, ...authConfig }: HomeConfig) {
+  const { clientId, endpoint } = authConfig;
+  const setup = useMemo(
+    () => getProductRepositorySetup({ clientId, endpoint, apiBaseUrl }),
+    [clientId, endpoint, apiBaseUrl]
+  );
+
   return (
     <SafeAreaProvider>
-      <AuthSessionRoot {...props}>
-        <HomeGate />
+      <AuthSessionRoot {...authConfig}>
+        <HomeGate setup={setup} />
       </AuthSessionRoot>
     </SafeAreaProvider>
   );

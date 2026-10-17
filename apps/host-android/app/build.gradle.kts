@@ -18,7 +18,7 @@ react {
     autolinkLibrariesWithApp()
 }
 
-// Auth backend settings come from the git-ignored local.properties (see local.properties.example).
+// Backend settings come from the git-ignored local.properties (see local.properties.example).
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
     if (file.exists()) file.inputStream().use { load(it) }
@@ -41,6 +41,7 @@ android {
 
         buildConfigField("String", "AUTH_CLIENT_ID", buildConfigString("auth.clientId"))
         buildConfigField("String", "AUTH_ENDPOINT", buildConfigString("auth.endpoint"))
+        buildConfigField("String", "API_BASE_URL", buildConfigString("api.baseUrl"))
 
         testInstrumentationRunner ="androidx.test.runner.AndroidJUnitRunner"
         ndk {
