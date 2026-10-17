@@ -30,6 +30,8 @@ modules/
     auth-flow/           Login flow, session state and backend contract (mock + swappable provider)
   platform/              Device capabilities exposed to React Native (native code inside)
     secure-storage/      Encrypted key-value storage (Android Keystore, iOS Keychain later)
+  data/                  Access to the backend (TypeScript only, no native code)
+    api-client/          HTTP client: Bearer token, typed errors
   feature/               Business features
     feature-home/        Home feature in React Native: product list, favorites, add product (own navigation)
 metro.config.js        Monorepo Metro config (projectRoot = apps/host-android)
@@ -53,6 +55,12 @@ Authentication module in React Native + TypeScript, built with `react-native-bui
 - The shared mock (`MockAuthProvider`, `InMemorySessionStorage`) lives in `src/testing/`: it is not exported nor built, and the example and the tests import it by relative path. Demo credentials are in `DEFAULT_MOCK_USERS`. Unit tests: `npm test` inside the module.
 - `example/` is an Expo showcase running against the mock. Build: `npm run build` inside the module.
 - Architecture rule: `.claude/rules/auth-module-architecture.md`; scaffold new auth modules with the `create-auth-module` skill.
+
+### `modules/data/api-client`
+
+Single `fetch` wrapper that every feature uses to reach the backend: `createApiClient({ baseUrl, getAccessToken })` returns `request<T>(path, { method, body })`. It sends the access token as Bearer, parses JSON and maps every failure to an `ApiError` with a stable `code` (it reads both backend error shapes, `error` and `message`). It does not depend on `auth-flow`: the host passes `() => authService.getAccessToken()`. The 401 retry and the backoff on 5xx are not built yet (see its README).
+
+- Tests: `npm test` inside the module. Build: `npm run build`.
 
 ### `modules/platform/secure-storage`
 
