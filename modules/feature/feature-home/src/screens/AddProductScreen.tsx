@@ -30,6 +30,8 @@ type AddProductScreenProps = {
 const CATEGORIES = Object.keys(categoryLabels) as ProductCategory[];
 const PACKAGINGS = Object.keys(packagingLabels) as Packaging[];
 const CONTENT_UNITS = Object.keys(contentUnitLabels) as MeasureUnit[];
+// Keeps the submit button clear of the screen edge when the form scrolls.
+const BOTTOM_CLEARANCE = spacing.xxl * 2;
 
 export function AddProductScreen({ onProductAdded }: AddProductScreenProps) {
   const { values, errors, isSubmitting, hasSubmitFailed, setValue, submit } =
@@ -130,6 +132,9 @@ export function AddProductScreen({ onProductAdded }: AddProductScreenProps) {
         isLoading={isSubmitting}
         onPress={submit}
       />
+      <Text style={styles.requiredFieldsNote}>
+        {addProductStrings.requiredFieldsNote}
+      </Text>
     </ScrollView>
   );
 }
@@ -141,6 +146,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
+    paddingBottom: BOTTOM_CLEARANCE,
     gap: spacing.lg,
   },
   sectionLabel: {
@@ -150,6 +156,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
+  },
+  requiredFieldsNote: {
+    ...textPresets.caption,
+    textAlign: 'center',
   },
   submitError: {
     ...textPresets.caption,

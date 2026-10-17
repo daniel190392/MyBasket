@@ -25,20 +25,21 @@ export const homeStrings = {
 
 export const addProductStrings = {
   categoryLabel: 'Categoría',
-  nameLabel: 'Nombre del producto',
+  nameLabel: 'Nombre del producto *',
   namePlaceholder: 'Ej. Arroz integral',
   nameError: 'Escribe el nombre del producto',
-  countLabel: 'Cantidad',
+  countLabel: 'Cantidad *',
   countPlaceholder: 'Ej. 2',
   countError: 'Escribe un número entero mayor o igual que 0',
-  packagingLabel: 'Envase (opcional)',
-  contentLabel: 'Contenido de cada envase (opcional)',
+  packagingLabel: 'Envase',
+  contentLabel: 'Contenido de cada envase',
   contentPlaceholder: 'Ej. 1',
   contentError: 'Indica el contenido y su unidad, o deja ambos vacíos',
-  expirationLabel: 'Fecha de caducidad',
+  expirationLabel: 'Fecha de caducidad *',
   expirationPlaceholder: 'DD/MM/AAAA',
   expirationError: 'Escribe una fecha válida',
   submit: 'Añadir a la despensa',
+  requiredFieldsNote: 'Campos obligatorios marcados con *',
   submitError: 'No se pudo añadir el producto. Inténtalo de nuevo.',
 } as const;
 
