@@ -13,6 +13,7 @@
     "api-client": "^1.0.0",
     "auth-flow": "^1.0.0",
     "feature-home": "^1.0.0",
+    "feature-side-menu": "^1.0.0",
     "react": "19.1.1",
     "react-native": "0.82.1",
     "react-native-safe-area-context": "^5.10.1",
