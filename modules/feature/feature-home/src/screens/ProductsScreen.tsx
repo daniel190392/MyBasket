@@ -76,24 +76,14 @@ export function ProductsScreen({
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
-        <View style={styles.titleGroup}>
-          {onMenuPress && (
-            <PIconButton
-              icon="menu"
-              accessibilityLabel={homeStrings.menuButtonLabel}
-              style={styles.menuButton}
-              onPress={onMenuPress}
-            />
-          )}
-          <Text style={styles.title}>{homeStrings.productsTitle}</Text>
-        </View>
-        {/* What the filter does is still undecided, so it stays disabled. */}
-        <PIconButton
-          icon="filter"
-          accessibilityLabel={homeStrings.filterButtonLabel}
-          isDisabled
-          onPress={() => undefined}
-        />
+        {onMenuPress && (
+          <PIconButton
+            icon="menu"
+            accessibilityLabel={homeStrings.menuButtonLabel}
+            onPress={onMenuPress}
+          />
+        )}
+        <Text style={styles.title}>{homeStrings.productsTitle}</Text>
       </View>
 
       <View style={styles.search}>
@@ -205,18 +195,9 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: spacing.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-  },
-  titleGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  // The design shows the menu icon with no background.
-  menuButton: {
-    backgroundColor: 'transparent',
   },
   title: {
     fontSize: typography.sizes['3xl'],

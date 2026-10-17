@@ -3,7 +3,9 @@ export const ICON_SHAPES = {
   search: ['M21 21l-4.3-4.3', 'M19 11a8 8 0 1 1-16 0a8 8 0 0 1 16 0z'],
   filter: ['M3 6h18', 'M7 12h10', 'M10 18h4'],
   plus: ['M5 12h14', 'M12 5v14'],
-  menu: ['M4 6h16', 'M4 12h16', 'M4 18h16'],
+  // Same strokes as `filter` on purpose: the menu button wears the look the
+  // header had on the right, so the app keeps one icon language.
+  menu: ['M3 6h18', 'M7 12h10', 'M10 18h4'],
   logout: [
     'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4',
     'M16 17l5-5-5-5',
