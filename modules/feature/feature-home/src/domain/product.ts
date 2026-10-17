@@ -2,9 +2,20 @@ export type ProductCategory = 'food' | 'drinks' | 'dairy';
 
 export type MeasureUnit = 'g' | 'kg' | 'ml' | 'l';
 
-export type Quantity =
-  | { kind: 'units'; count: number }
-  | { kind: 'measure'; amount: number; unit: MeasureUnit };
+export type Packaging = 'bottle' | 'box' | 'can' | 'bag' | 'pack';
+
+// What each package holds, for example 1 l.
+export interface PackageContent {
+  size: number;
+  unit: MeasureUnit;
+}
+
+export interface Quantity {
+  // How many packages there are.
+  count: number;
+  packaging?: Packaging;
+  content?: PackageContent;
+}
 
 export interface Product {
   id: string;
@@ -16,3 +27,7 @@ export interface Product {
   expirationDate: string;
   isFavorite: boolean;
 }
+
+// What the user enters to add a product: the repository assigns the id and a
+// new product is never a favorite.
+export type ProductDraft = Omit<Product, 'id' | 'isFavorite'>;

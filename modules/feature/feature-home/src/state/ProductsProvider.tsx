@@ -7,7 +7,7 @@ import React, {
   useState,
 } from 'react';
 
-import type { Product } from '../domain/product';
+import type { Product, ProductDraft } from '../domain/product';
 import type { ProductRepository } from '../domain/ProductRepository';
 
 import type { ReactNode } from 'react';
@@ -18,6 +18,7 @@ interface ProductsContextValue {
   status: ProductsStatus;
   products: Product[];
   reload: () => void;
+  addProduct: (draft: ProductDraft) => Promise<void>;
   toggleFavorite: (productId: string) => void;
 }
 
@@ -61,6 +62,15 @@ export function ProductsProvider({
     setReloadCount((count) => count + 1);
   }, []);
 
+  // Rejects when the repository does, so the form can tell the user.
+  const addProduct = useCallback(
+    async (draft: ProductDraft) => {
+      const created = await repository.create(draft);
+      setProducts((current) => [...current, created]);
+    },
+    [repository]
+  );
+
   // The star answers right away; if the repository rejects the change the
   // list is loaded again, so the screen never shows a state that was not saved.
   const toggleFavorite = useCallback(
@@ -80,8 +90,8 @@ export function ProductsProvider({
   );
 
   const value = useMemo(
-    () => ({ status, products, reload, toggleFavorite }),
-    [status, products, reload, toggleFavorite]
+    () => ({ status, products, reload, addProduct, toggleFavorite }),
+    [status, products, reload, addProduct, toggleFavorite]
   );
 
   return (

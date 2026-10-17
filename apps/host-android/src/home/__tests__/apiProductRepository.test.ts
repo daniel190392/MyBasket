@@ -15,7 +15,9 @@ describe('createApiProductRepository', () => {
           productId: 'a1',
           name: 'Milk',
           quantity: 2,
-          unit: 'L',
+          packaging: 'bottle',
+          size: 1,
+          sizeUnit: 'L',
           category: 'dairy',
           expirationDate: '2026-12-01',
         },
@@ -30,7 +32,11 @@ describe('createApiProductRepository', () => {
         id: 'a1',
         name: 'Milk',
         category: 'dairy',
-        quantity: { kind: 'measure', amount: 2, unit: 'l' },
+        quantity: {
+          count: 2,
+          packaging: 'bottle',
+          content: { size: 1, unit: 'l' },
+        },
         expirationDate: '2026-12-01',
         isFavorite: false,
       },
@@ -41,6 +47,38 @@ describe('createApiProductRepository', () => {
     const { apiClient } = createApiClientReturning({ products: [] });
 
     expect(await createApiProductRepository(apiClient).list()).toEqual([]);
+  });
+
+  it('creates a product with a POST and returns it mapped', async () => {
+    const { apiClient, request } = createApiClientReturning({
+      productId: 'b2',
+      name: 'Rice',
+      quantity: 2,
+      packaging: 'box',
+      category: 'food',
+      expirationDate: '2027-01-31',
+    });
+
+    const product = await createApiProductRepository(apiClient).create({
+      name: 'Rice',
+      category: 'food',
+      quantity: { count: 2, packaging: 'box' },
+      expirationDate: '2027-01-31',
+    });
+
+    expect(request).toHaveBeenCalledWith('/products', {
+      method: 'POST',
+      body: {
+        name: 'Rice',
+        category: 'food',
+        expirationDate: '2027-01-31',
+        quantity: 2,
+        packaging: 'box',
+      },
+    });
+    expect(product).toEqual(
+      expect.objectContaining({ id: 'b2', name: 'Rice', isFavorite: false })
+    );
   });
 
   it('rejects when the request fails', async () => {

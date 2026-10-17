@@ -1,4 +1,4 @@
-import type { Product } from '../domain/product';
+import type { Product, ProductDraft } from '../domain/product';
 import type { ProductRepository } from '../domain/ProductRepository';
 
 const SAMPLE_DELAY_MS = 300;
@@ -23,7 +23,7 @@ export function createSampleProducts(today: Date): Product[] {
       id: 'sample-yogurt',
       name: 'Yogur natural',
       category: 'dairy',
-      quantity: { kind: 'units', count: 4 },
+      quantity: { count: 4, packaging: 'pack' },
       expirationDate: daysFrom(today, 1),
       isFavorite: true,
     },
@@ -31,7 +31,7 @@ export function createSampleProducts(today: Date): Product[] {
       id: 'sample-chicken',
       name: 'Pollo fresco',
       category: 'food',
-      quantity: { kind: 'measure', amount: 1, unit: 'kg' },
+      quantity: { count: 1, content: { size: 1, unit: 'kg' } },
       expirationDate: daysFrom(today, 3),
       isFavorite: false,
     },
@@ -39,7 +39,11 @@ export function createSampleProducts(today: Date): Product[] {
       id: 'sample-milk',
       name: 'Leche entera',
       category: 'drinks',
-      quantity: { kind: 'measure', amount: 2, unit: 'l' },
+      quantity: {
+        count: 2,
+        packaging: 'bottle',
+        content: { size: 1, unit: 'l' },
+      },
       expirationDate: daysFrom(today, 12),
       isFavorite: true,
     },
@@ -47,7 +51,11 @@ export function createSampleProducts(today: Date): Product[] {
       id: 'sample-pasta',
       name: 'Pasta integral',
       category: 'food',
-      quantity: { kind: 'measure', amount: 500, unit: 'g' },
+      quantity: {
+        count: 1,
+        packaging: 'bag',
+        content: { size: 500, unit: 'g' },
+      },
       expirationDate: daysFrom(today, 300),
       isFavorite: true,
     },
@@ -62,6 +70,7 @@ interface InMemoryProductRepositoryOptions {
 export class InMemoryProductRepository implements ProductRepository {
   private products: Product[];
   private readonly delayMs: number;
+  private createdCount = 0;
 
   constructor({
     products = createSampleProducts(new Date()),
@@ -74,6 +83,18 @@ export class InMemoryProductRepository implements ProductRepository {
   async list(): Promise<Product[]> {
     await this.simulateLatency();
     return this.products;
+  }
+
+  async create(draft: ProductDraft): Promise<Product> {
+    await this.simulateLatency();
+    this.createdCount += 1;
+    const product: Product = {
+      ...draft,
+      id: `created-${this.createdCount}`,
+      isFavorite: false,
+    };
+    this.products = [...this.products, product];
+    return product;
   }
 
   async setFavorite(productId: string, isFavorite: boolean): Promise<void> {

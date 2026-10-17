@@ -7,7 +7,7 @@ export function buildProduct(overrides: Partial<Product> = {}): Product {
     id: 'product-1',
     name: 'Yogur natural',
     category: 'dairy',
-    quantity: { kind: 'units', count: 4 },
+    quantity: { count: 4 },
     expirationDate: '2026-10-16',
     isFavorite: false,
     ...overrides,
