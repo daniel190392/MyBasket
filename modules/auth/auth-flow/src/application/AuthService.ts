@@ -31,6 +31,18 @@ export class AuthService {
     return this.renewSession(session);
   }
 
+  /**
+   * The access token to send to the backend, renewed first when it is about
+   * to expire. `null` means there is no session (never signed in, or the
+   * backend rejected the refresh token). If the renewal fails for a transient
+   * reason the stored token is returned anyway: the backend has the final word
+   * on whether it is still valid.
+   */
+  async getAccessToken(): Promise<string | null> {
+    const session = await this.restoreSession();
+    return session?.accessToken ?? null;
+  }
+
   async signIn(credentials: Credentials): Promise<Session> {
     const session = await this.provider.signIn(credentials);
     await this.storage.save(session);
