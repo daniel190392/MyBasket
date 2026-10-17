@@ -275,6 +275,79 @@ describe('AuthService restoring an expired session', () => {
   });
 });
 
+describe('AuthService access token', () => {
+  const NOW_MS = 2_000_000;
+  const HOUR_MS = 3_600_000;
+  const validSession: Session = {
+    user: { id: '1', email: demoUser.email, displayName: 'Demo' },
+    accessToken: 'stored-token',
+    refreshToken: 'refresh-token',
+    accessTokenExpiresAt: NOW_MS + RENEWAL_MARGIN_MS + 1,
+  };
+  const expiringSession: Session = {
+    ...validSession,
+    accessTokenExpiresAt: NOW_MS + RENEWAL_MARGIN_MS,
+  };
+  const renewedSession: Session = {
+    ...validSession,
+    accessToken: 'renewed-token',
+    accessTokenExpiresAt: NOW_MS + HOUR_MS,
+  };
+
+  const setUp = async (
+    stored: Session | null,
+    refreshSession: AuthProvider['refreshSession']
+  ) => {
+    const provider = {
+      refreshSession,
+    } as unknown as AuthProvider;
+    const sessionStorage = new InMemorySessionStorage();
+    if (stored) {
+      await sessionStorage.save(stored);
+    }
+    return new AuthService(provider, sessionStorage, () => NOW_MS);
+  };
+
+  it('returns the stored token without renewing it when it is fresh', async () => {
+    const refreshSession = jest.fn();
+    const service = await setUp(validSession, refreshSession);
+
+    expect(await service.getAccessToken()).toBe('stored-token');
+    expect(refreshSession).not.toHaveBeenCalled();
+  });
+
+  it('renews the token first when it is about to expire', async () => {
+    const refreshSession = jest.fn().mockResolvedValue(renewedSession);
+    const service = await setUp(expiringSession, refreshSession);
+
+    expect(await service.getAccessToken()).toBe('renewed-token');
+  });
+
+  it('returns null when there is no session', async () => {
+    const service = await setUp(null, jest.fn());
+
+    expect(await service.getAccessToken()).toBeNull();
+  });
+
+  it('returns null when the backend rejects the refresh token', async () => {
+    const refreshSession = jest
+      .fn()
+      .mockRejectedValue(new AuthError('session-expired'));
+    const service = await setUp(expiringSession, refreshSession);
+
+    expect(await service.getAccessToken()).toBeNull();
+  });
+
+  it('returns the stored token when the renewal fails without a connection', async () => {
+    const refreshSession = jest
+      .fn()
+      .mockRejectedValue(new AuthError('network'));
+    const service = await setUp(expiringSession, refreshSession);
+
+    expect(await service.getAccessToken()).toBe('stored-token');
+  });
+});
+
 describe('AuthService password recovery', () => {
   it('delegates the request to the provider without creating a session', async () => {
     const provider = new MockAuthProvider({ latencyMs: 0 });
