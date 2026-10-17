@@ -65,4 +65,11 @@ export const CATALOG_ITEMS = [
     description: 'Square button that shows only an icon.',
     status: 'Ready',
   },
+  {
+    id: 'menu',
+    screenName: 'MenuScreen',
+    title: 'PMenu',
+    description: 'Popup list of actions that opens under its trigger.',
+    status: 'Ready',
+  },
 ] as const;

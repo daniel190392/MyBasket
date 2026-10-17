@@ -7,10 +7,14 @@ import React, {
   useState,
 } from 'react';
 
+import { withUpdatedCounts, withoutProducts } from '../domain/editChanges';
 import { productErrorCode } from '../domain/ProductRepositoryError';
 
 import type { Product, ProductDraft } from '../domain/product';
-import type { ProductRepository } from '../domain/ProductRepository';
+import type {
+  ProductRepository,
+  QuantityUpdate,
+} from '../domain/ProductRepository';
 import type { ProductErrorCode } from '../domain/ProductRepositoryError';
 
 import type { ReactNode } from 'react';
@@ -28,6 +32,9 @@ interface ProductsContextValue {
   isRefreshing: boolean;
   hasRefreshFailed: boolean;
   addProduct: (draft: ProductDraft) => Promise<void>;
+  // Both reject when the repository does and leave the list as it was.
+  updateQuantities: (updates: QuantityUpdate[]) => Promise<void>;
+  removeProducts: (productIds: string[]) => Promise<void>;
   toggleFavorite: (productId: string) => void;
 }
 
@@ -96,6 +103,22 @@ export function ProductsProvider({
     [repository]
   );
 
+  const updateQuantities = useCallback(
+    async (updates: QuantityUpdate[]) => {
+      await repository.updateQuantities(updates);
+      setProducts((current) => withUpdatedCounts(current, updates));
+    },
+    [repository]
+  );
+
+  const removeProducts = useCallback(
+    async (productIds: string[]) => {
+      await repository.remove(productIds);
+      setProducts((current) => withoutProducts(current, productIds));
+    },
+    [repository]
+  );
+
   // The star answers right away; if the repository rejects the change the
   // list is loaded again, so the screen never shows a state that was not saved.
   const toggleFavorite = useCallback(
@@ -124,6 +147,8 @@ export function ProductsProvider({
       isRefreshing,
       hasRefreshFailed,
       addProduct,
+      updateQuantities,
+      removeProducts,
       toggleFavorite,
     }),
     [
@@ -135,6 +160,8 @@ export function ProductsProvider({
       isRefreshing,
       hasRefreshFailed,
       addProduct,
+      updateQuantities,
+      removeProducts,
       toggleFavorite,
     ]
   );

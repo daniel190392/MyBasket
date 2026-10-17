@@ -15,6 +15,7 @@ import {
   PFab,
   PIcon,
   PIconButton,
+  PMenu,
   PInput,
   controlHeight,
   colors,
@@ -25,6 +26,7 @@ import {
 } from 'ui-components';
 
 import { ProductRow } from '../components/ProductRow';
+import { SectionHeader } from '../components/SectionHeader';
 import { filterProducts, groupByExpiration } from '../domain/productList';
 import { useProducts } from '../state/ProductsProvider';
 import {
@@ -34,6 +36,7 @@ import {
 } from './productLabels';
 import {
   categoryLabels,
+  editProductsStrings,
   homeStrings,
   loadErrorMessage,
   productCountLabel,
@@ -43,6 +46,7 @@ import type { Product, ProductCategory } from '../domain/product';
 
 type ProductsScreenProps = {
   onAddProductPress: () => void;
+  onEditProductsPress: () => void;
   // The menu belongs to the host: without this event there is no menu button.
   onMenuPress?: () => void;
 };
@@ -58,6 +62,7 @@ const FAB_CLEARANCE = controlHeight.md + spacing.lg * 2;
 
 export function ProductsScreen({
   onAddProductPress,
+  onEditProductsPress,
   onMenuPress,
 }: ProductsScreenProps) {
   const {
@@ -99,6 +104,25 @@ export function ProductsScreen({
           />
         )}
         <Text style={styles.title}>{homeStrings.productsTitle}</Text>
+        <View style={styles.headerSpacer} />
+        <PMenu
+          items={[
+            {
+              label: editProductsStrings.editMenuItem,
+              icon: 'edit',
+              onPress: onEditProductsPress,
+              isDisabled: products.length === 0,
+            },
+          ]}
+          renderTrigger={(open) => (
+            <PIconButton
+              icon="more"
+              accessibilityLabel={editProductsStrings.moreOptionsLabel}
+              style={styles.moreButton}
+              onPress={open}
+            />
+          )}
+        />
       </View>
 
       <View style={styles.search}>
@@ -193,12 +217,10 @@ export function ProductsScreen({
           }
           stickySectionHeadersEnabled={false}
           renderSectionHeader={({ section }) => (
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-              <Text style={styles.sectionCount}>
-                {productCountLabel(section.data.length)}
-              </Text>
-            </View>
+            <SectionHeader
+              title={section.title}
+              countLabel={productCountLabel(section.data.length)}
+            />
           )}
           renderItem={({ item }) => (
             <ProductRow
@@ -245,6 +267,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
+  headerSpacer: {
+    flex: 1,
+  },
+  // The menu trigger is quiet: the action it opens is not frequent.
+  moreButton: {
+    backgroundColor: 'transparent',
+  },
   title: {
     fontSize: typography.sizes['3xl'],
     fontWeight: typography.weights.bold,
@@ -267,19 +296,6 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: spacing.lg,
     paddingBottom: FAB_CLEARANCE,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'space-between',
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  sectionTitle: {
-    ...textPresets.title,
-  },
-  sectionCount: {
-    ...textPresets.caption,
   },
   separator: {
     height: spacing.sm,

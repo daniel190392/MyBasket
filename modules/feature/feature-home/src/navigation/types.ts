@@ -8,4 +8,5 @@ export type HomeTabParamList = {
 export type HomeStackParamList = {
   Tabs: NavigatorScreenParams<HomeTabParamList>;
   AddProduct: undefined;
+  EditProducts: undefined;
 };
