@@ -1,3 +1,5 @@
 # Copy these keys into the git-ignored local.properties and use your own values.
 auth.clientId=your-cognito-app-client-id
 auth.endpoint=https://cognito-idp.your-region.amazonaws.com/
+# Base URL of the products API (https, without a trailing path).
+api.baseUrl=https://your-api-id.execute-api.your-region.amazonaws.com/dev

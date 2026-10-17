@@ -19,11 +19,13 @@ abstract class HostReactActivity : ReactActivity() {
             override fun getLaunchOptions(): Bundle = Bundle().apply {
                 putString(AUTH_CLIENT_ID_PROP, BuildConfig.AUTH_CLIENT_ID)
                 putString(AUTH_ENDPOINT_PROP, BuildConfig.AUTH_ENDPOINT)
+                putString(API_BASE_URL_PROP, BuildConfig.API_BASE_URL)
             }
         }
 
     private companion object {
         const val AUTH_CLIENT_ID_PROP = "clientId"
         const val AUTH_ENDPOINT_PROP = "endpoint"
+        const val API_BASE_URL_PROP = "apiBaseUrl"
     }
 }
