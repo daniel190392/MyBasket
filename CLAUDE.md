@@ -34,6 +34,7 @@ modules/
     api-client/          HTTP client: Bearer token, typed errors
   feature/               Business features
     feature-home/        Home feature in React Native: product list, favorites, add product (own navigation)
+    feature-side-menu/   Side menu: user name and sign out, meant to grow with more options
 metro.config.js        Monorepo Metro config (projectRoot = apps/host-android)
 ```
 
@@ -72,6 +73,14 @@ React Native TurboModule with native code inside (`android/` in Kotlin; `ios/` w
 - `auth-flow` does not import it: it declares a `KeyValueStore` port, and the host passes `secureStorage` to `new SecureSessionStorage(...)`.
 - Build: `npm run build` inside the module.
 
+### `modules/feature/feature-side-menu`
+
+Side menu in React Native + TypeScript, built with `react-native-builder-bob` like the other modules. One component, `SideMenu` (`isOpen`, `userName`, `onClose`, `onSignOutPress`): a panel that slides over the current screen inside a `Modal`, with no drawer library. It shows the avatar with the initial, the user's name and **Cerrar sesión**; more options will be added later, which is why it is named after the menu and not after the account. It depends on neither `auth-flow` nor other features: the host passes the name and the action. `feature-home` only emits `onMenuPress` from its header; the host connects both in `HomeRoot`.
+
+- `example/` is an Expo showcase that opens the menu without the host.
+- Architecture rule: `.claude/rules/feature-module-architecture.md`.
+- Build: `npm run build` inside the module. Tests: `npm test`.
+
 ### `modules/feature/feature-home`
 
 Home feature in React Native + TypeScript, built with `react-native-builder-bob` like the other modules. The app is a brownfield migration, so a feature is one embeddable entry point for the native host: `HomeNavigator` owns its internal navigation (React Navigation, `native-stack` + `bottom-tabs`, in its own `NavigationContainer` inside a `NavigationIndependentTree`) and the host does not know the routes. The products screen is built from the design (search, category chips, products grouped into "Por caducar" and the rest, favorite star, add button); favorites is a placeholder. The add product form (category chips, name, number of packages, optional packaging chips and optional content size + unit, date typed as DD/MM/YYYY) is validated in `domain/productForm.ts` and creates through `ProductRepository.create`. The data comes through a `ProductRepository` port (in `domain/`) that the host passes to `HomeNavigator` as a prop; the in-memory mock lives in `src/testing/` and the host adapts the backend products in `src/home/` (`ApiProductRepository` over `api-client`; favorites are not stored by the backend, so toggling one is rejected and the star goes back). Expiration status, filtering and grouping are pure functions in `domain/` with Jest tests (`npm test` inside the module). The native dependencies of navigation are peer dependencies that the host installs.
@@ -82,7 +91,7 @@ Home feature in React Native + TypeScript, built with `react-native-builder-bob`
 
 ### `apps/host-android`
 
-Native Android app organized as a brownfield host: native destinations that each show one React Native root, registered by name in `index.js`. `AuthActivity` is the launcher and shows `AuthRoot` (the auth flow, which restores the session first). When the session is open it reports `signedIn` and the `NavigationCoordinator` starts `HomeActivity`, which shows `HomeRoot` (`feature-home`), and finishes the previous activity, so back from the home leaves the app. `HomeRoot` reports `signedOut` when the session ends and the coordinator returns to the login. Roots report to native through `HostEvents`, a TurboModule the host owns (`report(event)`; the events are defined in `HostEvent.kt` and `src/native/hostEvents.ts` and must change together). Every root is a separate React tree, so they share one `AuthService` instance built in `src/auth/sharedAuthService.ts`. `HomeRoot` shows a temporary sign-out bar until the native profile screen exists. The host consumes `ui-components`, `auth-flow`, `secure-storage`, `api-client` and `feature-home` (dependency `^1.0.0`, linked by the npm workspace). `HomeRoot` builds one `api-client` (with `authService.getAccessToken`) and the product repository from the `api.baseUrl` setting in `local.properties` (https only, refused otherwise); the mapping of backend products is in `src/home/productMapping.ts` with Jest tests (`npm test` in that folder). Metro is started with `npm start` in that folder.
+Native Android app organized as a brownfield host: native destinations that each show one React Native root, registered by name in `index.js`. `AuthActivity` is the launcher and shows `AuthRoot` (the auth flow, which restores the session first). When the session is open it reports `signedIn` and the `NavigationCoordinator` starts `HomeActivity`, which shows `HomeRoot` (`feature-home`), and finishes the previous activity, so back from the home leaves the app. `HomeRoot` reports `signedOut` when the session ends and the coordinator returns to the login. Roots report to native through `HostEvents`, a TurboModule the host owns (`report(event)`; the events are defined in `HostEvent.kt` and `src/native/hostEvents.ts` and must change together). Every root is a separate React tree, so they share one `AuthService` instance built in `src/auth/sharedAuthService.ts`. `HomeRoot` composes `feature-home` with `feature-side-menu`: the home's menu button opens the side menu, which signs out. The host consumes `ui-components`, `auth-flow`, `secure-storage`, `api-client`, `feature-home` and `feature-side-menu` (dependency `^1.0.0`, linked by the npm workspace). `HomeRoot` builds one `api-client` (with `authService.getAccessToken`) and the product repository from the `api.baseUrl` setting in `local.properties` (https only, refused otherwise); the mapping of backend products is in `src/home/productMapping.ts` with Jest tests (`npm test` in that folder). Metro is started with `npm start` in that folder.
 
 The host applies the React Native Gradle plugin, so `react-android` and `hermes-android` take their version from `package.json`, and it runs on the New Architecture. The plugin needs a JDK 17 installed (for example in `~/.jdks`); the toolchain is Gradle 9.0.0 and AGP 8.12.0.
 

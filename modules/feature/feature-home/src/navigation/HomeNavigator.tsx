@@ -18,7 +18,7 @@ import type { HomeStackParamList, HomeTabParamList } from './types';
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 const Tab = createBottomTabNavigator<HomeTabParamList>();
 
-function HomeTabs() {
+function HomeTabs({ onMenuPress }: Pick<HomeNavigatorProps, 'onMenuPress'>) {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -41,6 +41,7 @@ function HomeTabs() {
             onAddProductPress={() =>
               navigation.getParent()?.navigate('AddProduct')
             }
+            onMenuPress={onMenuPress}
           />
         )}
       </Tab.Screen>
@@ -65,11 +66,16 @@ function HomeTabs() {
 
 export type HomeNavigatorProps = {
   productRepository: ProductRepository;
+  // Leaving the feature is an event: the host decides what the menu is.
+  onMenuPress?: () => void;
 };
 
 // The tree is independent of the host and of any other embedded feature: this
 // is the "app inside a larger app" case React Navigation documents.
-export function HomeNavigator({ productRepository }: HomeNavigatorProps) {
+export function HomeNavigator({
+  productRepository,
+  onMenuPress,
+}: HomeNavigatorProps) {
   return (
     <ProductsProvider repository={productRepository}>
       <NavigationIndependentTree>
@@ -84,11 +90,9 @@ export function HomeNavigator({ productRepository }: HomeNavigatorProps) {
               headerShadowVisible: false,
             }}
           >
-            <Stack.Screen
-              name="Tabs"
-              component={HomeTabs}
-              options={{ headerShown: false }}
-            />
+            <Stack.Screen name="Tabs" options={{ headerShown: false }}>
+              {() => <HomeTabs onMenuPress={onMenuPress} />}
+            </Stack.Screen>
             <Stack.Screen
               name="AddProduct"
               options={{ title: homeStrings.addProductTitle }}

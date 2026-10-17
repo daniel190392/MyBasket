@@ -37,6 +37,8 @@ import type { Product, ProductCategory } from '../domain/product';
 
 type ProductsScreenProps = {
   onAddProductPress: () => void;
+  // The menu belongs to the host: without this event there is no menu button.
+  onMenuPress?: () => void;
 };
 
 type ProductSection = {
@@ -48,7 +50,10 @@ const CATEGORIES = Object.keys(categoryLabels) as ProductCategory[];
 // Keeps the last row above the floating button.
 const FAB_CLEARANCE = controlHeight.md + spacing.lg * 2;
 
-export function ProductsScreen({ onAddProductPress }: ProductsScreenProps) {
+export function ProductsScreen({
+  onAddProductPress,
+  onMenuPress,
+}: ProductsScreenProps) {
   const { status, products, reload, toggleFavorite } = useProducts();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<ProductCategory | null>(null);
@@ -71,7 +76,17 @@ export function ProductsScreen({ onAddProductPress }: ProductsScreenProps) {
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>{homeStrings.productsTitle}</Text>
+        <View style={styles.titleGroup}>
+          {onMenuPress && (
+            <PIconButton
+              icon="menu"
+              accessibilityLabel={homeStrings.menuButtonLabel}
+              style={styles.menuButton}
+              onPress={onMenuPress}
+            />
+          )}
+          <Text style={styles.title}>{homeStrings.productsTitle}</Text>
+        </View>
         {/* What the filter does is still undecided, so it stays disabled. */}
         <PIconButton
           icon="filter"
@@ -193,6 +208,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
+  },
+  titleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  // The design shows the menu icon with no background.
+  menuButton: {
+    backgroundColor: 'transparent',
   },
   title: {
     fontSize: typography.sizes['3xl'],
