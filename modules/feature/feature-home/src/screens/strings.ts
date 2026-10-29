@@ -25,6 +25,7 @@ export const homeStrings = {
   addFirstProductButton: 'Añadir producto',
   refreshError: 'No se pudo actualizar. Desliza hacia abajo para reintentar.',
   loadError: 'No se pudieron cargar los productos',
+  loadMoreError: 'No se pudieron cargar más productos',
   retry: 'Reintentar',
 } as const;
 

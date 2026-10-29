@@ -1,4 +1,10 @@
-import { filterProducts, groupByExpiration } from '../productList';
+import {
+  appendPage,
+  filterProducts,
+  groupByExpiration,
+  isFilterActive,
+  toListRequest,
+} from '../productList';
 import { buildProduct, NOW } from './fixtures';
 
 const yogurt = buildProduct({ id: 'yogurt', expirationDate: '2026-10-16' });
@@ -89,5 +95,46 @@ describe('groupByExpiration', () => {
     groupByExpiration(input, NOW);
 
     expect(ids(input)).toEqual(['pasta', 'yogurt']);
+  });
+});
+
+describe('isFilterActive', () => {
+  it('is inactive without a query or category', () => {
+    expect(isFilterActive({ query: '  ', category: null })).toBe(false);
+  });
+
+  it('is active with a query or a category', () => {
+    expect(isFilterActive({ query: 'leche', category: null })).toBe(true);
+    expect(isFilterActive({ query: '', category: 'food' })).toBe(true);
+  });
+});
+
+describe('toListRequest', () => {
+  it('leaves out an empty query and category', () => {
+    expect(toListRequest({ query: ' ', category: null })).toEqual({
+      cursor: undefined,
+      query: undefined,
+      category: undefined,
+    });
+  });
+
+  it('trims the query and carries the category and the cursor', () => {
+    expect(
+      toListRequest({ query: ' pasta ', category: 'food' }, 'abc')
+    ).toEqual({ cursor: 'abc', query: 'pasta', category: 'food' });
+  });
+});
+
+describe('appendPage', () => {
+  it('adds the incoming products after the current ones', () => {
+    expect(ids(appendPage([yogurt], [chicken]))).toEqual(['yogurt', 'chicken']);
+  });
+
+  it('skips a product that is already loaded', () => {
+    expect(ids(appendPage([yogurt, chicken], [chicken, milk]))).toEqual([
+      'yogurt',
+      'chicken',
+      'milk',
+    ]);
   });
 });

@@ -5,6 +5,7 @@ import { toBackendDraft, toProduct } from './productMapping';
 import type { ApiClient, ApiErrorCode } from 'api-client';
 import type {
   ProductErrorCode,
+  ProductListRequest,
   ProductRepository,
   ProductRepositoryError,
 } from 'feature-home';
@@ -17,6 +18,7 @@ const BULK_LIMIT = 25;
 
 type ProductsResponse = {
   products: BackendProduct[];
+  nextCursor: string | null;
 };
 
 // The home explains three causes; any other failure is just "unknown".
@@ -25,6 +27,18 @@ const ERROR_CODES: Partial<Record<ApiErrorCode, ProductErrorCode>> = {
   unauthorized: 'unauthorized',
   server: 'server',
 };
+
+// The values are sent as they come: the backend normalizes the query and
+// takes the category and the cursor as they are. URLSearchParams is avoided
+// because React Native does not implement all of it.
+function listPath({ cursor, query, category }: ProductListRequest): string {
+  const parameters = Object.entries({ cursor, q: query, category })
+    .filter(([, value]) => value !== undefined)
+    .map(([name, value]) => `${name}=${encodeURIComponent(String(value))}`);
+  return parameters.length === 0
+    ? PRODUCTS_PATH
+    : `${PRODUCTS_PATH}?${parameters.join('&')}`;
+}
 
 function inGroups<Item>(items: Item[], size: number): Item[][] {
   const groups: Item[][] = [];
@@ -53,11 +67,11 @@ export function createApiProductRepository(
   apiClient: ApiClient
 ): ProductRepository {
   return {
-    list: () =>
+    list: (request = {}) =>
       translatingErrors(async () => {
-        const { products } =
-          await apiClient.request<ProductsResponse>(PRODUCTS_PATH);
-        return products.map(toProduct);
+        const { products, nextCursor } =
+          await apiClient.request<ProductsResponse>(listPath(request));
+        return { products: products.map(toProduct), nextCursor };
       }),
     create: (draft) =>
       translatingErrors(async () => {
