@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, usePreventRemove } from '@react-navigation/native';
 import { PButton, colors, spacing, textPresets } from 'ui-components';
 
+import { LoadMoreFooter } from '../components/LoadMoreFooter';
 import { EditableProductRow } from '../components/EditableProductRow';
 import { SectionHeader } from '../components/SectionHeader';
 import { currentCount, isCountChanged, isRemoved } from '../domain/editChanges';
@@ -25,6 +26,9 @@ import { useEditProducts } from './useEditProducts';
 
 import type { Product } from '../domain/product';
 
+// The next page is requested when the end is this many screens away.
+const END_REACHED_THRESHOLD = 0.5;
+
 type EditProductsScreenProps = {
   onSaved: () => void;
 };
@@ -36,7 +40,8 @@ type ProductSection = {
 
 export function EditProductsScreen({ onSaved }: EditProductsScreenProps) {
   const navigation = useNavigation();
-  const { products } = useProducts();
+  const { products, isLoadingMore, hasLoadMoreFailed, loadMore } =
+    useProducts();
   const edit = useEditProducts();
 
   // Read once per data change, like the list, so the rules stay pure.
@@ -79,6 +84,15 @@ export function EditProductsScreen({ onSaved }: EditProductsScreenProps) {
         contentContainerStyle={styles.list}
         ItemSeparatorComponent={ItemSeparator}
         stickySectionHeadersEnabled={false}
+        onEndReached={hasLoadMoreFailed ? undefined : loadMore}
+        onEndReachedThreshold={END_REACHED_THRESHOLD}
+        ListFooterComponent={
+          <LoadMoreFooter
+            isLoading={isLoadingMore}
+            hasFailed={hasLoadMoreFailed}
+            onRetryPress={loadMore}
+          />
+        }
         renderSectionHeader={({ section }) => (
           <SectionHeader
             title={section.title}

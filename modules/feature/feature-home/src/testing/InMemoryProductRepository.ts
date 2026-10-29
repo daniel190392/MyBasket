@@ -1,12 +1,16 @@
 import type { Product, ProductDraft } from '../domain/product';
 import { withUpdatedCounts, withoutProducts } from '../domain/editChanges';
+import { filterProducts } from '../domain/productList';
 
 import type {
+  ProductListRequest,
+  ProductPage,
   ProductRepository,
   QuantityUpdate,
 } from '../domain/ProductRepository';
 
 const SAMPLE_DELAY_MS = 300;
+const DEFAULT_PAGE_SIZE = 20;
 
 function toIsoDate(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -70,24 +74,45 @@ export function createSampleProducts(today: Date): Product[] {
 interface InMemoryProductRepositoryOptions {
   products?: Product[];
   delayMs?: number;
+  pageSize?: number;
 }
 
 export class InMemoryProductRepository implements ProductRepository {
   private products: Product[];
   private readonly delayMs: number;
+  private readonly pageSize: number;
   private createdCount = 0;
 
   constructor({
     products = createSampleProducts(new Date()),
     delayMs = SAMPLE_DELAY_MS,
+    pageSize = DEFAULT_PAGE_SIZE,
   }: InMemoryProductRepositoryOptions = {}) {
     this.products = products;
     this.delayMs = delayMs;
+    this.pageSize = pageSize;
   }
 
-  async list(): Promise<Product[]> {
+  // The cursor is the offset into the filtered, sorted list; the real backend
+  // keeps its own opaque one.
+  async list({
+    cursor,
+    query = '',
+    category,
+  }: ProductListRequest = {}): Promise<ProductPage> {
     await this.simulateLatency();
-    return this.products;
+    const matching = filterProducts(this.products, {
+      query,
+      category: category ?? null,
+    }).sort((first, second) =>
+      first.expirationDate.localeCompare(second.expirationDate)
+    );
+    const start = cursor === undefined ? 0 : Number(cursor);
+    const end = start + this.pageSize;
+    return {
+      products: matching.slice(start, end),
+      nextCursor: end < matching.length ? String(end) : null,
+    };
   }
 
   async create(draft: ProductDraft): Promise<Product> {

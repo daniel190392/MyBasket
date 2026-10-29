@@ -12,8 +12,9 @@ const createApiClientReturning = (response: unknown) => {
 };
 
 describe('createApiProductRepository', () => {
-  it('lists the products of the backend response', async () => {
+  it('lists the products and the next cursor of the backend response', async () => {
     const { apiClient, request } = createApiClientReturning({
+      nextCursor: 'next-page',
       products: [
         {
           productId: 'a1',
@@ -28,10 +29,11 @@ describe('createApiProductRepository', () => {
       ],
     });
 
-    const products = await createApiProductRepository(apiClient).list();
+    const page = await createApiProductRepository(apiClient).list();
 
     expect(request).toHaveBeenCalledWith('/products');
-    expect(products).toEqual([
+    expect(page.nextCursor).toBe('next-page');
+    expect(page.products).toEqual([
       {
         id: 'a1',
         name: 'Milk',
@@ -48,9 +50,32 @@ describe('createApiProductRepository', () => {
   });
 
   it('lists nothing for an empty inventory', async () => {
-    const { apiClient } = createApiClientReturning({ products: [] });
+    const { apiClient } = createApiClientReturning({
+      products: [],
+      nextCursor: null,
+    });
 
-    expect(await createApiProductRepository(apiClient).list()).toEqual([]);
+    expect(await createApiProductRepository(apiClient).list()).toEqual({
+      products: [],
+      nextCursor: null,
+    });
+  });
+
+  it('sends the cursor, the query and the category, encoded', async () => {
+    const { apiClient, request } = createApiClientReturning({
+      products: [],
+      nextCursor: null,
+    });
+
+    await createApiProductRepository(apiClient).list({
+      cursor: 'a+b/c=',
+      query: 'limón & sal',
+      category: 'dairy',
+    });
+
+    expect(request).toHaveBeenCalledWith(
+      '/products?cursor=a%2Bb%2Fc%3D&q=lim%C3%B3n%20%26%20sal&category=dairy'
+    );
   });
 
   it('creates a product with a POST and returns it mapped', async () => {

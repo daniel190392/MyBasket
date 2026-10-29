@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -25,10 +25,12 @@ import {
   typography,
 } from 'ui-components';
 
+import { LoadMoreFooter } from '../components/LoadMoreFooter';
 import { ProductRow } from '../components/ProductRow';
 import { SectionHeader } from '../components/SectionHeader';
-import { filterProducts, groupByExpiration } from '../domain/productList';
+import { groupByExpiration, isFilterActive } from '../domain/productList';
 import { useProducts } from '../state/ProductsProvider';
+import { useDebouncedValue } from './useDebouncedValue';
 import {
   expirationBadgeVariant,
   expirationLabel,
@@ -56,6 +58,10 @@ type ProductSection = {
   data: Product[];
 };
 
+// Waits for the user to stop typing before asking the backend.
+const SEARCH_DEBOUNCE_MS = 300;
+// The next page is requested when the end is this many screens away.
+const END_REACHED_THRESHOLD = 0.5;
 const CATEGORIES = Object.keys(categoryLabels) as ProductCategory[];
 // Keeps the last row above the floating button.
 const FAB_CLEARANCE = controlHeight.md + spacing.lg * 2;
@@ -69,29 +75,39 @@ export function ProductsScreen({
     status,
     errorCode,
     products,
+    filter,
+    changeFilter,
     reload,
+    isLoadingMore,
+    hasLoadMoreFailed,
+    loadMore,
     refresh,
     isRefreshing,
     hasRefreshFailed,
     toggleFavorite,
   } = useProducts();
-  const [query, setQuery] = useState('');
-  const [category, setCategory] = useState<ProductCategory | null>(null);
+  const [query, setQuery] = useState(filter.query);
+  const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
+  const { category } = filter;
+
+  useEffect(() => {
+    changeFilter({ query: debouncedQuery });
+  }, [debouncedQuery, changeFilter]);
+
+  const handleCategoryPress = (selected: ProductCategory | null) =>
+    changeFilter({ category: selected });
 
   // The date is read once per data change, not inside the rules, so the
   // domain functions stay pure and the list does not shift while scrolling.
   const now = useMemo(() => new Date(), [products]);
 
   const sections = useMemo<ProductSection[]>(() => {
-    const { expiringSoon, rest } = groupByExpiration(
-      filterProducts(products, { query, category }),
-      now
-    );
+    const { expiringSoon, rest } = groupByExpiration(products, now);
     return [
       { title: homeStrings.expiringSoonSection, data: expiringSoon },
       { title: homeStrings.restSection, data: rest },
     ].filter((section) => section.data.length > 0);
-  }, [products, query, category, now]);
+  }, [products, now]);
 
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
@@ -146,14 +162,14 @@ export function ProductsScreen({
         <PChip
           label={homeStrings.allCategories}
           isSelected={category === null}
-          onPress={() => setCategory(null)}
+          onPress={() => handleCategoryPress(null)}
         />
         {CATEGORIES.map((candidate) => (
           <PChip
             key={candidate}
             label={categoryLabels[candidate]}
             isSelected={category === candidate}
-            onPress={() => setCategory(candidate)}
+            onPress={() => handleCategoryPress(candidate)}
           />
         ))}
       </ScrollView>
@@ -196,8 +212,17 @@ export function ProductsScreen({
               </Text>
             ) : null
           }
+          onEndReached={hasLoadMoreFailed ? undefined : loadMore}
+          onEndReachedThreshold={END_REACHED_THRESHOLD}
+          ListFooterComponent={
+            <LoadMoreFooter
+              isLoading={isLoadingMore}
+              hasFailed={hasLoadMoreFailed}
+              onRetryPress={loadMore}
+            />
+          }
           ListEmptyComponent={
-            products.length === 0 ? (
+            !isFilterActive(filter) ? (
               <View style={styles.emptyPantry}>
                 <Text style={styles.emptyTitle}>
                   {homeStrings.emptyPantryTitle}
@@ -285,8 +310,11 @@ const styles = StyleSheet.create({
   searchInput: {
     marginBottom: spacing.sm,
   },
+  // A horizontal ScrollView shrinks by default, and the list below takes the
+  // free height, so without this the chips are cut off.
   chipsScroll: {
     flexGrow: 0,
+    flexShrink: 0,
   },
   chips: {
     paddingHorizontal: spacing.lg,

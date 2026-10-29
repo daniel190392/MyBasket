@@ -5,4 +5,8 @@ export type {
   ProductErrorCode,
   ProductRepositoryError,
 } from './domain/ProductRepositoryError';
-export type { ProductRepository } from './domain/ProductRepository';
+export type {
+  ProductListRequest,
+  ProductPage,
+  ProductRepository,
+} from './domain/ProductRepository';

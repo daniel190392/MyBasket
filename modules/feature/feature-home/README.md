@@ -38,14 +38,15 @@ import { HomeNavigator } from 'feature-home';
 <HomeNavigator productRepository={productRepository} />;
 ```
 
-`productRepository` implements the `ProductRepository` port (`list`, `setFavorite`). The host provides the adapter; switching the data source never touches a screen. The events the feature sends out appear when the feature has any (see the rule).
+`productRepository` implements the `ProductRepository` port (`list`, `create`, `updateQuantities`, `remove`, `setFavorite`). The host provides the adapter; switching the data source never touches a screen. The events the feature sends out appear when the feature has any (see the rule).
 
 ## Domain
 
 Pure functions in `src/domain`, tested with Jest (`npm test`). Anything that depends on the current date receives it as an argument.
 
 - `expirationStatus(product, now)`: `expired`, `soon` (7 days or less), `upcoming` (under 30 days) or `safe`, from calendar days, so the time of day does not matter.
-- `filterProducts`: by category and by name, ignoring case and accents.
+- `filterProducts`: by category and by name, ignoring case and accents. The real backend does this on its side; the in-memory mock uses it.
+- `toListRequest`, `appendPage`, `isFilterActive`: the request for a filter and a page, adding a page without repeating products, and whether a filter is set.
 - `groupByExpiration`: "expiring soon" (including expired) and the rest, each sorted by date.
 
 ## Example
@@ -60,7 +61,7 @@ npm start
 
 ## Status
 
-The products screen follows the design: search, category chips, products grouped by expiration, favorite star and the add button. The filter button in the header is disabled until its behavior is decided. The product icon is the initial of its name until there are category illustrations. The add product screen is a form (category, name, number of packages, optional packaging and optional content of each package as a size with its unit, expiration date as DD/MM/YYYY) validated by pure functions in `domain/productForm.ts`; the photo of the design waits for the camera module. The products can be edited from the header menu: the edit mode changes the number of packages of each product and marks products for removal, and one save applies everything (the backend takes the counts and the removals as two all-or-nothing bulk calls). Favorites is still a placeholder.
+The products screen follows the design: search, category chips, products grouped by expiration, favorite star and the add button. The filter button in the header is disabled until its behavior is decided. The product icon is the initial of its name until there are category illustrations. The add product screen is a form (category, name, number of packages, optional packaging and optional content of each package as a size with its unit, expiration date as DD/MM/YYYY) validated by pure functions in `domain/productForm.ts`; the photo of the design waits for the camera module. The products can be edited from the header menu: the edit mode changes the number of packages of each product and marks products for removal, and one save applies everything (the backend takes the counts and the removals as two all-or-nothing bulk calls). The list is paginated: `list` takes a cursor, the search text and the category, and returns a page with `nextCursor` (`null` is the only end). The search waits 300 ms after typing, a new filter starts the list again from the first page, and the next page loads when the end of the list is near, in the edit mode too. Favorites is still a placeholder.
 
 ## Build
 

@@ -4,13 +4,16 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
 import { withUpdatedCounts, withoutProducts } from '../domain/editChanges';
+import { NO_FILTER, appendPage, toListRequest } from '../domain/productList';
 import { productErrorCode } from '../domain/ProductRepositoryError';
 
 import type { Product, ProductDraft } from '../domain/product';
+import type { ProductFilter } from '../domain/productList';
 import type {
   ProductRepository,
   QuantityUpdate,
@@ -25,8 +28,15 @@ interface ProductsContextValue {
   status: ProductsStatus;
   // Why the first load failed; only meaningful while the status is 'error'.
   errorCode: ProductErrorCode;
+  // The products loaded so far, for the current filter.
   products: Product[];
+  filter: ProductFilter;
+  // Starts the list again from its first page.
+  changeFilter: (change: Partial<ProductFilter>) => void;
   reload: () => void;
+  isLoadingMore: boolean;
+  hasLoadMoreFailed: boolean;
+  loadMore: () => Promise<void>;
   // Pull to refresh: keeps showing the list while it loads again.
   refresh: () => Promise<void>;
   isRefreshing: boolean;
@@ -54,16 +64,28 @@ export function ProductsProvider({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasRefreshFailed, setHasRefreshFailed] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [filter, setFilter] = useState<ProductFilter>(NO_FILTER);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasLoadMoreFailed, setHasLoadMoreFailed] = useState(false);
   const [reloadCount, setReloadCount] = useState(0);
+  // Counts the times the list starts again, so an answer to a request made
+  // for an older list (another filter, a refresh) is thrown away.
+  const listVersion = useRef(0);
 
   useEffect(() => {
     let isCancelled = false;
+    listVersion.current += 1;
+    setStatus('loading');
+    setIsLoadingMore(false);
+    setHasLoadMoreFailed(false);
 
     repository
-      .list()
-      .then((loadedProducts) => {
+      .list(toListRequest(filter))
+      .then((page) => {
         if (isCancelled) return;
-        setProducts(loadedProducts);
+        setProducts(page.products);
+        setNextCursor(page.nextCursor);
         setStatus('ready');
       })
       .catch((error: unknown) => {
@@ -75,32 +97,66 @@ export function ProductsProvider({
     return () => {
       isCancelled = true;
     };
-  }, [repository, reloadCount]);
+  }, [repository, filter, reloadCount]);
+
+  const changeFilter = useCallback((change: Partial<ProductFilter>) => {
+    setFilter((current) => {
+      const next = { ...current, ...change };
+      const isSame =
+        next.query === current.query && next.category === current.category;
+      // Returning the same object keeps the list as it is.
+      return isSame ? current : next;
+    });
+  }, []);
 
   const reload = useCallback(() => {
-    setStatus('loading');
     setReloadCount((count) => count + 1);
   }, []);
 
   const refresh = useCallback(async () => {
+    const version = (listVersion.current += 1);
     setIsRefreshing(true);
     setHasRefreshFailed(false);
+    setIsLoadingMore(false);
+    setHasLoadMoreFailed(false);
     try {
-      setProducts(await repository.list());
+      const page = await repository.list(toListRequest(filter));
+      if (version !== listVersion.current) return;
+      setProducts(page.products);
+      setNextCursor(page.nextCursor);
     } catch {
-      setHasRefreshFailed(true);
+      if (version === listVersion.current) setHasRefreshFailed(true);
     } finally {
       setIsRefreshing(false);
     }
-  }, [repository]);
+  }, [repository, filter]);
 
-  // Rejects when the repository does, so the form can tell the user.
+  const loadMore = useCallback(async () => {
+    if (nextCursor === null || isLoadingMore) return;
+    const version = listVersion.current;
+    setIsLoadingMore(true);
+    setHasLoadMoreFailed(false);
+    try {
+      const page = await repository.list(toListRequest(filter, nextCursor));
+      if (version !== listVersion.current) return;
+      setProducts((current) => appendPage(current, page.products));
+      setNextCursor(page.nextCursor);
+      setIsLoadingMore(false);
+    } catch {
+      if (version !== listVersion.current) return;
+      setHasLoadMoreFailed(true);
+      setIsLoadingMore(false);
+    }
+  }, [repository, filter, nextCursor, isLoadingMore]);
+
+  // Rejects when the repository does, so the form can tell the user. The list
+  // starts again because the new product can belong in a page not loaded yet.
   const addProduct = useCallback(
     async (draft: ProductDraft) => {
-      const created = await repository.create(draft);
-      setProducts((current) => [...current, created]);
+      await repository.create(draft);
+      refresh();
     },
-    [repository]
+    [repository, refresh]
   );
 
   const updateQuantities = useCallback(
@@ -142,7 +198,12 @@ export function ProductsProvider({
       status,
       errorCode,
       products,
+      filter,
+      changeFilter,
       reload,
+      isLoadingMore,
+      hasLoadMoreFailed,
+      loadMore,
       refresh,
       isRefreshing,
       hasRefreshFailed,
@@ -155,7 +216,12 @@ export function ProductsProvider({
       status,
       errorCode,
       products,
+      filter,
+      changeFilter,
       reload,
+      isLoadingMore,
+      hasLoadMoreFailed,
+      loadMore,
       refresh,
       isRefreshing,
       hasRefreshFailed,
